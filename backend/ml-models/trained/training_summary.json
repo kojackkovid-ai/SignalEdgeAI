@@ -1,0 +1,400 @@
+{
+  "timestamp": "2026-02-12T17:35:08.694276",
+  "total_models": 14,
+  "successful": 14,
+  "failed": 0,
+  "models": [
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "moneyline",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.33652822151224704,
+        "gradient_boosting": 0.33652822151224704,
+        "xgboost": 0.3269435569755058
+      },
+      "model_scores": {
+        "random_forest": 0.79,
+        "gradient_boosting": 0.79,
+        "xgboost": 0.7675
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "spread",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.33652822151224704,
+        "gradient_boosting": 0.33652822151224704,
+        "xgboost": 0.3269435569755058
+      },
+      "model_scores": {
+        "random_forest": 0.79,
+        "gradient_boosting": 0.79,
+        "xgboost": 0.7675
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "total",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.33652822151224704,
+        "gradient_boosting": 0.33652822151224704,
+        "xgboost": 0.3269435569755058
+      },
+      "model_scores": {
+        "random_forest": 0.79,
+        "gradient_boosting": 0.79,
+        "xgboost": 0.7675
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "basketball_ncaa",
+      "market_type": "moneyline",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.33652822151224704,
+        "gradient_boosting": 0.33652822151224704,
+        "xgboost": 0.3269435569755058
+      },
+      "model_scores": {
+        "random_forest": 0.79,
+        "gradient_boosting": 0.79,
+        "xgboost": 0.7675
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "moneyline",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.3333333333333333,
+        "gradient_boosting": 0.34,
+        "xgboost": 0.32666666666666666
+      },
+      "model_scores": {
+        "random_forest": 0.75,
+        "gradient_boosting": 0.765,
+        "xgboost": 0.735
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "spread",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.3333333333333333,
+        "gradient_boosting": 0.34,
+        "xgboost": 0.32666666666666666
+      },
+      "model_scores": {
+        "random_forest": 0.75,
+        "gradient_boosting": 0.765,
+        "xgboost": 0.735
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "total",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.3333333333333333,
+        "gradient_boosting": 0.34,
+        "xgboost": 0.32666666666666666
+      },
+      "model_scores": {
+        "random_forest": 0.75,
+        "gradient_boosting": 0.765,
+        "xgboost": 0.735
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "moneyline",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.34065934065934067,
+        "gradient_boosting": 0.3357753357753358,
+        "xgboost": 0.3235653235653236
+      },
+      "model_scores": {
+        "random_forest": 0.6975,
+        "gradient_boosting": 0.6875,
+        "xgboost": 0.6625
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "total",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.34065934065934067,
+        "gradient_boosting": 0.3357753357753358,
+        "xgboost": 0.3235653235653236
+      },
+      "model_scores": {
+        "random_forest": 0.6975,
+        "gradient_boosting": 0.6875,
+        "xgboost": 0.6625
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "moneyline",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.33374536464771326,
+        "gradient_boosting": 0.33498145859085293,
+        "xgboost": 0.3312731767614339
+      },
+      "model_scores": {
+        "random_forest": 0.675,
+        "gradient_boosting": 0.6775,
+        "xgboost": 0.67
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "puck_line",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.33374536464771326,
+        "gradient_boosting": 0.33498145859085293,
+        "xgboost": 0.3312731767614339
+      },
+      "model_scores": {
+        "random_forest": 0.675,
+        "gradient_boosting": 0.6775,
+        "xgboost": 0.67
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "total",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.33374536464771326,
+        "gradient_boosting": 0.33498145859085293,
+        "xgboost": 0.3312731767614339
+      },
+      "model_scores": {
+        "random_forest": 0.675,
+        "gradient_boosting": 0.6775,
+        "xgboost": 0.67
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "spread",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.3333333333333333,
+        "gradient_boosting": 0.3420724094881399,
+        "xgboost": 0.32459425717852686
+      },
+      "model_scores": {
+        "random_forest": 0.6675,
+        "gradient_boosting": 0.685,
+        "xgboost": 0.65
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "total",
+      "models_trained": [
+        "random_forest",
+        "gradient_boosting",
+        "xgboost"
+      ],
+      "ensemble_weights": {
+        "random_forest": 0.3333333333333333,
+        "gradient_boosting": 0.3420724094881399,
+        "xgboost": 0.32459425717852686
+      },
+      "model_scores": {
+        "random_forest": 0.6675,
+        "gradient_boosting": 0.685,
+        "xgboost": 0.65
+      },
+      "feature_names": [
+        "home_ppg",
+        "away_ppg",
+        "home_def",
+        "away_def",
+        "home_form",
+        "away_form",
+        "home_advantage"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+Fetching stats from: https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/1966/stats
+
+Stats Categories found:
+- averages (Display: Regular Season Averages)
+- totals (Display: Regular Season Totals)
+- miscellaneous (Display: Regular Season Misc Totals)
+
+Fetching gamelog from: https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes/1966/gamelog
+Gamelog keys: ['filters', 'labels', 'names', 'displayNames', 'events', 'seasonTypes', 'glossary']
+Display Names: ['Minutes', 'Field Goals Made-Attempted', 'Field Goal Percentage', '3-Point Field Goals Made-Attempted', '3-Point Field Goal Percentage', 'Free Throws Made-Attempted', 'Free Throw Percentage', 'Rebounds', 'Assists', 'Blocks', 'Steals', 'Fouls', 'Turnovers', 'Points']
+Names: ['minutes', 'fieldGoalsMade-fieldGoalsAttempted', 'fieldGoalPct', 'threePointFieldGoalsMade-threePointFieldGoalsAttempted', 'threePointPct', 'freeThrowsMade-freeThrowsAttempted', 'freeThrowPct', 'totalRebounds', 'assists', 'blocks', 'steals', 'fouls', 'turnovers', 'points']
+Season Type: 2025-26 Regular Season
+  Category: None
+  Events count: 3
+  First event date: None
+  First event stats: ['37', '7-17', '41.2', '0-3', '0.0', '3-3', '100.0', '4', '10', '1', '0', '1', '8', '17']
+  Category: None
+  Events count: 15
+  First event date: None
+  First event stats: ['30', '8-16', '50.0', '2-3', '66.7', '2-2', '100.0', '3', '6', '0', '2', '1', '3', '20']
+  Category: None
+  Events count: 11
+  First event date: None
+  First event stats: ['32', '6-17', '35.3', '3-10', '30.0', '2-5', '40.0', '4', '4', '1', '1', '1', '5', '17']
+  Category: None
+  Events count: 4
+  First event date: None
+  First event stats: ['34', '5-13', '38.5', '2-6', '33.3', '1-4', '25.0', '5', '7', '0', '1', '1', '2', '13']

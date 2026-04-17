@@ -1,0 +1,156 @@
+{
+  "report_type": "REAL_DATA_RETRAINING",
+  "timestamp": "2026-02-26T08:53:31.739747",
+  "data_source": "ESPN_API_ONLY",
+  "synthetic_data_used": false,
+  "summary": {
+    "total_models_attempted": 20,
+    "models_trained_successfully": 19,
+    "models_failed": 1,
+    "success_rate": 0.95,
+    "duration_seconds": 279.426428
+  },
+  "data_summary": {
+    "total_records": 2764,
+    "sports_breakdown": {
+      "basketball_ncaa": 803,
+      "basketball_nba": 608,
+      "icehockey_nhl": 541,
+      "soccer_epl": 151,
+      "soccer_ita.1": 140,
+      "soccer_esp.1": 119,
+      "soccer_ger.1": 107,
+      "americanfootball_nfl": 105,
+      "soccer_fra.1": 90,
+      "baseball_mlb": 82,
+      "soccer_usa_mls": 18
+    },
+    "date_range": {
+      "earliest": "20251128",
+      "latest": "20260225"
+    }
+  },
+  "successful_models": [
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "moneyline",
+      "accuracy": 0.6557377049180327,
+      "samples": 608
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "spread",
+      "accuracy": 0.6475409836065574,
+      "samples": 608
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "total",
+      "accuracy": 0,
+      "samples": 608
+    },
+    {
+      "sport_key": "basketball_ncaa",
+      "market_type": "moneyline",
+      "accuracy": 0.8881987577639752,
+      "samples": 803
+    },
+    {
+      "sport_key": "basketball_ncaa",
+      "market_type": "spread",
+      "accuracy": 0.8633540372670807,
+      "samples": 803
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "moneyline",
+      "accuracy": 0.5871559633027523,
+      "samples": 541
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "puck_line",
+      "accuracy": 0.0,
+      "samples": 541
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "total",
+      "accuracy": 0,
+      "samples": 541
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "moneyline",
+      "accuracy": 0.8095238095238095,
+      "samples": 105
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "spread",
+      "accuracy": 0.8095238095238095,
+      "samples": 105
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "total",
+      "accuracy": 0,
+      "samples": 105
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "moneyline",
+      "accuracy": 0.9411764705882353,
+      "samples": 82
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "total",
+      "accuracy": 0,
+      "samples": 82
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "moneyline",
+      "accuracy": 0.45161290322580644,
+      "samples": 151
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "spread",
+      "accuracy": 0.45161290322580644,
+      "samples": 151
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "moneyline",
+      "accuracy": 0.4583333333333333,
+      "samples": 119
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "moneyline",
+      "accuracy": 0.35714285714285715,
+      "samples": 140
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "moneyline",
+      "accuracy": 0.5909090909090909,
+      "samples": 107
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "moneyline",
+      "accuracy": 0.4444444444444444,
+      "samples": 90
+    }
+  ],
+  "failed_models": [
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "moneyline",
+      "error": "Insufficient data: 18 records"
+    }
+  ]
+}

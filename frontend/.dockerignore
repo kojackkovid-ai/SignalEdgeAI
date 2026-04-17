@@ -1,0 +1,39 @@
+=# Node and npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.yarn/
+
+# Build output
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Testing & Temp
+*.test.*
+*.spec.*
+.coverage
+htmlcov/
+tmp/
+temp/
+
+# Development
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.editorconfig

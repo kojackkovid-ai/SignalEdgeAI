@@ -1,0 +1,110 @@
+{
+  "start_time": "2026-03-03T21:54:05.370948",
+  "sports_trained": [],
+  "models_trained": [
+    {
+      "sport": "basketball_nba",
+      "market": "moneyline",
+      "accuracy": {
+        "random_forest": 0.75,
+        "xgboost": 0.875,
+        "lightgbm": 0.875
+      }
+    },
+    {
+      "sport": "basketball_nba",
+      "market": "spread",
+      "accuracy": {
+        "random_forest": 0.75,
+        "xgboost": 0.875,
+        "lightgbm": 0.875
+      }
+    },
+    {
+      "sport": "basketball_nba",
+      "market": "total",
+      "accuracy": {
+        "random_forest": 0.75,
+        "xgboost": 0.875,
+        "lightgbm": 0.875
+      }
+    },
+    {
+      "sport": "basketball_ncaa",
+      "market": "moneyline",
+      "accuracy": {
+        "random_forest": 0.7916666666666666,
+        "xgboost": 0.875,
+        "lightgbm": 0.8333333333333334
+      }
+    },
+    {
+      "sport": "basketball_ncaa",
+      "market": "spread",
+      "accuracy": {
+        "random_forest": 0.7916666666666666,
+        "xgboost": 0.875,
+        "lightgbm": 0.8333333333333334
+      }
+    },
+    {
+      "sport": "basketball_ncaa",
+      "market": "total",
+      "accuracy": {
+        "random_forest": 0.7916666666666666,
+        "xgboost": 0.875,
+        "lightgbm": 0.8333333333333334
+      }
+    },
+    {
+      "sport": "icehockey_nhl",
+      "market": "moneyline",
+      "accuracy": {
+        "random_forest": 1.0,
+        "xgboost": 1.0,
+        "lightgbm": 0.8888888888888888
+      }
+    },
+    {
+      "sport": "icehockey_nhl",
+      "market": "spread",
+      "accuracy": {
+        "random_forest": 1.0,
+        "xgboost": 1.0,
+        "lightgbm": 0.8888888888888888
+      }
+    },
+    {
+      "sport": "icehockey_nhl",
+      "market": "total",
+      "accuracy": {
+        "random_forest": 1.0,
+        "xgboost": 1.0,
+        "lightgbm": 0.8888888888888888
+      }
+    }
+  ],
+  "errors": [
+    "americanfootball_nfl moneyline: Insufficient data",
+    "americanfootball_nfl spread: Insufficient data",
+    "americanfootball_nfl total: Insufficient data",
+    "baseball_mlb moneyline: Insufficient data",
+    "baseball_mlb spread: Insufficient data",
+    "baseball_mlb total: Insufficient data",
+    "soccer_epl moneyline: Insufficient data",
+    "soccer_epl spread: Insufficient data",
+    "soccer_epl total: Insufficient data"
+  ],
+  "data_summary": {
+    "total_records": 319,
+    "sports": [
+      "basketball_nba",
+      "basketball_ncaa",
+      "icehockey_nhl",
+      "americanfootball_nfl",
+      "baseball_mlb",
+      "soccer_epl"
+    ]
+  },
+  "end_time": "2026-03-03T21:55:01.706471"
+}

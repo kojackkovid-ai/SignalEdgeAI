@@ -1,0 +1,29 @@
+C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\app\database.py:11: RuntimeWarning: Using SQLite fallback database. For production, set DB_PASS and DB_HOST to use PostgreSQL.
+  DATABASE_URL = settings.database_url
+C:\Users\bigba\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\pydantic\_internal\_config.py:318: UserWarning: Valid config keys have changed in V2:
+* 'schema_extra' has been renamed to 'json_schema_extra'
+  warnings.warn(message, UserWarning)
+{"timestamp": "2026-03-15T06:18:33.439345Z", "level": "INFO", "logger": "app.utils.exceptions", "message": "Exception handlers configured", "module": "exceptions", "function": "setup_exception_handlers", "line": 188, "thread": 2888, "taskName": "Task-1"}
+{"timestamp": "2026-03-15T06:18:33.440346Z", "level": "INFO", "logger": "app.utils.rate_limiter", "message": "Rate limiting middleware configured", "module": "rate_limiter", "function": "setup_rate_limiting", "line": 229, "thread": 2888, "taskName": "Task-1"}
+INFO:     Started server process [9708]
+INFO:     Waiting for application startup.
+{"timestamp": "2026-03-15T06:18:33.446351Z", "level": "INFO", "logger": "app.main", "message": "\ud83d\ude80 Starting up Enhanced Sports Prediction Platform...", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.446351Z", "level": "INFO", "logger": "app.main", "message": "Initializing database...", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.461951Z", "level": "INFO", "logger": "app.main", "message": "\u2705 Database initialized", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.461951Z", "level": "INFO", "logger": "app.main", "message": "Initializing enhanced services...", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.461951Z", "level": "INFO", "logger": "app.main", "message": "Initializing enhanced services...", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.461951Z", "level": "INFO", "logger": "app.main", "message": "\u2713 Monitoring service initialized", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.461951Z", "level": "INFO", "logger": "app.main", "message": "\u26a0\ufe0f  Enhanced ML Service DISABLED", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.461951Z", "level": "INFO", "logger": "app.main", "message": "\u26a0\ufe0f  Auto-training pipeline DISABLED", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.main", "message": "\u26a0\ufe0f  Model monitoring DISABLED", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.utils.health_checks", "message": "Registered health check: database", "module": "health_checks", "function": "register", "line": 89, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.utils.health_checks", "message": "Registered health check: espn_api", "module": "health_checks", "function": "register", "line": 89, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.utils.health_checks", "message": "Registered health check: redis", "module": "health_checks", "function": "register", "line": 89, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.utils.health_checks", "message": "Registered health check: ml_models", "module": "health_checks", "function": "register", "line": 89, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.utils.health_checks", "message": "Registered health check: disk_space", "module": "health_checks", "function": "register", "line": 89, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.utils.health_checks", "message": "Registered health check: memory", "module": "health_checks", "function": "register", "line": 89, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.main", "message": "\u2713 Health checks configured", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.main", "message": "\u2705 Enhanced services initialized", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+{"timestamp": "2026-03-15T06:18:33.462948Z", "level": "INFO", "logger": "app.main", "message": "\ud83d\ude80 Sports Prediction Platform startup complete", "module": "structured_logging", "function": "_log", "line": 112, "thread": 2888, "taskName": "Task-2"}
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)

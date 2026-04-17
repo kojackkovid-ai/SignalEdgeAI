@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2024-01-01T00:00:00Z",
+  "data_sources": {
+    "synthetic_data": false,
+    "real_espn_data": true,
+    "historical_data": true,
+    "real_time_data": true
+  },
+  "training": {
+    "schedule": "daily at 2:00 AM",
+    "retrain_interval_days": 1,
+    "min_samples": 50,
+    "max_samples": 10000,
+    "days_of_history": 90,
+    "data_source": "espn_api_only"
+  },
+  "models": {
+    "xgboost": {
+      "enabled": true,
+      "weight": 0.35
+    },
+    "lightgbm": {
+      "enabled": true,
+      "weight": 0.25
+    },
+    "random_forest": {
+      "enabled": true,
+      "weight": 0.25
+    },
+    "neural_net": {
+      "enabled": true,
+      "weight": 0.15
+    }
+  },
+  "sports": [
+    "basketball_nba",
+    "basketball_ncaa",
+    "icehockey_nhl",
+    "americanfootball_nfl",
+    "baseball_mlb",
+    "soccer_epl",
+    "soccer_usa_mls",
+    "soccer_esp.1",
+    "soccer_ita.1",
+    "soccer_ger.1",
+    "soccer_fra.1"
+  ],
+  "markets": [
+    "moneyline",
+    "spread",
+    "total",
+    "puck_line"
+  ],
+  "validation": {
+    "verify_real_data": true,
+    "reject_synthetic": true,
+    "min_confidence": 0.55,
+    "max_confidence": 0.95
+  },
+  "notes": "ALL training uses ONLY real ESPN API data. NO synthetic data allowed."
+}

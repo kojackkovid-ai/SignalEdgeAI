@@ -1,0 +1,165 @@
+{
+  "timestamp": "2026-02-15T09:56:31.764008",
+  "total_leagues": 6,
+  "successful_models": 0,
+  "failed_models": 18,
+  "success_rate": 0.0,
+  "results": [
+    {
+      "league": "English Premier League",
+      "key": "soccer_epl",
+      "models_trained": 0,
+      "models_failed": 3,
+      "markets": {
+        "moneyline": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "spread": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "total": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        }
+      }
+    },
+    {
+      "league": "MLS",
+      "key": "soccer_usa_mls",
+      "models_trained": 0,
+      "models_failed": 3,
+      "markets": {
+        "moneyline": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "spread": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "total": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        }
+      }
+    },
+    {
+      "league": "La Liga",
+      "key": "soccer_esp.1",
+      "models_trained": 0,
+      "models_failed": 3,
+      "markets": {
+        "moneyline": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "spread": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "total": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        }
+      }
+    },
+    {
+      "league": "Serie A",
+      "key": "soccer_ita.1",
+      "models_trained": 0,
+      "models_failed": 3,
+      "markets": {
+        "moneyline": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "spread": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "total": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        }
+      }
+    },
+    {
+      "league": "Bundesliga",
+      "key": "soccer_ger.1",
+      "models_trained": 0,
+      "models_failed": 3,
+      "markets": {
+        "moneyline": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "spread": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "total": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        }
+      }
+    },
+    {
+      "league": "Ligue 1",
+      "key": "soccer_fra.1",
+      "models_trained": 0,
+      "models_failed": 3,
+      "markets": {
+        "moneyline": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "spread": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        },
+        "total": {
+          "trained": [],
+          "failed": [
+            "ensemble"
+          ]
+        }
+      }
+    }
+  ]
+}

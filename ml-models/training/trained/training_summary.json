@@ -1,0 +1,179 @@
+{
+  "training_date": "2026-03-06T10:49:01.795082",
+  "sports": [
+    {
+      "sport": "basketball_nba",
+      "samples": 500,
+      "features": 17,
+      "models": {
+        "xgboost": {
+          "status": "trained",
+          "accuracy": 0.99
+        },
+        "lightgbm": {
+          "status": "trained",
+          "accuracy": 0.956
+        },
+        "random_forest": {
+          "status": "trained",
+          "accuracy": 0.984
+        },
+        "logistic_regression": {
+          "status": "trained",
+          "accuracy": 0.608
+        }
+      },
+      "weights": {
+        "xgboost": 0.28,
+        "lightgbm": 0.27,
+        "random_forest": 0.278,
+        "logistic_regression": 0.172
+      }
+    },
+    {
+      "sport": "basketball_ncaa",
+      "samples": 400,
+      "features": 17,
+      "models": {
+        "xgboost": {
+          "status": "trained",
+          "accuracy": 0.9975
+        },
+        "lightgbm": {
+          "status": "trained",
+          "accuracy": 0.97
+        },
+        "random_forest": {
+          "status": "trained",
+          "accuracy": 0.99
+        },
+        "logistic_regression": {
+          "status": "trained",
+          "accuracy": 0.6025
+        }
+      },
+      "weights": {
+        "xgboost": 0.28,
+        "lightgbm": 0.272,
+        "random_forest": 0.278,
+        "logistic_regression": 0.169
+      }
+    },
+    {
+      "sport": "icehockey_nhl",
+      "samples": 400,
+      "features": 17,
+      "models": {
+        "xgboost": {
+          "status": "trained",
+          "accuracy": 0.9975
+        },
+        "lightgbm": {
+          "status": "trained",
+          "accuracy": 0.97
+        },
+        "random_forest": {
+          "status": "trained",
+          "accuracy": 0.99
+        },
+        "logistic_regression": {
+          "status": "trained",
+          "accuracy": 0.6025
+        }
+      },
+      "weights": {
+        "xgboost": 0.28,
+        "lightgbm": 0.272,
+        "random_forest": 0.278,
+        "logistic_regression": 0.169
+      }
+    },
+    {
+      "sport": "americanfootball_nfl",
+      "samples": 300,
+      "features": 17,
+      "models": {
+        "xgboost": {
+          "status": "trained",
+          "accuracy": 1.0
+        },
+        "lightgbm": {
+          "status": "trained",
+          "accuracy": 0.9966666666666667
+        },
+        "random_forest": {
+          "status": "trained",
+          "accuracy": 0.9966666666666667
+        },
+        "logistic_regression": {
+          "status": "trained",
+          "accuracy": 0.61
+        }
+      },
+      "weights": {
+        "xgboost": 0.278,
+        "lightgbm": 0.277,
+        "random_forest": 0.277,
+        "logistic_regression": 0.169
+      }
+    },
+    {
+      "sport": "baseball_mlb",
+      "samples": 400,
+      "features": 17,
+      "models": {
+        "xgboost": {
+          "status": "trained",
+          "accuracy": 1.0
+        },
+        "lightgbm": {
+          "status": "trained",
+          "accuracy": 0.9825
+        },
+        "random_forest": {
+          "status": "trained",
+          "accuracy": 1.0
+        },
+        "logistic_regression": {
+          "status": "trained",
+          "accuracy": 0.595
+        }
+      },
+      "weights": {
+        "xgboost": 0.28,
+        "lightgbm": 0.275,
+        "random_forest": 0.28,
+        "logistic_regression": 0.166
+      }
+    },
+    {
+      "sport": "soccer_epl",
+      "samples": 400,
+      "features": 17,
+      "models": {
+        "xgboost": {
+          "status": "trained",
+          "accuracy": 1.0
+        },
+        "lightgbm": {
+          "status": "trained",
+          "accuracy": 0.9825
+        },
+        "random_forest": {
+          "status": "trained",
+          "accuracy": 1.0
+        },
+        "logistic_regression": {
+          "status": "trained",
+          "accuracy": 0.595
+        }
+      },
+      "weights": {
+        "xgboost": 0.28,
+        "lightgbm": 0.275,
+        "random_forest": 0.28,
+        "logistic_regression": 0.166
+      }
+    }
+  ]
+}

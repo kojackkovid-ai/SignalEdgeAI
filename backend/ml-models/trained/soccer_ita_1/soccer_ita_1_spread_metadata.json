@@ -1,0 +1,25 @@
+{
+  "league": "soccer_ita.1",
+  "market_type": "spread",
+  "models": [
+    "gradient_boosting",
+    "random_forest",
+    "xgboost"
+  ],
+  "accuracies": {
+    "gradient_boosting": 0.57,
+    "random_forest": 0.6025,
+    "xgboost": 0.595
+  },
+  "training_samples": 2000,
+  "features": [
+    "home_win_pct",
+    "away_win_pct",
+    "home_recent_form",
+    "away_recent_form",
+    "home_sos",
+    "away_sos",
+    "rest_days_diff"
+  ],
+  "trained_at": "2026-02-15T06:12:58.537829"
+}

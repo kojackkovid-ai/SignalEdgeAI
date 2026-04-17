@@ -1,0 +1,23 @@
+{
+  "weights": {
+    "random_forest": 0.33652822151224704,
+    "gradient_boosting": 0.33652822151224704,
+    "xgboost": 0.3269435569755058
+  },
+  "scores": {
+    "random_forest": 0.79,
+    "gradient_boosting": 0.79,
+    "xgboost": 0.7675
+  },
+  "feature_names": [
+    "home_ppg",
+    "away_ppg",
+    "home_def",
+    "away_def",
+    "home_form",
+    "away_form",
+    "home_advantage"
+  ],
+  "training_samples": 2000,
+  "timestamp": "2026-02-12T17:34:07.286005"
+}

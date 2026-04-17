@@ -1,0 +1,22 @@
+C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\test_analytics_logic.py:50: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  cutoff_date = datetime.utcnow() - timedelta(days=days)
+[CONFIG] Using SQLite for local development: C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\sports_predictions.db
+[DATABASE] Connecting to: sqlite+aiosqlite:///C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\sports_predictions.db
+[DATABASE] DB_HOST: localhost, DB_PORT: 5432, DB_NAME: sports_predictions_prod
+[DATABASE] [INFO] Using SQLite for local development at: localhost
+[DATABASE] [OK] SQLite engine created successfully
+============================================================
+Testing analytics logic directly
+============================================================
+
+Method 1: Using AsyncSessionLocal directly
+  Total predictions: 50
+
+Method 2: Using get_db() dependency generator
+  Total predictions: 50
+  Raw SQL COUNT: 50
+
+Method 3: Using filtered query with cutoff_date
+  Cutoff date: 2026-01-07 15:44:51.643380
+  Filtered predictions: 21
+    Sample: created=2026-03-31 14:51:02.168106, resolved=2026-04-01 14:51:02.168106, result=win

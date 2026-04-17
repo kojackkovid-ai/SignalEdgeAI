@@ -1,0 +1,301 @@
+{
+  "timestamp": "2026-02-15T16:48:09.295867",
+  "summary": {
+    "total": 29,
+    "successful": 0,
+    "failed": 29,
+    "success_rate": 0.0
+  },
+  "results": [
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "spread",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_drives'"
+      }
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "spread",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_drives'"
+      }
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_drives'"
+      }
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_hits'"
+      }
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_hits'"
+      }
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_goals_for'"
+      }
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "puck_line",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_goals_for'"
+      }
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_goals_for'"
+      }
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_expected_goals'"
+      }
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "spread",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_expected_goals'"
+      }
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'home_expected_goals'"
+      }
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "spread",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "spread",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "spread",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "spread",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "moneyline",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "spread",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "total",
+      "status": "error",
+      "samples": 500,
+      "result": {
+        "status": "error",
+        "message": "'season_series_home_wins'"
+      }
+    }
+  ]
+}

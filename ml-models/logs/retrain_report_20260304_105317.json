@@ -1,0 +1,134 @@
+{
+  "start_time": "2026-03-04T10:52:21.157628",
+  "sports_trained": [],
+  "models_trained": [
+    {
+      "sport": "basketball_nba",
+      "market": "moneyline",
+      "accuracy": {
+        "random_forest": 0.6666666666666666,
+        "xgboost": 0.7333333333333333,
+        "lightgbm": 0.8
+      }
+    },
+    {
+      "sport": "basketball_nba",
+      "market": "spread",
+      "accuracy": {
+        "random_forest": 0.6666666666666666,
+        "xgboost": 0.7333333333333333,
+        "lightgbm": 0.8
+      }
+    },
+    {
+      "sport": "basketball_nba",
+      "market": "total",
+      "accuracy": {
+        "random_forest": 0.6666666666666666,
+        "xgboost": 0.7333333333333333,
+        "lightgbm": 0.8
+      }
+    },
+    {
+      "sport": "basketball_ncaa",
+      "market": "moneyline",
+      "accuracy": {
+        "random_forest": 0.9285714285714286,
+        "xgboost": 1.0,
+        "lightgbm": 1.0
+      }
+    },
+    {
+      "sport": "basketball_ncaa",
+      "market": "spread",
+      "accuracy": {
+        "random_forest": 0.9285714285714286,
+        "xgboost": 1.0,
+        "lightgbm": 1.0
+      }
+    },
+    {
+      "sport": "basketball_ncaa",
+      "market": "total",
+      "accuracy": {
+        "random_forest": 0.9285714285714286,
+        "xgboost": 1.0,
+        "lightgbm": 1.0
+      }
+    },
+    {
+      "sport": "icehockey_nhl",
+      "market": "moneyline",
+      "accuracy": {
+        "random_forest": 0.9090909090909091,
+        "xgboost": 0.9090909090909091,
+        "lightgbm": 1.0
+      }
+    },
+    {
+      "sport": "icehockey_nhl",
+      "market": "spread",
+      "accuracy": {
+        "random_forest": 0.9090909090909091,
+        "xgboost": 0.9090909090909091,
+        "lightgbm": 1.0
+      }
+    },
+    {
+      "sport": "icehockey_nhl",
+      "market": "total",
+      "accuracy": {
+        "random_forest": 0.9090909090909091,
+        "xgboost": 0.9090909090909091,
+        "lightgbm": 1.0
+      }
+    },
+    {
+      "sport": "baseball_mlb",
+      "market": "moneyline",
+      "accuracy": {
+        "random_forest": 0.7142857142857143,
+        "xgboost": 0.7857142857142857,
+        "lightgbm": 0.7857142857142857
+      }
+    },
+    {
+      "sport": "baseball_mlb",
+      "market": "spread",
+      "accuracy": {
+        "random_forest": 0.7142857142857143,
+        "xgboost": 0.7857142857142857,
+        "lightgbm": 0.7857142857142857
+      }
+    },
+    {
+      "sport": "baseball_mlb",
+      "market": "total",
+      "accuracy": {
+        "random_forest": 0.7142857142857143,
+        "xgboost": 0.7857142857142857,
+        "lightgbm": 0.7857142857142857
+      }
+    }
+  ],
+  "errors": [
+    "soccer_epl moneyline: Insufficient data (14 < 30)",
+    "soccer_epl spread: Insufficient data (14 < 30)",
+    "soccer_epl total: Insufficient data (14 < 30)",
+    "soccer_usa_mls moneyline: Insufficient data (8 < 30)",
+    "soccer_usa_mls spread: Insufficient data (8 < 30)",
+    "soccer_usa_mls total: Insufficient data (8 < 30)"
+  ],
+  "data_summary": {
+    "total_records": 289,
+    "sports": [
+      "basketball_nba",
+      "basketball_ncaa",
+      "icehockey_nhl",
+      "baseball_mlb",
+      "soccer_epl",
+      "soccer_usa_mls"
+    ]
+  },
+  "end_time": "2026-03-04T10:53:17.989291"
+}

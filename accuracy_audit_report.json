@@ -1,0 +1,94 @@
+{
+  "status": "success",
+  "summary": {
+    "total_predictions": 40,
+    "wins": 20,
+    "losses": 20,
+    "pushes": 0,
+    "win_rate": 0.5
+  },
+  "confidence_metrics": {
+    "average": 64.5,
+    "median": 64.5,
+    "min": 55.0,
+    "max": 74.0
+  },
+  "by_sport": {
+    "basketball_nba": {
+      "accuracy": 0.5714,
+      "total": 14
+    },
+    "americanfootball_nfl": {
+      "accuracy": 0.4286,
+      "total": 14
+    },
+    "icehockey_nhl": {
+      "accuracy": 0.5,
+      "total": 12
+    }
+  },
+  "calibration": {
+    "error": 0.1625,
+    "buckets": {
+      "50-55%": {
+        "count": 0,
+        "wins": 0,
+        "accuracy": null
+      },
+      "55-60%": {
+        "count": 10,
+        "wins": 6,
+        "accuracy": 0.6
+      },
+      "60-65%": {
+        "count": 10,
+        "wins": 4,
+        "accuracy": 0.4
+      },
+      "65-70%": {
+        "count": 10,
+        "wins": 6,
+        "accuracy": 0.6
+      },
+      "70-75%": {
+        "count": 10,
+        "wins": 4,
+        "accuracy": 0.4
+      },
+      "75-80%": {
+        "count": 0,
+        "wins": 0,
+        "accuracy": null
+      },
+      "80-85%": {
+        "count": 0,
+        "wins": 0,
+        "accuracy": null
+      },
+      "85-90%": {
+        "count": 0,
+        "wins": 0,
+        "accuracy": null
+      },
+      "90-95%": {
+        "count": 0,
+        "wins": 0,
+        "accuracy": null
+      },
+      "95-100%": {
+        "count": 0,
+        "wins": 0,
+        "accuracy": null
+      }
+    }
+  },
+  "roi": {
+    "total_wagered": 4000,
+    "total_returned": 4200.0,
+    "profit_loss": 200.0,
+    "roi": 0.05,
+    "roi_percentage": "5.0%",
+    "wins": 20,
+    "losses": 20
+  }
+}

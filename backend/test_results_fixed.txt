@@ -1,0 +1,67 @@
+🏀 Sports Prediction Platform - ML Services Functionality Test
+======================================================================
+
+🔍 Running Feature Engineering...
+❌ Feature Engineering FAILED: 'home_recent_wins'
+Traceback (most recent call last):
+  File "C:\Users\bigba\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'home_recent_wins'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\test_real_fixed.py", line 50, in run_tests
+    features, labels = engineer.prepare_features(test_data, 'basketball_nba', 'moneyline')
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\app\services\data_preprocessing.py", line 67, in prepare_features
+    data = self._create_basic_features(data, sport_key)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\app\services\data_preprocessing.py", line 130, in _create_basic_features
+    data['home_recent_form'] = data['home_recent_wins'] / 5.0
+                               ~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\bigba\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\bigba\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'home_recent_wins'
+
+
+🔍 Running Model Validation...
+  ROI: 3.39%
+  Win Rate: 0.52
+  Sharpe Ratio: 0.32
+✅ Model Validation PASSED
+
+🔍 Running Weather Service...
+  Scoring Impact: -0.20
+  Passing Impact: -0.30
+✅ Weather Service PASSED
+
+🔍 Running Injury Service...
+  Total Injury Impact: 0.300
+✅ Injury Service PASSED
+
+🔍 Running Enhanced ML Service...
+❌ Enhanced ML Service FAILED: No module named 'app.services.odds_service'
+Traceback (most recent call last):
+  File "C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\test_real_fixed.py", line 155, in run_tests
+    from app.services.enhanced_ml_service import EnhancedMLService
+  File "C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\app\services\enhanced_ml_service.py", line 45, in <module>
+    from app.services.odds_service import RealOddsService
+ModuleNotFoundError: No module named 'app.services.odds_service'
+
+
+======================================================================
+📊 TEST SUMMARY
+======================================================================
+Tests passed: 3/5
+Success rate: 60.0%
+
+⚠️  2 services need attention

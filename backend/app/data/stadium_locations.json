@@ -1,0 +1,62 @@
+{
+  "nba": {
+    "1610612737": {"name": "Wells Fargo Center", "lat": 39.9012, "lon": -75.1720, "city": "Philadelphia", "team": "76ers"},
+    "1610612738": {"name": "TD Garden", "lat": 42.3662, "lon": -71.0621, "city": "Boston", "team": "Celtics"},
+    "1610612741": {"name": "United Center", "lat": 41.8807, "lon": -87.6742, "city": "Chicago", "team": "Bulls"},
+    "1610612742": {"name": "Crypto.com Arena", "lat": 34.0430, "lon": -118.2673, "city": "Los Angeles", "team": "Lakers"},
+    "1610612743": {"name": "Madison Square Garden", "lat": 40.7505, "lon": -73.9934, "city": "New York", "team": "Knicks"},
+    "1610612744": {"name": "Golden State Center", "lat": 37.7680, "lon": -122.3877, "city": "San Francisco", "team": "Warriors"},
+    "1610612745": {"name": "Barclays Center", "lat": 40.6826, "lon": -73.9754, "city": "Brooklyn", "team": "Nets"},
+    "1610612746": {"name": "Scotiabank Arena", "lat": 43.6435, "lon": -79.3791, "city": "Toronto", "team": "Raptors"},
+    "1610612747": {"name": "American Airlines Center", "lat": 32.7905, "lon": -96.8103, "city": "Dallas", "team": "Mavericks"},
+    "1610612748": {"name": "Ball Arena", "lat": 39.7487, "lon": -105.0077, "city": "Denver", "team": "Nuggets"}
+  },
+  "nhl": {
+    "1610612761": {"name": "TD Garden", "lat": 42.3662, "lon": -71.0621, "city": "Boston", "team": "Bruins"},
+    "1610612762": {"name": "United Center", "lat": 41.8807, "lon": -87.6742, "city": "Chicago", "team": "Blackhawks"},
+    "1610612763": {"name": "American Airlines Center", "lat": 32.7905, "lon": -96.8103, "city": "Dallas", "team": "Stars"},
+    "1610612764": {"name": "Staples Center", "lat": 34.0430, "lon": -118.2673, "city": "Los Angeles", "team": "Kings"},
+    "1610612765": {"name": "Scotiabank Arena", "lat": 43.6435, "lon": -79.3791, "city": "Toronto", "team": "Maple Leafs"},
+    "1610612766": {"name": "Madison Square Garden", "lat": 40.7505, "lon": -73.9934, "city": "New York", "team": "Rangers"},
+    "1610612767": {"name": "Wells Fargo Center", "lat": 39.9012, "lon": -75.1720, "city": "Philadelphia", "team": "Flyers"},
+    "1610612737": {"name": "Climate Pledge Arena", "lat": 47.6112, "lon": -122.3544, "city": "Seattle", "team": "Kraken"},
+    "1610612748": {"name": "Ball Arena", "lat": 39.7487, "lon": -105.0077, "city": "Denver", "team": "Avalanche"},
+    "1610612751": {"name": "PPG Paints Arena", "lat": 40.4396, "lon": -79.9892, "city": "Pittsburgh", "team": "Penguins"}
+  },
+  "mlb": {
+    "141": {"name": "Yankee Stadium", "lat": 40.8296, "lon": -73.9262, "city": "New York", "team": "Yankees"},
+    "142": {"name": "Fenway Park", "lat": 42.3465, "lon": -71.0975, "city": "Boston", "team": "Red Sox"},
+    "143": {"name": "Wrigley Field", "lat": 41.9484, "lon": -87.6553, "city": "Chicago", "team": "Cubs"},
+    "144": {"name": "Dodger Stadium", "lat": 34.0736, "lon": -118.2404, "city": "Los Angeles", "team": "Dodgers"},
+    "145": {"name": "AT&T Park", "lat": 37.7786, "lon": -122.3893, "city": "San Francisco", "team": "Giants"},
+    "146": {"name": "Citi Field", "lat": 40.7541, "lon": -73.8458, "city": "New York", "team": "Mets"},
+    "147": {"name": "Minute Maid Park", "lat": 29.7573, "lon": -95.3553, "city": "Houston", "team": "Astros"},
+    "148": {"name": "T-Mobile Park", "lat": 47.5913, "lon": -122.3326, "city": "Seattle", "team": "Mariners"},
+    "149": {"name": "Rogers Centre", "lat": 43.6420, "lon": -79.3892, "city": "Toronto", "team": "Blue Jays"},
+    "150": {"name": "Coors Field", "lat": 39.7559, "lon": -104.9942, "city": "Denver", "team": "Rockies"}
+  },
+  "nfl": {
+    "4400": {"name": "MetLife Stadium", "lat": 40.8135, "lon": -74.0745, "city": "East Rutherford", "team": "Giants/Jets"},
+    "4401": {"name": "Gillette Stadium", "lat": 42.0909, "lon": -71.2643, "city": "Foxborough", "team": "Patriots"},
+    "4402": {"name": "Lambeau Field", "lat": 44.5013, "lon": -88.0622, "city": "Green Bay", "team": "Packers"},
+    "4403": {"name": "Dodge Stadium", "lat": 33.4527, "lon": -112.0712, "city": "Glendale", "team": "Cardinals"},
+    "4404": {"name": "AT&T Stadium", "lat": 32.7473, "lon": -97.0945, "city": "Arlington", "team": "Cowboys"},
+    "4405": {"name": "Levi's Stadium", "lat": 37.4035, "lon": -121.9694, "city": "Santa Clara", "team": "49ers"},
+    "4406": {"name": "Mercedes-Benz Stadium", "lat": 33.7573, "lon": -84.4013, "city": "Atlanta", "team": "Falcons"},
+    "4407": {"name": "M&T Bank Stadium", "lat": 39.2779, "lon": -76.6226, "city": "Baltimore", "team": "Ravens"},
+    "4408": {"name": "Bank of America Stadium", "lat": 35.2251, "lon": -80.8522, "city": "Charlotte", "team": "Panthers"},
+    "4409": {"name": "Soldier Field", "lat": 41.8623, "lon": -87.6168, "city": "Chicago", "team": "Bears"}
+  },
+  "soccer_epl": {
+    "350": {"name": "Anfield", "lat": 53.4308, "lon": -2.9608, "city": "Liverpool", "team": "Liverpool"},
+    "351": {"name": "Old Trafford", "lat": 53.4631, "lon": -2.2910, "city": "Manchester", "team": "Manchester United"},
+    "352": {"name": "Emirates Stadium", "lat": 51.5548, "lon": -0.1084, "city": "London", "team": "Arsenal"},
+    "353": {"name": "Stamford Bridge", "lat": 51.4816, "lon": -0.1910, "city": "London", "team": "Chelsea"},
+    "354": {"name": "Etihad Stadium", "lat": 53.4832, "lon": -2.2004, "city": "Manchester", "team": "Manchester City"},
+    "355": {"name": "Tottenham Hotspur Stadium", "lat": 51.6043, "lon": -0.0662, "city": "London", "team": "Tottenham"},
+    "356": {"name": "St James' Park", "lat": 54.9756, "lon": -1.6217, "city": "Newcastle", "team": "Newcastle"},
+    "357": {"name": "Villa Park", "lat": 52.5092, "lon": -1.8848, "city": "Birmingham", "team": "Aston Villa"},
+    "358": {"name": "Goodison Park", "lat": 53.4388, "lon": -2.9663, "city": "Liverpool", "team": "Everton"},
+    "359": {"name": "King Power Stadium", "lat": 52.6204, "lon": -1.1422, "city": "Leicester", "team": "Leicester"}
+  }
+}

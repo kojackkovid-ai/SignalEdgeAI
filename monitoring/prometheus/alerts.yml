@@ -1,0 +1,128 @@
+# Alert Rules for Sports Prediction Platform
+
+groups:
+  - name: platform_alerts
+    interval: 30s
+    rules:
+      # Service availability alerts
+      - alert: BackendAPIDown
+        expr: up{job="backend-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend API is down"
+          description: "Backend API has been unavailable for more than 1 minute"
+
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "Database connection lost"
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis cache is down"
+          description: "Cache server unavailable - may impact performance"
+
+      # Performance alerts
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile response time exceeds 1 second"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "More than 5% of requests returning 5xx errors"
+
+      # Resource alerts
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage exceeds 85%"
+
+      - alert: HighCPUUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage exceeds 80%"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs|vfat"} / node_filesystem_size_bytes) < 0.15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Less than 15% disk space remaining"
+
+      # ML model alerts
+      - alert: MLModelDriftDetected
+        expr: ml_model_drift_detected == 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ML model drift detected"
+          description: "Model performance has degraded significantly"
+
+      - alert: PredictionAccuracyLow
+        expr: prediction_accuracy_score < 0.52
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prediction accuracy declining"
+          description: "Accuracy below 52% for extended period"
+
+      # Payment/Stripe alerts
+      - alert: PaymentProcessingFailure
+        expr: rate(stripe_payment_errors_total[5m]) > 0.01
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment processing errors"
+          description: "Stripe payment errors exceeding 1% of transactions"
+
+      # Database alerts
+      - alert: DatabaseConnectionPoolExhausted
+        expr: database_connections_in_use >= database_connections_max * 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection pool nearly full"
+          description: "Connection pool at 90% capacity"
+
+      - alert: SlowQueries
+        expr: rate(database_query_duration_seconds_bucket{le="1"}[5m]) < 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries detected"
+          description: "More than 50% of queries take longer than 1 second"

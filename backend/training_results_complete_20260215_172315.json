@@ -1,0 +1,182 @@
+{
+  "timestamp": "2026-02-15T17:23:15.003810",
+  "total": 29,
+  "successful": 0,
+  "failed": 29,
+  "results": [
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "spread",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "spread",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "puck_line",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "spread",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "spread",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "spread",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "spread",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "spread",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "moneyline",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "spread",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "total",
+      "success": false,
+      "error": "unsupported type for timedelta days component: numpy.ndarray"
+    }
+  ]
+}

@@ -1,0 +1,264 @@
+{
+  "timestamp": "2026-02-19T22:52:08.479650",
+  "total_configs": 29,
+  "successful": 0,
+  "failed": 29,
+  "success_rate": 0.0,
+  "espn_data_stats": {
+    "basketball_nba": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    "americanfootball_nfl": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    "baseball_mlb": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "total"
+      ]
+    },
+    "icehockey_nhl": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "puck_line",
+        "total"
+      ]
+    },
+    "soccer_epl": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    "soccer_usa_mls": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    "soccer_esp.1": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    "soccer_ita.1": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    "soccer_ger.1": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    "soccer_fra.1": {
+      "games": 0,
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    }
+  },
+  "results": [
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "spread",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "spread",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "puck_line",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "spread",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "spread",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "spread",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "spread",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "spread",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "moneyline",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "spread",
+      "status": "error",
+      "error": "No ESPN data available"
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "total",
+      "status": "error",
+      "error": "No ESPN data available"
+    }
+  ]
+}

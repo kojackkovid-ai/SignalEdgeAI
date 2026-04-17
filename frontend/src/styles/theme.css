@@ -1,0 +1,300 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.animate-pulse {
+  animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+:root {
+  /* Neon-Noir Palette */
+  --bg-void: #0a0a0a;
+  --bg-dark: #121212;
+  --bg-darker: #0f0f0f;
+  
+  /* Accent Colors */
+  --cyber-yellow: #ffff00;
+  --electric-blue: #00e5ff;
+  --signal-green: #00ff00;
+  --neon-red: #ff0055;
+  --neon-purple: #b000ff;
+  
+  /* Semantic */
+  --border-color: #333333;
+  --border-thin: 1px solid var(--border-color);
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  
+  /* Confidence Colors */
+  --confidence-high: var(--signal-green);
+  --confidence-medium: var(--cyber-yellow);
+  --confidence-low: var(--neon-red);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 300ms ease-out;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-void);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  /* overflow: hidden; */
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+h1 { font-size: 32px; }
+h2 { font-size: 24px; }
+h3 { font-size: 18px; }
+h4 { font-size: 14px; }
+
+/* Grid & Structure */
+.grid-container {
+  display: grid;
+  gap: 0;
+  border: var(--border-thin);
+}
+
+.cell {
+  border: var(--border-thin);
+  border-collapse: collapse;
+  padding: 12px;
+  background-color: var(--bg-dark);
+}
+
+.cell:hover {
+  background-color: var(--bg-darker);
+  border-color: var(--electric-blue);
+  transition: all var(--transition-fast);
+}
+
+/* Glassmorphism Tactical */
+.glass-tactical {
+  background: rgba(18, 18, 18, 0.7);
+  backdrop-filter: blur(8px);
+  border: var(--border-thin);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.glass-tactical.focused {
+  border-color: var(--electric-blue);
+  background: rgba(0, 229, 255, 0.05);
+}
+
+/* Confidence Gauge */
+.confidence-gauge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gauge-bar {
+  display: flex;
+  height: 4px;
+  width: 40px;
+  background: var(--border-color);
+  border: var(--border-thin);
+  overflow: hidden;
+  position: relative;
+}
+
+.gauge-fill {
+  height: 100%;
+  background: var(--confidence-high);
+  transition: width var(--transition-normal), background-color var(--transition-normal);
+}
+
+.gauge-fill.medium {
+  background: var(--confidence-medium);
+}
+
+.gauge-fill.low {
+  background: var(--confidence-low);
+}
+
+/* Button Styles */
+.btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 8px 16px;
+  border: var(--border-thin);
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.btn:hover {
+  border-color: var(--electric-blue);
+  box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.1);
+}
+
+.btn.primary {
+  border-color: var(--cyber-yellow);
+  color: #000;
+  background: var(--cyber-yellow);
+}
+
+.btn.primary:hover {
+  box-shadow: 0 0 16px var(--cyber-yellow);
+}
+
+.btn.success {
+  border-color: var(--signal-green);
+}
+
+.btn.success:hover {
+  box-shadow: 0 0 12px var(--signal-green);
+}
+
+.btn.danger {
+  border-color: var(--neon-red);
+}
+
+.btn.danger:hover {
+  box-shadow: 0 0 12px var(--neon-red);
+}
+
+/* Code Terminal Style */
+.terminal-log {
+  background: var(--bg-darker);
+  border: var(--border-thin);
+  border-color: var(--signal-green);
+  padding: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--signal-green);
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.8;
+}
+
+.terminal-log .log-line {
+  margin-bottom: 4px;
+}
+
+.terminal-log .log-prefix {
+  color: var(--electric-blue);
+  margin-right: 8px;
+}
+
+.terminal-log .log-error {
+  color: var(--neon-red);
+}
+
+.terminal-log .log-warning {
+  color: var(--cyber-yellow);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+  border: var(--border-thin);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border: var(--border-thin);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--electric-blue);
+}
+
+/* Animations */
+@keyframes pulse-cyber {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes glow-neon {
+  0%, 100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    box-shadow: 0 0 20px currentColor;
+  }
+}
+
+.animate-pulse-cyber {
+  animation: pulse-cyber 2s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow-neon 1.5s ease-in-out infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  body {
+    font-size: 12px;
+  }
+  
+  h1 { font-size: 24px; }
+  h2 { font-size: 18px; }
+  h3 { font-size: 14px; }
+}

@@ -1,0 +1,380 @@
+2026-02-27 03:03:31.815314: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2026-02-27 03:03:38.041160: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+Model soccer_usa_mls_moneyline not found. No prediction available.
+Model soccer_usa_mls_moneyline not found. No prediction available.
+Model soccer_usa_mls_moneyline not found. No prediction available.
+Model soccer_usa_mls_moneyline not found. No prediction available.
+Model soccer_usa_mls_moneyline not found. No prediction available.
+Model soccer_esp.1_moneyline not found. No prediction available.
+Model soccer_esp.1_moneyline not found. No prediction available.
+Model soccer_esp.1_moneyline not found. No prediction available.
+Model soccer_esp.1_moneyline not found. No prediction available.
+Model soccer_esp.1_moneyline not found. No prediction available.
+Model soccer_ita.1_moneyline not found. No prediction available.
+Model soccer_ita.1_moneyline not found. No prediction available.
+Model soccer_ita.1_moneyline not found. No prediction available.
+Model soccer_ita.1_moneyline not found. No prediction available.
+Model soccer_ita.1_moneyline not found. No prediction available.
+Model soccer_ger.1_moneyline not found. No prediction available.
+Model soccer_ger.1_moneyline not found. No prediction available.
+Model soccer_ger.1_moneyline not found. No prediction available.
+Model soccer_ger.1_moneyline not found. No prediction available.
+Model soccer_ger.1_moneyline not found. No prediction available.
+Model soccer_fra.1_moneyline not found. No prediction available.
+Model soccer_fra.1_moneyline not found. No prediction available.
+Model soccer_fra.1_moneyline not found. No prediction available.
+Model soccer_fra.1_moneyline not found. No prediction available.
+Model soccer_fra.1_moneyline not found. No prediction available.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from gradient_boosting: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error getting prediction from random_forest: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error getting prediction from xgboost: Feature shape mismatch, expected: 7, got 9
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but GradientBoostingClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but GradientBoostingClassifier is expecting 7 features as input.
+C:\Users\bigba\Desktop\New folder\.venv\Lib\site-packages\sklearn\base.py:465: UserWarning: X does not have valid feature names, but RandomForestClassifier was fitted with feature names
+  warnings.warn(
+Error in model prediction: X has 9 features, but RandomForestClassifier is expecting 7 features as input.
+Error in model prediction: Feature shape mismatch, expected: 7, got 9
+Testing get_predictions...
+Found 5 predictions
+Sample: Cleveland Cavaliers @ Detroit Pistons - [[0.5 0.5]]

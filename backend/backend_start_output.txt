@@ -1,0 +1,6 @@
+Starting backend from c:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend
+Current working directory: C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend
+Backend process started with PID 9644
+Output is being logged to backend_startup_debug.log
+Waiting 5 seconds for startup...
+Backend is running successfully

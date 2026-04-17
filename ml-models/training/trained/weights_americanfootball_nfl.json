@@ -1,0 +1,6 @@
+{
+  "xgboost": 0.278,
+  "lightgbm": 0.277,
+  "random_forest": 0.277,
+  "logistic_regression": 0.169
+}

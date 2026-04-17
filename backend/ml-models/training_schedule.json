@@ -1,0 +1,53 @@
+{
+  "daily_training_time": "02:00",
+  "retrain_interval_days": 7,
+  "min_samples_required": 100,
+  "performance_check_interval_hours": 1,
+  "data_retention_days": 90,
+  "sports_and_markets": [
+    {
+      "sport": "basketball_nba",
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    {
+      "sport": "americanfootball_nfl",
+      "markets": [
+        "moneyline",
+        "spread",
+        "total"
+      ]
+    },
+    {
+      "sport": "baseball_mlb",
+      "markets": [
+        "moneyline",
+        "total"
+      ]
+    },
+    {
+      "sport": "icehockey_nhl",
+      "markets": [
+        "moneyline",
+        "puck_line",
+        "total"
+      ]
+    },
+    {
+      "sport": "soccer_epl",
+      "markets": [
+        "spread",
+        "total"
+      ]
+    }
+  ],
+  "alert_thresholds": {
+    "min_accuracy": 0.55,
+    "accuracy_drop_threshold": 0.05,
+    "confidence_calibration_threshold": 0.1,
+    "data_drift_z_score": 3.0
+  }
+}

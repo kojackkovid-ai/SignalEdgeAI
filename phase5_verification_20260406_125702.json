@@ -1,0 +1,85 @@
+{
+  "timestamp": "2026-04-06T12:57:00.117071",
+  "verification_checks": {
+    "confidence_fixes": {
+      "status": "failed",
+      "details": {
+        "bayesian_import_found": false,
+        "md5_hash_removed": true,
+        "no_hash_confidence": true,
+        "reasoning_uses_game_data": true
+      },
+      "passed": false
+    },
+    "analytics_endpoints": {
+      "status": "partial",
+      "endpoints": {
+        "accuracy": false,
+        "by_sport": false,
+        "history": false,
+        "deployment": false
+      },
+      "passed": false
+    },
+    "database_state": {
+      "status": "error",
+      "database": {
+        "outcome_fields_exist": false
+      },
+      "passed": false,
+      "error": "no such table: prediction"
+    }
+  },
+  "accuracy_comparison": {
+    "baseline": {},
+    "current": {},
+    "improvements": {},
+    "status": "error",
+    "error": "no such table: prediction"
+  },
+  "deployment_readiness": {
+    "ready_for_production": false,
+    "risk_level": "HIGH",
+    "checks_passed": 0,
+    "checks_total": 3,
+    "deployment_steps": [
+      "1. Create git branch: feature/phase5-deployment",
+      "2. Tag current commit: v1.0-pre-deployment",
+      "3. Deploy to staging environment first",
+      "4. Run 24-hour smoke tests on staging",
+      "5. Verify analytics dashboard is functional",
+      "6. Test confidence calculation with sample games",
+      "7. Run accuracy metrics calculation",
+      "8. Create backup of production database",
+      "9. Deploy to production with blue-green strategy",
+      "10. Monitor error rates and response times (first 4 hours)",
+      "11. Enable gradual traffic shift (canargy deployment)",
+      "12. Archive old predictions with old confidence scores",
+      "13. Document deployment in runbook"
+    ],
+    "rollback_plan": [
+      "If confidence calculations show 10% WR degradation:",
+      "  1. Revert to previous version via blue-green switch",
+      "  2. Disable new analytics endpoints",
+      "  3. Investigate confidence score divergence",
+      "  4. Review ML model outputs vs Bayesian calculator",
+      "",
+      "If analytics endpoints timeout:",
+      "  1. Enable query caching in analytics routes",
+      "  2. Implement pagination for history endpoint",
+      "  3. Create materialized view for aggregated metrics",
+      "",
+      "If database performance degrades:",
+      "  1. Add indexes on sport_key, created_at columns",
+      "  2. Archive resolved predictions older than 90 days",
+      "  3. Move analytics queries to read replica"
+    ],
+    "recommendations": []
+  },
+  "issues_found": [
+    "Confidence fix check failed: bayesian_import_found",
+    "Error verifying database state: no such table: prediction",
+    "Error comparing accuracy metrics: no such table: prediction"
+  ],
+  "recommendations": []
+}

@@ -1,0 +1,102 @@
+{
+  "start_time": "2026-02-26T09:21:01.120437",
+  "tests": [
+    {
+      "name": "Configuration file",
+      "passed": true,
+      "details": "All settings correct - synthetic disabled, real ESPN enabled",
+      "timestamp": "2026-02-26T09:21:01.188059"
+    },
+    {
+      "name": "RealESPNDataCollector import",
+      "passed": true,
+      "details": "All required methods present",
+      "timestamp": "2026-02-26T09:21:36.946991"
+    },
+    {
+      "name": "Data quality verification",
+      "passed": true,
+      "details": "Correctly identifies real vs synthetic data",
+      "timestamp": "2026-02-26T09:21:39.860642"
+    },
+    {
+      "name": "NBA data collection",
+      "passed": true,
+      "details": "Collected 56 real games from ESPN API",
+      "timestamp": "2026-02-26T09:21:45.349672"
+    },
+    {
+      "name": "NFL data collection",
+      "passed": false,
+      "details": "Error: No real training data collected from ESPN API",
+      "timestamp": "2026-02-26T09:21:53.853272"
+    },
+    {
+      "name": "NHL data collection",
+      "passed": true,
+      "details": "Collected 8 real games from ESPN API",
+      "timestamp": "2026-02-26T09:22:00.215122"
+    },
+    {
+      "name": "MLB data collection",
+      "passed": true,
+      "details": "Collected 82 real games from ESPN API",
+      "timestamp": "2026-02-26T09:22:05.496537"
+    },
+    {
+      "name": "Soccer data collection",
+      "passed": true,
+      "details": "Collected 45 real games from ESPN API",
+      "timestamp": "2026-02-26T09:22:15.329300"
+    },
+    {
+      "name": "Retraining script import",
+      "passed": true,
+      "details": "All required methods present",
+      "timestamp": "2026-02-26T09:22:19.981971"
+    },
+    {
+      "name": "Synthetic data rejection",
+      "passed": true,
+      "details": "Correctly rejects synthetic, accepts real",
+      "timestamp": "2026-02-26T09:22:24.105382"
+    },
+    {
+      "name": "Initial training updated",
+      "passed": true,
+      "details": "Uses RealESPNDataCollector, no synthetic data",
+      "timestamp": "2026-02-26T09:22:24.146911"
+    },
+    {
+      "name": "Daily scheduler updated",
+      "passed": true,
+      "details": "Uses real ESPN data, no random generation",
+      "timestamp": "2026-02-26T09:22:24.148261"
+    },
+    {
+      "name": "Model training capability",
+      "passed": true,
+      "details": "Ready to train with 20 real samples",
+      "timestamp": "2026-02-26T09:22:32.124070"
+    },
+    {
+      "name": "Directory structure",
+      "passed": true,
+      "details": "All required directories exist",
+      "timestamp": "2026-02-26T09:22:32.184295"
+    },
+    {
+      "name": "Documentation",
+      "passed": true,
+      "details": "All documentation complete",
+      "timestamp": "2026-02-26T09:22:32.185980"
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "passed": 14,
+    "failed": 1,
+    "success_rate": "93.3%"
+  },
+  "end_time": "2026-02-26T09:22:32.186979"
+}

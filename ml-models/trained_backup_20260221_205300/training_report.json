@@ -1,0 +1,206 @@
+{
+  "timestamp": "2026-02-04T07:53:40.430136",
+  "training_summary": {
+    "NBA": {
+      "status": "Success",
+      "samples_used": 3000,
+      "training_time": 6.673472,
+      "models_trained": [
+        "xgboost",
+        "lightgbm",
+        "neural_net",
+        "linear"
+      ]
+    },
+    "NFL": {
+      "status": "Success",
+      "samples_used": 3000,
+      "training_time": 0.917594,
+      "models_trained": [
+        "xgboost",
+        "lightgbm",
+        "neural_net",
+        "linear"
+      ]
+    },
+    "MLB": {
+      "status": "Success",
+      "samples_used": 3000,
+      "training_time": 0.711503,
+      "models_trained": [
+        "xgboost",
+        "lightgbm",
+        "neural_net",
+        "linear"
+      ]
+    },
+    "NHL": {
+      "status": "Success",
+      "samples_used": 3000,
+      "training_time": 0.459826,
+      "models_trained": [
+        "xgboost",
+        "lightgbm",
+        "neural_net",
+        "linear"
+      ]
+    },
+    "PROPS": {
+      "status": "Success",
+      "samples_used": 5000,
+      "training_time": 0.368635,
+      "models_trained": [
+        "xgboost",
+        "lightgbm",
+        "neural_net",
+        "linear"
+      ]
+    },
+    "general": {
+      "status": "Success",
+      "samples_used": 17000,
+      "training_time": 14.803083,
+      "models_trained": [
+        "xgboost",
+        "lightgbm",
+        "neural_net",
+        "linear"
+      ]
+    }
+  },
+  "model_performance": {
+    "NBA": {
+      "xgboost": {
+        "accuracy": 0.997,
+        "precision": 0.997355896351137,
+        "recall": 0.9978835978835979,
+        "f1": 0.9976196773340387
+      },
+      "lightgbm": {
+        "accuracy": 0.999,
+        "precision": 0.9989423585404548,
+        "recall": 0.9994708994708995,
+        "f1": 0.9992065591113463
+      },
+      "neural_net": null,
+      "linear": {
+        "accuracy": 0.917,
+        "precision": 0.9227202472952086,
+        "recall": 0.9476190476190476,
+        "f1": 0.9350039154267815
+      }
+    },
+    "NFL": {
+      "xgboost": {
+        "accuracy": 0.9993333333333333,
+        "precision": 0.9994672349493873,
+        "recall": 0.9994672349493873,
+        "f1": 0.9994672349493873
+      },
+      "lightgbm": {
+        "accuracy": 0.999,
+        "precision": 0.9994669509594882,
+        "recall": 0.9989344698987747,
+        "f1": 0.9992006394884093
+      },
+      "neural_net": null,
+      "linear": {
+        "accuracy": 0.9216666666666666,
+        "precision": 0.9316508937960042,
+        "recall": 0.9440596696856686,
+        "f1": 0.9378142365705213
+      }
+    },
+    "MLB": {
+      "xgboost": {
+        "accuracy": 0.998,
+        "precision": 0.9983879634605051,
+        "recall": 0.9983879634605051,
+        "f1": 0.9983879634605051
+      },
+      "lightgbm": {
+        "accuracy": 0.999,
+        "precision": 0.9989258861439313,
+        "recall": 0.999462654486835,
+        "f1": 0.9991941982272361
+      },
+      "neural_net": null,
+      "linear": {
+        "accuracy": 0.916,
+        "precision": 0.9209837781266352,
+        "recall": 0.9457281031703385,
+        "f1": 0.9331919406150583
+      }
+    },
+    "NHL": {
+      "xgboost": {
+        "accuracy": 0.9963333333333333,
+        "precision": 0.9967931587386424,
+        "recall": 0.9973262032085561,
+        "f1": 0.9970596097300187
+      },
+      "lightgbm": {
+        "accuracy": 0.999,
+        "precision": 0.9989310529128808,
+        "recall": 0.9994652406417113,
+        "f1": 0.9991980753809142
+      },
+      "neural_net": null,
+      "linear": {
+        "accuracy": 0.9253333333333333,
+        "precision": 0.930890052356021,
+        "recall": 0.9508021390374332,
+        "f1": 0.9407407407407408
+      }
+    },
+    "PROPS": {
+      "xgboost": {
+        "accuracy": 0.9968,
+        "precision": 0.9967845659163987,
+        "recall": 0.9538461538461539,
+        "f1": 0.9748427672955975
+      },
+      "lightgbm": {
+        "accuracy": 0.999,
+        "precision": 0.9968944099378882,
+        "recall": 0.9876923076923076,
+        "f1": 0.9922720247295209
+      },
+      "neural_net": null,
+      "linear": {
+        "accuracy": 0.9522,
+        "precision": 0.7654320987654321,
+        "recall": 0.38153846153846155,
+        "f1": 0.5092402464065708
+      }
+    },
+    "general": {
+      "xgboost": {
+        "accuracy": 0.9622941176470589,
+        "precision": 0.9621621621621622,
+        "recall": 0.9556436149814649,
+        "f1": 0.9588918104277561
+      },
+      "lightgbm": {
+        "accuracy": 0.960764705882353,
+        "precision": 0.9609636691574337,
+        "recall": 0.9534705356001534,
+        "f1": 0.9572024382418992
+      },
+      "neural_net": null,
+      "linear": {
+        "accuracy": 0.924,
+        "precision": 0.9295015125608312,
+        "recall": 0.9033618816310878,
+        "f1": 0.9162453001426164
+      }
+    }
+  },
+  "recommendations": [
+    "Schedule daily retraining at 2 AM to incorporate new data",
+    "Monitor model performance and trigger retraining if accuracy drops >2%",
+    "Collect real historical data to supplement synthetic training data",
+    "Implement A/B testing for different model configurations",
+    "Add feature importance analysis to identify most predictive factors"
+  ]
+}

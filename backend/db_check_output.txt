@@ -1,0 +1,10 @@
+Starting database check...
+Database file exists: sports_predictions.db (544768 bytes)
+[CONFIG] Using SQLite for local development: C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\sports_predictions.db
+[DATABASE] Connecting to: sqlite+aiosqlite:///C:\Users\bigba\Desktop\New folder\sports-prediction-platform\backend\sports_predictions.db
+[DATABASE] DB_HOST: localhost, DB_PORT: 5432, DB_NAME: sports_predictions_prod
+[DATABASE] [INFO] Using SQLite for local development at: localhost
+[DATABASE] [OK] SQLite engine created successfully
+Raw SQL COUNT: 50
+ORM query result: 50 rows
+Check completed

@@ -1,0 +1,110 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - production
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -e
+            
+            echo "🚀 Starting deployment..."
+            cd ${{ secrets.DEPLOY_PATH }}
+            
+            # Set image tags based on branch/ref
+            export BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.ref_name }}"
+            export FRONTEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.ref_name }}"
+            
+            # Pull latest images
+            echo "📥 Pulling latest images..."
+            docker pull ${BACKEND_IMAGE}
+            docker pull ${FRONTEND_IMAGE}
+            
+            # Update docker-compose file with new image tags
+            export DEPLOY_ENV=${{ github.event.inputs.environment || 'production' }}
+            if [ "${DEPLOY_ENV}" = "staging" ]; then
+              COMPOSE_FILE="docker-compose.staging.yml"
+            else
+              COMPOSE_FILE="docker-compose.prod.yml"
+            fi
+            
+            # Create a temporary compose file with updated images
+            sed "s|BACKEND_IMAGE|${BACKEND_IMAGE}|g; s|FRONTEND_IMAGE|${FRONTEND_IMAGE}|g" ${COMPOSE_FILE} > docker-compose.temp.yml
+            
+            # Stop old containers
+            echo "⏹️  Stopping old containers..."
+            docker compose -f docker-compose.temp.yml down --remove-orphans || true
+            
+            # Start new containers
+            echo "🟢 Starting new containers..."
+            docker compose -f docker-compose.temp.yml up -d
+            
+            # Wait for services to be healthy
+            echo "⏳ Waiting for services to be healthy..."
+            sleep 10
+            
+            # Health check
+            echo "🏥 Performing health checks..."
+            if curl -f http://localhost/health > /dev/null 2>&1; then
+              echo "✅ Backend health check passed"
+            else
+              echo "❌ Backend health check failed"
+              docker compose -f docker-compose.temp.yml logs backend --tail=20
+              exit 1
+            fi
+            
+            # Cleanup
+            rm -f docker-compose.temp.yml
+            
+            echo "✨ Deployment successful!"
+
+      - name: Create deployment summary
+        run: |
+          echo "## 🚀 Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Backend Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Frontend Image:** \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY

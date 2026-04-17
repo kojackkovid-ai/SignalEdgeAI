@@ -1,0 +1,224 @@
+# Production Docker Compose Configuration
+# Optimized for production deployment with proper security and performance settings
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: signaledge-db-prod
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: sports_predictions_password
+      POSTGRES_DB: sports_predictions_prod
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./database/backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: signaledge-cache-prod
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_prod:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: signaledge-api-prod
+    env_file:
+      - .env.production
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ml-models:/app/ml-models:ro
+    environment:
+      # env_file .env.production loads all required variables:
+      # STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY, SECRET_KEY, ALGORITHM,
+      # ACCESS_TOKEN_EXPIRE_MINUTES, ODDS_API_KEY, LOG_LEVEL, etc.
+      DATABASE_URL: postgresql+asyncpg://postgres:sports_predictions_password@postgres:5432/sports_predictions_prod
+      ENVIRONMENT: production
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - backend-network
+      - frontend-network
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+        VITE_APP_NAME: SignalEdge AI
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY:-pk_test_51SuaLd8f0rj8wiWDNdeOgNvgt3mFoKpmkXlzV2JWN8gUxash7DzogdtiZUu0rkCEMI5F3HtmTBquAhVVSKrknAy4003kbnRUu6}
+    container_name: signaledge-web-prod
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - frontend-network
+
+  # Nginx Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: signaledge-lb
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf.file:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - frontend-network
+
+  # ML Training Worker
+  ml-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: signaledge-ml-worker
+    command: python /app/ml-models/training/__main__.py
+    volumes:
+      - ./ml-models:/app/ml-models
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${DB_USER:-postgres}:${DB_PASSWORD:-changeme_in_production}@postgres:5432/${DB_NAME:-sports_predictions}
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: INFO
+    healthcheck:
+      test: ["CMD", "test", "-d", "/app/ml-models/trained"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  # Database Backup Service
+  db-backup:
+    image: postgres:16-alpine
+    container_name: signaledge-backup
+    command: >
+      sh -c "
+        while true; do
+          PGPASSWORD=${DB_PASSWORD:-changeme_in_production} pg_dump -h postgres -U ${DB_USER:-postgres} ${DB_NAME:-sports_predictions} | gzip > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql.gz
+          find /backups -name 'backup_*.sql.gz' -mtime +7 -delete
+          sleep 86400
+        done
+      "
+    volumes:
+      - ./database/backups:/backups
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: signaledge-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml.config:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: signaledge-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+volumes:
+  postgres_data_prod:
+  redis_data_prod:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  backend-network:
+    driver: bridge
+    internal: true
+  frontend-network:
+    driver: bridge
