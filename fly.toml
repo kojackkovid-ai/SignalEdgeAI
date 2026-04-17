@@ -1,5 +1,5 @@
 # Fly.io Configuration for Sports Prediction Platform
-app = "sports-predictions-ai"
+app = "signaledge-ai"
 primary_region = "ord"
 
 [build]
