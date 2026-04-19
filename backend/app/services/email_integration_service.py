@@ -71,7 +71,7 @@ class EmailIntegrationService:
                 'new_tier': new_tier.replace('_', ' ').title(),
                 'daily_limit': daily_limit,
                 'features': features,
-                'dashboard_url': 'http://localhost:5173/dashboard'
+                'dashboard_url': f'{self.settings.frontend_url}/dashboard'
             }
             
             # Send email
@@ -124,7 +124,7 @@ class EmailIntegrationService:
             # Prepare context - NOTE: In production, send via secure link
             context = {
                 'user_name': user.username,
-                'reset_url': f'http://localhost:5173/reset-password?token={reset_token}',
+                'reset_url': f'{self.settings.frontend_url}/reset-password?token={reset_token}',
             }
             
             # Send email

@@ -83,8 +83,11 @@ class OWASPSecurityMiddleware(BaseHTTPMiddleware):
         response.headers["Expect-CT"] = "max-age=86400, enforce"
         
         # Remove sensitive headers that might leak info
-        response.headers.pop("Server", None)  # Don't reveal server type
-        response.headers.pop("X-Powered-By", None)  # Don't reveal framework
+        # MutableHeaders doesn't support pop(), use del instead
+        if "Server" in response.headers:
+            del response.headers["Server"]
+        if "X-Powered-By" in response.headers:
+            del response.headers["X-Powered-By"]
         
         return response
 

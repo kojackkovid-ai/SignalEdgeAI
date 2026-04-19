@@ -30,6 +30,10 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     password_hash = Column(String)
     
+    # Password Reset
+    password_reset_token = Column(String, unique=True, index=True, nullable=True)
+    password_reset_token_expires = Column(DateTime, nullable=True)
+    
     # Subscription
     subscription_tier = Column(String, default="free")  # free, basic, pro
     subscription_start = Column(DateTime, default=datetime.utcnow)

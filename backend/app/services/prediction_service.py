@@ -564,35 +564,43 @@ class PredictionService:
             
             logger.info(f"[SAVE_PREDICTION] Creating prediction with: matchup={matchup}, prediction={prediction}, confidence={confidence}, type={prediction_type}")
             
-            new_pred = Prediction(
-                id=prediction_id,
-                sport=sport,
-                league=league,
-                matchup=matchup,
-                prediction=prediction,
-                confidence=confidence,
-                odds=odds,
-                prediction_type=prediction_type,
-                # Player props specific fields
-                player=player,
-                market_key=market_key,
-                point=point,
-                # Game/Event info
-                event_id=event_id,
-                sport_key=sport_key,
-                game_time=game_time,
-                # Reasoning and models
-                reasoning=reasoning,
-                model_weights=model_weights,
-                # Club 100 tracking
-                is_club_100_pick=is_club_100_pick,
-                created_at=datetime.utcnow()
-            )
-            
-            db.add(new_pred)
-            await db.commit()
-            logger.info(f"[SAVE_PREDICTION] ✅ Successfully saved prediction {prediction_id} with sport={sport}, league={league}")
-            return True  # Indicate success
+            try:
+                new_pred = Prediction(
+                    id=prediction_id,
+                    sport=sport,
+                    league=league,
+                    matchup=matchup,
+                    prediction=prediction,
+                    confidence=confidence,
+                    odds=odds,
+                    prediction_type=prediction_type,
+                    # Player props specific fields
+                    player=player,
+                    market_key=market_key,
+                    point=point,
+                    # Game/Event info
+                    event_id=event_id,
+                    sport_key=sport_key,
+                    game_time=game_time,
+                    # Reasoning and models
+                    reasoning=reasoning,
+                    model_weights=model_weights,
+                    # Club 100 tracking
+                    is_club_100_pick=is_club_100_pick,
+                    created_at=datetime.utcnow()
+                )
+                
+                db.add(new_pred)
+                await db.commit()
+                logger.info(f"[SAVE_PREDICTION] ✅ Successfully saved prediction {prediction_id} with sport={sport}, league={league}")
+                return True  # Indicate success
+            except Exception as insert_err:
+                logger.error(f"[SAVE_PREDICTION] ❌ Error during insert/commit: {type(insert_err).__name__}: {str(insert_err)}", exc_info=True)
+                try:
+                    await db.rollback()
+                except:
+                    pass
+                raise ValueError(f"Database insert failed: {str(insert_err)}")
             
         except Exception as e:
             logger.error(f"[SAVE_PREDICTION] ❌ Error saving prediction {prediction_data.get('id', 'UNKNOWN')}: {e}", exc_info=True)
@@ -655,12 +663,20 @@ class PredictionService:
             
             if current_picks >= max_picks:
                 # If they try to bypass, we block them
-                logger.warning(f"User {user_id} ({tier}) reached daily limit of {max_picks}")
-                raise ValueError(f"Daily pick limit reached. Upgrade your plan for more picks!")
+                error_msg = f"Daily pick limit reached. You have used {current_picks} of {max_picks} picks today. Upgrade your plan for more picks!"
+                logger.warning(f"[FOLLOW_SERVICE] ❌ {error_msg} User: {user_id} ({tier})")
+                raise ValueError(error_msg)
             
             # 4. Save prediction to DB first (upsert) - include is_club_100_pick flag
-            await self.save_prediction(db, prediction_data, is_club_100_pick=is_club_100_pick)
-            logger.info(f"[FOLLOW_SERVICE] Saved prediction {prediction_id} to DB with is_club_100_pick={is_club_100_pick}")
+            try:
+                await self.save_prediction(db, prediction_data, is_club_100_pick=is_club_100_pick)
+                logger.info(f"[FOLLOW_SERVICE] Saved prediction {prediction_id} to DB with is_club_100_pick={is_club_100_pick}")
+            except ValueError as save_err:
+                logger.error(f"[FOLLOW_SERVICE] ❌ Failed to save prediction: {str(save_err)}")
+                raise ValueError(f"Could not save prediction: {str(save_err)}")
+            except Exception as save_err:
+                logger.error(f"[FOLLOW_SERVICE] ❌ Unexpected error saving prediction: {str(save_err)}", exc_info=True)
+                raise ValueError(f"Database error saving prediction: {str(save_err)}")
 
             # 5. Record prediction in user's prediction history for accuracy tracking
             # This is CRITICAL for the accuracy dashboard to work!
@@ -696,8 +712,17 @@ class PredictionService:
         except ValueError as e:
             raise e
         except Exception as e:
-            logger.error(f"Error following prediction: {str(e)}", exc_info=True)
-            raise ValueError("Failed to follow prediction")
+            logger.error(f"[FOLLOW_SERVICE] ❌ Unexpected error following prediction {prediction_data.get('id', 'UNKNOWN')}: {str(e)}", exc_info=True)
+            # Provide specific error details
+            error_msg = str(e)
+            if 'UNIQUE constraint failed' in error_msg:
+                raise ValueError("This prediction is already in your list")
+            elif 'FOREIGN KEY constraint failed' in error_msg:
+                raise ValueError("The prediction data is invalid or incomplete")
+            elif 'no such table' in error_msg.lower():
+                raise ValueError("Database initialization incomplete")
+            else:
+                raise ValueError(f"Database error: {error_msg}")
 
     async def unfollow_prediction(self, db, user_id: str, prediction_id: str):
         """Unfollow a prediction"""

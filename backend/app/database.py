@@ -81,6 +81,44 @@ async def run_migrations():
                 ))
                 column_names = [row[0] for row in result.fetchall()]
             
+            # Add password reset columns if missing
+            if 'password_reset_token' not in column_names:
+                try:
+                    if is_sqlite:
+                        # SQLite doesn't support UNIQUE on ALTER TABLE with data, use regular column
+                        await conn.execute(text("ALTER TABLE users ADD COLUMN password_reset_token TEXT"))
+                    else:
+                        await conn.execute(text("ALTER TABLE users ADD COLUMN password_reset_token VARCHAR UNIQUE"))
+                    await conn.commit()
+                    from app.utils.structured_logging import get_logger
+                    logger_instance = get_logger(__name__)
+                    logger_instance.info("✅ Migration: Added password_reset_token column")
+                except Exception as e:
+                    from app.utils.structured_logging import get_logger
+                    logger_instance = get_logger(__name__)
+                    if "already exists" in str(e).lower() or "duplicate" in str(e).lower():
+                        logger_instance.info("✅ Migration: password_reset_token column already exists")
+                    else:
+                        logger_instance.warning(f"Migration warning for password_reset_token: {e}")
+            
+            if 'password_reset_token_expires' not in column_names:
+                try:
+                    if is_sqlite:
+                        await conn.execute(text("ALTER TABLE users ADD COLUMN password_reset_token_expires TIMESTAMP"))
+                    else:
+                        await conn.execute(text("ALTER TABLE users ADD COLUMN password_reset_token_expires TIMESTAMP"))
+                    await conn.commit()
+                    from app.utils.structured_logging import get_logger
+                    logger_instance = get_logger(__name__)
+                    logger_instance.info("✅ Migration: Added password_reset_token_expires column")
+                except Exception as e:
+                    from app.utils.structured_logging import get_logger
+                    logger_instance = get_logger(__name__)
+                    if "already exists" in str(e).lower() or "duplicate" in str(e).lower():
+                        logger_instance.info("✅ Migration: password_reset_token_expires column already exists")
+                    else:
+                        logger_instance.warning(f"Migration warning for password_reset_token_expires: {e}")
+
             # Add club_100_unlocked_picks if missing
             if 'club_100_unlocked_picks' not in column_names:
                 try:

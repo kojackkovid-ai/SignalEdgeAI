@@ -487,6 +487,8 @@ try:
             "/openapi.json",
             "/api/auth/login",
             "/api/auth/register",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password",
             "/api/payment/webhook",
         ],
     )
@@ -502,6 +504,8 @@ except Exception as e:
             "/openapi.json",
             "/api/auth/login",
             "/api/auth/register",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password",
             "/api/payment/webhook",
         ],
     )

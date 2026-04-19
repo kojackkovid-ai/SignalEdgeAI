@@ -969,9 +969,19 @@ async def follow_prediction(
 ):
     """Follow/unlock a prediction (game pick or player prop). Club 100 picks cost 5 daily picks instead of 1."""
     request_id = f"{prediction_id}_{datetime.utcnow().timestamp()}"
-    logger.info(f"[FOLLOW_DEBUG][{request_id}] Follow request for prediction {prediction_id} by user {current_user_id}, is_club_100_pick={is_club_100_pick}")
-    logger.info(f"[FOLLOW_DEBUG][{request_id}] Request body prediction_data type: {type(prediction_data)}, content: {prediction_data}")
-    logger.info(f"[FOLLOW_DEBUG][{request_id}] Request query sport_key: {sport_key}")
+    logger.info(f"[FOLLOW_DEBUG][{request_id}] ✅ FOLLOW REQUEST RECEIVED")
+    logger.info(f"[FOLLOW_DEBUG][{request_id}]   prediction_id: {prediction_id} (type: {type(prediction_id).__name__})")
+    logger.info(f"[FOLLOW_DEBUG][{request_id}]   current_user_id: {current_user_id}")
+    logger.info(f"[FOLLOW_DEBUG][{request_id}]   is_club_100_pick: {is_club_100_pick}")
+    logger.info(f"[FOLLOW_DEBUG][{request_id}]   sport_key (query param): {sport_key}")
+    logger.info(f"[FOLLOW_DEBUG][{request_id}]   prediction_data type: {type(prediction_data).__name__}")
+    logger.info(f"[FOLLOW_DEBUG][{request_id}]   prediction_data keys: {list(prediction_data.keys()) if isinstance(prediction_data, dict) else 'N/A'}")
+    logger.info(f"[FOLLOW_DEBUG][{request_id}]   prediction_data full content: {prediction_data}")
+    
+    # Validate prediction_data structure
+    if isinstance(prediction_data, dict) and not prediction_data.get('id'):
+        logger.warning(f"[FOLLOW_DEBUG][{request_id}] ⚠️ WARNING: prediction_data does not have 'id' field")
+        logger.warning(f"[FOLLOW_DEBUG][{request_id}]   prediction_id parameter will be used instead")
     
     try:
         # Check if this is a player prop using improved detection
@@ -1115,11 +1125,19 @@ async def follow_prediction(
                 logger.info(f"[FOLLOW_DEBUG][{request_id}] ✅ VERIFICATION: is_following_prediction returned {verify_following} for {prediction_id}")
             except Exception as verify_err:
                 logger.error(f"[FOLLOW_DEBUG][{request_id}] ❌ VERIFICATION FAILED: {verify_err}")
-        except Exception as e:
-            logger.error(f"[FOLLOW_DEBUG][{request_id}] Error in follow_prediction: {e}")
+        except ValueError as e:
+            logger.error(f"[FOLLOW_DEBUG][{request_id}] ❌ ValueError in follow_prediction: {str(e)}", exc_info=True)
+            error_detail = str(e)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Could not follow prediction: {str(e)}"
+                detail=f"Could not follow prediction: {error_detail}"
+            )
+        except Exception as e:
+            logger.error(f"[FOLLOW_DEBUG][{request_id}] ❌ Unexpected error in follow_prediction: {type(e).__name__}: {str(e)}", exc_info=True)
+            error_detail = f"{type(e).__name__}: {str(e)}"
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Could not follow prediction: {error_detail}"
             )
         
         if not result:

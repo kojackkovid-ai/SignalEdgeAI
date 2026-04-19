@@ -1,0 +1,30 @@
+
+> signaledge-ai-frontend@1.0.0 build
+> vite build
+
+[Vite] Reading .env from: C:\Users\bigba\Desktop\New folder\sports-prediction-platform\frontend\.env
+[Vite] .env content length: 195 bytes
+[Vite] Line 0: VITE_API_URL = /api
+[Vite] Line 1: VITE_APP_NAME = Sports Prediction Platform
+[Vite] Line 2: VITE_STRIPE_PUBLISHABLE_KEY = pk_test_51SuaLd8f0rj8wiWDNdeOgNvgt3mFoKpmkXlzV2JWN...
+[Vite] Parsed env variables: [ 'VITE_API_URL', 'VITE_APP_NAME', 'VITE_STRIPE_PUBLISHABLE_KEY' ]
+[Vite Config] ========================================
+[Vite Config] Stripe Key Length: 107 (should be 100+)
+[Vite Config] Stripe Key Preview: pk_test_51SuaLd8f0rj8wiWDNdeOg...
+[Vite Config] API URL: /api
+[Vite Config] App Name: Sports Prediction Platform
+[Vite Config] ========================================
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 2254 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  0.64 kB[22m[1m[22m[2m Γöé gzip:   0.39 kB[22m
+[2mdist/[22m[35massets/index-HEmp-prF.css  [39m[1m[2m 58.35 kB[22m[1m[22m[2m Γöé gzip:   9.48 kB[22m
+[2mdist/[22m[36massets/index-ga80dvgV.js   [39m[1m[33m860.99 kB[39m[22m[2m Γöé gzip: 236.90 kB[22m
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[32mΓ£ô built in 1m 46s[39m

@@ -1,0 +1,251 @@
+/**
+ * Mobile Responsive Design Utilities
+ * Tailwind breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px), 2xl (1536px)
+ * 
+ * Usage Guide:
+ * - Use mobile-first approach: style for mobile first, then use md:, lg:, etc. for larger screens
+ * - Touch targets should be minimum 48x48px on mobile
+ * - Avoid fixed widths, use relative sizing
+ * - Test on actual devices or browser dev tools
+ */
+
+/* 
+ * Mobile-First Breakpoints:
+ * 
+ * Default (mobile): 320px - 640px
+ * sm: 640px and up
+ * md: 768px and up (tablet)
+ * lg: 1024px and up (desktop)
+ * xl: 1280px and up (large desktop)
+ * 2xl: 1536px and up (wide desktop)
+ */
+
+/* Touch-friendly spacing for mobile */
+@layer components {
+  /* Button - Mobile Optimized */
+  .btn-mobile {
+    @apply px-4 py-3 sm:px-5 sm:py-2.5;
+    @apply min-h-[48px] sm:min-h-auto;
+    @apply min-w-[48px] sm:min-w-auto;
+    @apply rounded-lg;
+    @apply transition-all duration-200;
+    @apply cursor-pointer;
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  /* Card - Mobile Optimized */
+  .card-mobile {
+    @apply w-full;
+    @apply px-4 py-4 sm:px-6 sm:py-5;
+    @apply rounded-lg border border-gray-200;
+    @apply dark:border-gray-700;
+    @apply shadow-sm hover:shadow-md;
+    @apply transition-shadow duration-200;
+  }
+
+  /* Container - Mobile Safe */
+  .container-mobile {
+    @apply w-full;
+    @apply px-4 sm:px-6 md:px-8 lg:px-0;
+    @apply max-w-full sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl;
+    @apply mx-auto;
+  }
+
+  /* Grid - Mobile Responsive */
+  .grid-mobile {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+    @apply gap-4 sm:gap-5 md:gap-6;
+  }
+
+  /* Flex Stack - Mobile Responsive */
+  .flex-stack-mobile {
+    @apply flex flex-col sm:flex-row;
+    @apply gap-4 sm:gap-6;
+    @apply items-start sm:items-center;
+  }
+
+  /* Typography - Mobile Responsive */
+  .text-responsive-h1 {
+    @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+    @apply font-bold;
+    @apply mb-2 sm:mb-3 md:mb-4;
+  }
+
+  .text-responsive-h2 {
+    @apply text-xl sm:text-2xl md:text-3xl;
+    @apply font-bold;
+    @apply mb-2 sm:mb-3;
+  }
+
+  .text-responsive-body {
+    @apply text-sm sm:text-base md:text-lg;
+    @apply leading-relaxed;
+  }
+
+  /* Padding Safe for Mobile */
+  .p-safe {
+    @apply p-4 sm:p-6 md:p-8;
+  }
+
+  .px-safe {
+    @apply px-4 sm:px-6 md:px-8;
+  }
+
+  .py-safe {
+    @apply py-4 sm:py-6 md:py-8;
+  }
+
+  /* Input - Touch Friendly */
+  .input-mobile {
+    @apply w-full;
+    @apply px-3 py-2 sm:px-4 sm:py-2.5;
+    @apply min-h-[44px] sm:min-h-[40px];
+    @apply text-base sm:text-sm;
+    @apply border border-gray-300;
+    @apply dark:border-gray-600;
+    @apply rounded-lg;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-500;
+    @apply transition-ring duration-200;
+  }
+
+  /* Modal - Mobile Optimized */
+  .modal-mobile {
+    @apply fixed inset-0;
+    @apply flex items-end sm:items-center justify-center;
+    @apply z-50;
+  }
+
+  .modal-content-mobile {
+    @apply w-full sm:w-auto;
+    @apply h-[90vh] sm:h-auto;
+    @apply sm:max-h-[90vh];
+    @apply px-0 sm:px-0;
+    @apply rounded-t-2xl sm:rounded-lg;
+    @apply bg-white dark:bg-gray-900;
+    @apply shadow-2xl;
+  }
+}
+
+/* Responsive Navigation */
+@layer utilities {
+  /* Hide on mobile, show on desktop */
+  .hide-mobile {
+    @apply hidden md:flex;
+  }
+
+  /* Show on mobile, hide on desktop */
+  .show-mobile {
+    @apply flex md:hidden;
+  }
+
+  /* Burger menu icon (3 lines) */
+  .burger-icon {
+    @apply w-6 h-6;
+    @apply flex flex-col justify-center gap-1;
+  }
+
+  /* Safe area for notches */
+  .safe-area-top {
+    @apply pt-safe;
+  }
+
+  .safe-area-bottom {
+    @apply pb-safe;
+  }
+
+  /* Text truncation for mobile */
+  .truncate-mobile {
+    @apply truncate md:line-clamp-none;
+  }
+
+  /* Line clamping */
+  .line-clamp-2-mobile {
+    @apply line-clamp-2 md:line-clamp-none;
+  }
+
+  /* Flexible sizing */
+  .flex-full {
+    @apply w-full h-full;
+  }
+
+  /* Image responsive */
+  .img-responsive {
+    @apply w-full h-auto;
+    @apply object-cover;
+    @apply object-center;
+  }
+
+  /* Aspect ratios for mobile */
+  .aspect-video-mobile {
+    @apply aspect-video;
+  }
+
+  .aspect-square-mobile {
+    @apply aspect-square;
+  }
+}
+
+/* Media Query Helpers */
+@media (max-width: 640px) {
+  /* Ultra small screen optimizations */
+  body {
+    font-size: 12px;
+  }
+
+  h1 { font-size: 24px; }
+  h2 { font-size: 20px; }
+  h3 { font-size: 18px; }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile/touch devices */
+  
+  /* Increase button size for touch */
+  button, a[role="button"] {
+    @apply min-h-[48px] min-w-[48px];
+    @apply text-base;
+  }
+
+  /* Increase tap targets */
+  input, select, textarea {
+    @apply text-base; /* Prevents auto-zoom on focus */
+  }
+
+  /* Remove hover states that don't apply to touch */
+  .hover\:bg-gray-100:hover {
+    @apply bg-gray-100;
+  }
+}
+
+/* Landscape mode optimizations */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Reduce padding and margins in landscape mode on small screens */
+  body {
+    padding: 0;
+    margin: 0;
+  }
+
+  h1, h2, h3 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Dark mode optimization for mobile */
+@media (prefers-color-scheme: dark) {
+  /* Ensure sufficient contrast on dark mode */
+  body {
+    background-color: #0a0a0a;
+    color: #ffffff;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

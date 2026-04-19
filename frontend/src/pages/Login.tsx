@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuthStore } from '../utils/store';
 import { analyticsTracker } from '../utils/analytics';
@@ -102,6 +102,11 @@ const Login: React.FC = () => {
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
+          <div className="text-center">
+            <Link to="/forgot-password" className="text-blue-600 hover:underline text-sm">
+              Forgot password?
+            </Link>
+          </div>
         </form>
         <div className="mt-6 text-center text-gray-600">
           Don't have an account?{' '}

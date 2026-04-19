@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     api_version: str = "1.0.0"
     api_host: str = "0.0.0.0"
     api_port: int = 8000
+    
+    # Frontend Configuration
+    frontend_url: str = "http://localhost:5173"
 
     # Security - MUST be set in environment
     secret_key: str = ""

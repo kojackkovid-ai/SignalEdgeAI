@@ -5,6 +5,7 @@ from app.database import get_db
 from app.services.auth_service import AuthService
 from app.services.stripe_service import stripe_service
 from app.services.audit_service import get_audit_service
+from app.utils.endpoint_rate_limiter import rate_limit
 import logging
 import os
 from typing import Optional
@@ -61,7 +62,9 @@ class PaymentIntentResponse(BaseModel):
     amount: int
 
 @router.post("/create-payment-intent", response_model=PaymentIntentResponse)
+@rate_limit("payment:create_intent", requests=10, window=60)  # 10 requests per minute
 async def create_payment_intent(
+    http_request: Request,
     request: CreatePaymentIntentRequest,
     current_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -74,12 +77,16 @@ async def create_payment_intent(
         logger.info(f"[Payment] Request - plan: {request.plan}, cycle: {request.billing_cycle}")
         
         # Get user
-        user = await get_auth_service().get_user_by_id(db, current_user_id)
-        if not user:
-            logger.error(f"[Payment] User not found: {current_user_id}")
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        logger.info(f"[Payment] User found: {user.id} ({user.email}), current tier: {user.subscription_tier}")
+        try:
+            user = await get_auth_service().get_user_by_id(db, current_user_id)
+            if not user:
+                logger.error(f"[Payment] User not found: {current_user_id}")
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            logger.info(f"[Payment] User found: {user.id} ({user.email}), current tier: {user.subscription_tier}")
+        except Exception as e:
+            logger.error(f"[Payment] ❌ Error getting user: {type(e).__name__}: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Failed to retrieve user: {str(e)}")
         
         # Get pricing from tier_features.py for consistency and maintainability
         from app.models.tier_features import TierFeatures
@@ -88,9 +95,16 @@ async def create_payment_intent(
         cycle = request.billing_cycle.lower()
         
         # Validate plan
-        if plan not in TierFeatures.all_tiers():
+        try:
+            all_tiers = TierFeatures.all_tiers()
+            logger.info(f"[Payment] Available tiers: {all_tiers}")
+        except Exception as e:
+            logger.error(f"[Payment] ❌ Error getting tier list: {type(e).__name__}: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Failed to load tier configuration: {str(e)}")
+        
+        if plan not in all_tiers:
             logger.error(f"[Payment] Invalid plan: {plan}")
-            raise HTTPException(status_code=400, detail=f"Invalid plan '{plan}'. Must be one of: {', '.join(TierFeatures.all_tiers())}")
+            raise HTTPException(status_code=400, detail=f"Invalid plan '{plan}'. Must be one of: {', '.join(all_tiers)}")
         
         # Validate billing cycle
         if cycle not in ['monthly', 'annual']:
@@ -98,29 +112,37 @@ async def create_payment_intent(
             raise HTTPException(status_code=400, detail="Invalid billing cycle. Must be 'monthly' or 'annual'")
         
         # Get pricing from tier config (in cents)
-        amount = TierFeatures.get_tier_price(plan, cycle)
-        if not amount:
-            logger.error(f"[Payment] Could not determine price for {plan} ({cycle})")
-            raise HTTPException(status_code=400, detail=f"Invalid plan/cycle combination: {plan}/{cycle}")
-        
-        logger.info(f"[Payment] Amount calculated: ${amount/100:.2f} for {plan} ({cycle}) - from tier_features.py")
+        try:
+            amount = TierFeatures.get_tier_price(plan, cycle)
+            if not amount:
+                logger.error(f"[Payment] Could not determine price for {plan} ({cycle})")
+                raise HTTPException(status_code=400, detail=f"Invalid plan/cycle combination: {plan}/{cycle}")
+            
+            logger.info(f"[Payment] Amount calculated: ${amount/100:.2f} for {plan} ({cycle}) - from tier_features.py")
+        except Exception as e:
+            logger.error(f"[Payment] ❌ Error getting tier price: {type(e).__name__}: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Failed to calculate price: {str(e)}")
         
         # Create payment intent - StripeService handles Stripe initialization
-        logger.info(f"[Payment] Calling stripe_service.create_payment_intent()")
-        result = await stripe_service.create_payment_intent(
-            amount=amount,
-            currency="usd",
-            metadata={
-                "user_id": str(user.id),
-                "user_email": user.email,
-                "plan": plan,
-                "billing_cycle": cycle
-            }
-        )
-        
-        logger.info(f"[Payment] ✅ Payment intent created successfully")
-        logger.info(f"[Payment] Payment Intent ID: {result['payment_intent_id']}")
-        logger.info(f"[Payment] Client Secret (first 30 chars): {result['client_secret'][:30]}...")
+        try:
+            logger.info(f"[Payment] Calling stripe_service.create_payment_intent()")
+            result = await stripe_service.create_payment_intent(
+                amount=amount,
+                currency="usd",
+                metadata={
+                    "user_id": str(user.id),
+                    "user_email": user.email,
+                    "plan": plan,
+                    "billing_cycle": cycle
+                }
+            )
+            
+            logger.info(f"[Payment] ✅ Payment intent created successfully")
+            logger.info(f"[Payment] Payment Intent ID: {result['payment_intent_id']}")
+            logger.info(f"[Payment] Client Secret (first 30 chars): {result['client_secret'][:30]}...")
+        except Exception as e:
+            logger.error(f"[Payment] ❌ Error creating Stripe payment intent: {type(e).__name__}: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=502, detail=f"Payment service error: {str(e)[:200]}")
         
         return PaymentIntentResponse(
             client_secret=result["client_secret"],

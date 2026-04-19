@@ -13,49 +13,63 @@ def _init_stripe():
     """Initialize Stripe lazily to avoid import hangs"""
     global stripe, stripe_initialized, stripe_init_error
     
+    logger.info("[Stripe] _init_stripe() called")
+    logger.info(f"[Stripe] Already initialized: {stripe_initialized}")
+    
     # If already initialized, return the result
     if stripe_initialized:
+        logger.info(f"[Stripe] Returning cached result - stripe:{bool(stripe)}, error:{bool(stripe_init_error)}")
         if stripe_init_error:
+            logger.error(f"[Stripe] Cached error being raised: {stripe_init_error}")
             raise stripe_init_error
+        logger.info(f"[Stripe] Returning cached stripe module: {stripe}")
         return stripe
     
     try:
+        logger.info("[Stripe] Importing stripe module...")
         import stripe as stripe_module
+        logger.info(f"[Stripe] ✅ Stripe module imported: {stripe_module}")
         
         # Get API key from settings (loads from .env file via pydantic_settings)
+        logger.info("[Stripe] Loading settings...")
         from app.config import settings
+        logger.info(f"[Stripe] Settings loaded")
         
         api_key = settings.stripe_secret_key
         
         # Debug logging
-        logger.info(f"Stripe initialization - API key set: {bool(api_key)}")
-        logger.info(f"Stripe initialization - API key length: {len(api_key) if api_key else 0}")
-        logger.info(f"Stripe initialization - API key starts with: {api_key[:20] if api_key else 'None'}")
+        logger.info(f"[Stripe] API key configured: {bool(api_key)}")
+        logger.info(f"[Stripe] API key length: {len(api_key) if api_key else 0}")
+        if api_key:
+            logger.info(f"[Stripe] API key starts with: {api_key[:30]}...")
         
         if not api_key:
             error = ValueError("STRIPE_SECRET_KEY is not configured. Set it in environment or .env file")
             stripe_init_error = error
             stripe_initialized = True
-            logger.error(f"Stripe initialization failed: {error}")
+            logger.error(f"[Stripe] ❌ Initialization failed: {error}")
             raise error
         
         # Set the API key on the stripe module
+        logger.info("[Stripe] Setting API key on stripe module...")
         stripe_module.api_key = api_key
+        logger.info("[Stripe] ✅ API key set successfully")
         
         # Store the module
         stripe = stripe_module
         stripe_initialized = True
         
-        logger.info("Stripe initialized successfully with API key")
+        logger.info("[Stripe] ✅ Stripe initialized successfully with API key")
         return stripe
         
     except Exception as e:
+        logger.error(f"[Stripe] ❌ Exception during initialization: {type(e).__name__}: {str(e)}", exc_info=True)
         # Store the error for subsequent calls
         if not stripe_init_error:
             stripe_init_error = e
         stripe_initialized = True
-        logger.error(f"Stripe initialization failed: {e}")
-        raise Exception(f"Payment initialization failed: {str(e)}")
+        logger.error(f"[Stripe] Caching error for future calls: {stripe_init_error}")
+        raise
 
 class StripeService:
     """Service for handling Stripe payment operations"""
@@ -74,25 +88,33 @@ class StripeService:
             Payment intent object with client_secret
         """
         try:
+            logger.info("[Stripe] create_payment_intent() called")
+            logger.info(f"[Stripe] Amount: ${amount/100:.2f}, Currency: {currency}")
+            
+            logger.info("[Stripe] Initializing stripe module...")
             stripe_module = _init_stripe()
-                
+            logger.info(f"[Stripe] ✅ Stripe module initialized: {bool(stripe_module)}")
+            
+            logger.info("[Stripe] Creating payment intent...")
             intent = stripe_module.PaymentIntent.create(
                 amount=amount,
                 currency=currency,
                 metadata=metadata or {}
             )
+            logger.info(f"[Stripe] ✅ Payment intent created: {intent.id}")
             
-            logger.info(f"Created payment intent: {intent.id} for amount ${amount/100:.2f}")
-            
-            return {
+            result = {
                 "client_secret": intent.client_secret,
                 "payment_intent_id": intent.id,
                 "amount": intent.amount,
                 "currency": intent.currency
             }
+            logger.info(f"[Stripe] ✅ Returning result: {result}")
+            return result
+            
         except Exception as e:
-            logger.error(f"Error creating payment intent: {str(e)}")
-            raise Exception(f"Payment initialization failed: {str(e)}")
+            logger.error(f"[Stripe] ❌ Error creating payment intent: {type(e).__name__}: {str(e)}", exc_info=True)
+            raise Exception(f"Stripe payment error: {type(e).__name__}: {str(e)}")
     
     @staticmethod
     async def verify_payment(payment_intent_id: str) -> bool:

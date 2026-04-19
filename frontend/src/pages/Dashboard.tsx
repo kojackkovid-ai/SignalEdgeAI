@@ -348,23 +348,39 @@ const Dashboard = (): JSX.Element | null => {
       const fullProps = await api.getFullGameProps(game.sport_key, game.event_id);
       console.log('[Dashboard] Full game props response:', fullProps);
       
-      // Parse the response
+      // Helper function to enrich props with sport_key and event_id
+      const enrichPropsWithContext = (props: any[]): any[] => {
+        if (!props || !Array.isArray(props)) return [];
+        return props.map((p: any) => ({
+          ...p,
+          sport_key: p.sport_key || game.sport_key,  // Add if not present
+          event_id: p.event_id || game.event_id,     // Add if not present
+        }));
+      };
+      
+      // Parse the response and enrich with sport_key/event_id
       if (fullProps && typeof fullProps === 'object') {
-        setGoalsProps(fullProps.goals || []);
-        setAssistsProps(fullProps.assists || []);
-        setAnytimeGoalProps(fullProps.anytime_goal || []);
-        setTeamProps(fullProps.team_props || []);  // Game totals + anytime goal team
-        setOtherProps(fullProps.other_props || []);  // NBA/MLB other market types
+        const goalsWithContext = enrichPropsWithContext(fullProps.goals);
+        const assistsWithContext = enrichPropsWithContext(fullProps.assists);
+        const anytimeGoalWithContext = enrichPropsWithContext(fullProps.anytime_goal);
+        const teamPropsWithContext = enrichPropsWithContext(fullProps.team_props);
+        const otherPropsWithContext = enrichPropsWithContext(fullProps.other_props);
+        
+        setGoalsProps(goalsWithContext);
+        setAssistsProps(assistsWithContext);
+        setAnytimeGoalProps(anytimeGoalWithContext);
+        setTeamProps(teamPropsWithContext);
+        setOtherProps(otherPropsWithContext);
         setAnytimeGoalScorers(fullProps.anytime_goal_scorers || null);  // 2 scorers per team with names
         
         // Also keep gameProps for backward compatibility with the old view
-        // Include both player and team props and other props
+        // Include both player and team props and other props with context
         const allProps = [
-          ...(fullProps.goals || []), 
-          ...(fullProps.assists || []), 
-          ...(fullProps.anytime_goal || []),
-          ...(fullProps.team_props || []),
-          ...(fullProps.other_props || [])
+          ...goalsWithContext,
+          ...assistsWithContext,
+          ...anytimeGoalWithContext,
+          ...teamPropsWithContext,
+          ...otherPropsWithContext
         ];
         setGameProps(allProps);
         
@@ -434,7 +450,24 @@ const Dashboard = (): JSX.Element | null => {
         models: selectedGame.models
       };
       
-      console.log('[Dashboard] Unlocking game with data:', predictionData);
+      // ENHANCED DEBUG LOGGING - Show exactly what's being sent
+      console.log('[Dashboard] 🔍 UNLOCK DEBUG:');
+      console.log('  gameId:', gameId, typeof gameId);
+      console.log('  sport_key:', selectedGame.sport_key, typeof selectedGame.sport_key);
+      console.log('  event_id:', selectedGame.event_id, typeof selectedGame.event_id);
+      console.log('  prediction:', selectedGame.prediction, typeof selectedGame.prediction);
+      console.log('  Full predictionData:', predictionData);
+      
+      // Validate required fields
+      const missingFields = [];
+      if (!gameId) missingFields.push('gameId');
+      if (!selectedGame.sport_key) missingFields.push('sport_key');
+      if (!selectedGame.event_id) missingFields.push('event_id');
+      if (missingFields.length > 0) {
+        console.error('[Dashboard] ❌ MISSING REQUIRED FIELDS:', missingFields);
+        alert(`Error: Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
       
       const response = await api.followPrediction(gameId, predictionData, selectedGame.sport_key);
       if (response) {
@@ -463,14 +496,21 @@ const Dashboard = (): JSX.Element | null => {
         alert('Pick unlocked! You now have access to this prediction.');
       }
     } catch (err: any) {
-      console.error('[Dashboard] Error unlocking game:', err);
-      console.error('[Dashboard] Error details:', {
-        message: err.message,
-        response: err.response,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data
-      });
+      console.error('[Dashboard] ❌ Error unlocking game:', err);
+      
+      // DETAILED ERROR RESPONSE
+      const status = err.response?.status;
+      const errorDetail = err.response?.data?.detail;
+      const fullError = err.response?.data;
+      
+      console.error('[Dashboard] 🔴 ERROR DETAILS:');
+      console.error('  HTTP Status:', status);
+      console.error('  Error message:', errorDetail || err.message);
+      console.error('  Full response body:', fullError);
+      console.error('  Request URL:', err.config?.url);
+      console.error('  Request method:', err.config?.method);
+      console.error('  Request params:', err.config?.params);
+      console.error('  Request data:', err.config?.data);
       
       // More specific error message
       let errorMsg = 'Failed to unlock game pick. ';
@@ -509,11 +549,27 @@ const Dashboard = (): JSX.Element | null => {
     setUnlockingId(propId);
     
     try {
+      // CRITICAL: Use sport_key and event_id from propData if available, fallback to selectedGame
+      // For player props, these should be available in the propData or selectedGame
+      const sportKey = propData.sport_key || selectedGame?.sport_key;
+      const eventId = propData.event_id || selectedGame?.event_id;
+      
+      console.log('[Dashboard] 🔍 PROP UNLOCK DEBUG:');
+      console.log('  propId:', propId);
+      console.log('  sportKey from propData:', propData.sport_key);
+      console.log('  sportKey from selectedGame:', selectedGame?.sport_key);
+      console.log('  Using sportKey:', sportKey);
+      console.log('  eventId from propData:', propData.event_id);
+      console.log('  eventId from selectedGame:', selectedGame?.event_id);
+      console.log('  Using eventId:', eventId);
+      console.log('  propData.player:', propData.player);
+      console.log('  propData.market_key:', propData.market_key);
+      
       // Pass the complete prop data to the API
       const predictionData = {
         id: propId,
-        sport_key: selectedGame?.sport_key,
-        event_id: selectedGame?.event_id,
+        sport_key: sportKey,
+        event_id: eventId,
         player: propData.player,
         market_key: propData.market_key,
         point: propData.point,
@@ -526,10 +582,22 @@ const Dashboard = (): JSX.Element | null => {
         models: propData.models
       };
       
-      console.log('[Dashboard] Unlocking prop with data:', predictionData);
+      // Validate required fields
+      const missingFields = [];
+      if (!propId) missingFields.push('propId');
+      if (!sportKey) missingFields.push('sport_key');
+      if (!propData.player) missingFields.push('player');
+      if (!propData.market_key) missingFields.push('market_key');
+      if (missingFields.length > 0) {
+        console.error('[Dashboard] ❌ MISSING REQUIRED FIELDS FOR PROP UNLOCK:', missingFields);
+        alert(`Error: Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+      
+      console.log('[Dashboard] ✅ All required fields present. Unlocking prop with data:', predictionData);
       
       // Use the follow endpoint with complete prop data
-      const response = await api.followPrediction(propId, predictionData, selectedGame?.sport_key);
+      const response = await api.followPrediction(propId, predictionData, sportKey);
       console.log('[Dashboard] Unlock prop raw response:', response);
       console.log('[Dashboard] Unlock prop response type:', typeof response);
       console.log('[Dashboard] Unlock prop response keys:', response ? Object.keys(response) : 'none');
@@ -625,25 +693,34 @@ const Dashboard = (): JSX.Element | null => {
         alert('Failed to unlock prediction. Please try again.');
       }
     } catch (err: any) {
-      console.error('[Dashboard] Error unlocking prop:', err);
-      console.error('[Dashboard] Error details:', {
-        message: err.message,
-        response: err.response,
-        status: err.response?.status,
-        statusText: err.response?.statusText,
-        data: err.response?.data
-      });
+      console.error('[Dashboard] ❌ Error unlocking prop:', err);
+      
+      // DETAILED ERROR RESPONSE
+      const status = err.response?.status;
+      const errorDetail = err.response?.data?.detail;
+      const fullError = err.response?.data;
+      
+      console.error('[Dashboard] 🔴 ERROR DETAILS:');
+      console.error('  HTTP Status:', status);
+      console.error('  Error message:', errorDetail || err.message);
+      console.error('  Full response body:', fullError);
+      console.error('  Request URL:', err.config?.url);
+      console.error('  Request method:', err.config?.method);
+      console.error('  Request params:', err.config?.params);
+      console.error('  Request data:', err.config?.data);
       
       // More specific error message
       let errorMsg = 'Failed to unlock prediction. ';
-      if (err.response?.status === 404) {
+      if (status === 404) {
         errorMsg += 'Endpoint not found. Please refresh the page.';
-      } else if (err.response?.status === 401) {
+      } else if (status === 401) {
         errorMsg += 'Session expired. Please log in again.';
-      } else if (err.response?.status === 403) {
+      } else if (status === 403) {
         errorMsg += 'Daily limit reached. Upgrade your tier for more picks.';
-      } else if (err.response?.data?.detail) {
-        errorMsg += err.response.data.detail;
+      } else if (status === 400) {
+        errorMsg += `Bad request: ${errorDetail || 'Missing or invalid field'}`;
+      } else if (errorDetail) {
+        errorMsg += errorDetail;
       } else {
         errorMsg += 'Please try again.';
       }

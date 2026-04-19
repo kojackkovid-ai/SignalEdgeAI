@@ -4,6 +4,7 @@ from typing import Optional
 from jose import JWTError, jwt
 from app.config import settings
 from fastapi import HTTPException, status, Depends, Header
+import secrets
 
 class AuthService:
     def __init__(self):
@@ -134,6 +135,70 @@ class AuthService:
         
         result = await db.execute(select(User).where(User.id == user_id))
         return result.scalars().first()
+
+    def generate_password_reset_token(self) -> str:
+        """Generate a secure password reset token"""
+        return secrets.token_urlsafe(32)
+
+    async def create_password_reset_token(self, db, email: str) -> str:
+        """Create and store password reset token for user"""
+        from sqlalchemy import select
+        from app.models.db_models import User
+        
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalars().first()
+        
+        if not user:
+            raise ValueError("User not found")
+        
+        # Generate token and set expiration (1 hour)
+        token = self.generate_password_reset_token()
+        user.password_reset_token = token
+        user.password_reset_token_expires = datetime.utcnow() + timedelta(hours=1)
+        
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        
+        return token
+
+    async def verify_password_reset_token(self, db, token: str) -> Optional[str]:
+        """Verify password reset token and return user email if valid"""
+        from sqlalchemy import select
+        from app.models.db_models import User
+        
+        result = await db.execute(select(User).where(User.password_reset_token == token))
+        user = result.scalars().first()
+        
+        if not user:
+            raise ValueError("Invalid reset token")
+        
+        if user.password_reset_token_expires and datetime.utcnow() > user.password_reset_token_expires:
+            raise ValueError("Reset token has expired")
+        
+        return user
+
+    async def reset_password(self, db, token: str, new_password: str) -> bool:
+        """Reset password using token"""
+        from sqlalchemy import select
+        from app.models.db_models import User
+        
+        # Verify token
+        user = await self.verify_password_reset_token(db, token)
+        
+        if not user:
+            raise ValueError("Invalid or expired reset token")
+        
+        # Update password
+        user.password_hash = self.hash_password(new_password)
+        user.password_reset_token = None
+        user.password_reset_token_expires = None
+        
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+        
+        return True
 
 
 # Module-level function for FastAPI Depends() compatibility

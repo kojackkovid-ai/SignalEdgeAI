@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { addRetryInterceptor, logRetryStats } from './retry';
 
 // Use Vite proxy in development for CORS handling
 const API_BASE_URL = import.meta.env.DEV 
@@ -18,6 +19,25 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     });
+
+    // Add retry interceptor for automatic retries on transient failures
+    addRetryInterceptor(this.client, {
+      maxRetries: 3,
+      retryDelay: 1000, // 1 second initial delay
+      retryDelayMultiplier: 2, // exponential backoff: 1s, 2s, 4s
+      retryableStatusCodes: [408, 429, 500, 502, 503, 504],
+      retryableErrorCodes: [
+        'ECONNABORTED',
+        'ECONNREFUSED',
+        'ENOTFOUND',
+        'ENETUNREACH',
+        'ETIMEDOUT',
+        'ECONNRESET',
+      ],
+    });
+
+    // Log retry statistics periodically (useful for monitoring)
+    logRetryStats(this.client);
 
     // Add token to requests (but not for auth endpoints)
     this.client.interceptors.request.use((config) => {
