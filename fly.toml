@@ -1,51 +1,23 @@
-# Fly.io Configuration for Sports Prediction Platform
-app = "signaledge-ai"
-primary_region = "ord"
+# fly.toml app configuration file generated for signaledge-ai on 2026-04-19T18:00:18Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'signaledge-ai'
+primary_region = 'ams'
 
 [build]
-  builder = "docker"
-  dockerfile = "./Dockerfile.fly"
-
-[env]
-  PYTHONUNBUFFERED = "1"
-  ENVIRONMENT = "production"
-  API_HOST = "0.0.0.0"
-  API_PORT = "8080"
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
-
-[[services]]
-  protocol = "tcp"
-  internal_port = 8080
-  ports = [{ handlers = ["http"], port = "80" }, { handlers = ["tls", "http"], port = "443" }]
-
-  [services.concurrency]
-    type = "connections"
-    hard_limit = 1000
-    soft_limit = 800
-
-[checks]
-  [checks.alive]
-    type = "http"
-    interval = "30s"
-    timeout = "5s"
-    grace_period = "15s"
-    method = "GET"
-    path = "/health"
+  min_machines_running = 0
+  processes = ['app']
 
 [[vm]]
-  memory = "512mb"
+  memory = '1gb'
+  cpu_kind = 'shared'
   cpus = 1
-
-[mounts]
-  source = "ml_models"
-  destination = "/app/ml-models"
-  initial_size = "5gb"
-
-# Database connections via Fly Postgres
-# Add PostgreSQL: flyctl postgres create
-# Add Redis: flyctl redis create
+  memory_mb = 256
