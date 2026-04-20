@@ -41,6 +41,9 @@ COPY ml-models/ ./ml-models/ 2>/dev/null || true
 # Create necessary directories
 RUN mkdir -p /app/logs && chown -R appuser:appuser /app
 
+# Add backend to Python path
+ENV PYTHONPATH=/app/backend:${PYTHONPATH}
+
 # Switch to non-privileged user
 USER appuser
 
@@ -51,5 +54,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
 # Expose port
 EXPOSE 8080
 
-# Run the application with gunicorn for production
+# Run the application from backend directory
+WORKDIR /app/backend
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
