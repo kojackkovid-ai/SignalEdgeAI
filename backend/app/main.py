@@ -894,15 +894,23 @@ async def login_page():
             input:focus { outline: none; border-color: #667eea; }
             .btn { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
             .btn:hover { background: #764ba2; }
+            .btn:disabled { background: #ccc; cursor: not-allowed; }
             .signup-link { text-align: center; margin-top: 20px; }
             .signup-link a { color: #667eea; text-decoration: none; }
             .signup-link a:hover { text-decoration: underline; }
+            .error { color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 5px; margin-bottom: 15px; display: none; }
+            .success { color: #155724; background: #d4edda; padding: 12px; border-radius: 5px; margin-bottom: 15px; display: none; }
+            .loading { display: none; text-align: center; }
+            .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         </style>
     </head>
     <body>
         <div class="form-container">
             <h1>⚡ SignalEdge AI</h1>
-            <form onsubmit="event.preventDefault(); alert('Login functionality connected to API');">
+            <div id="error" class="error"></div>
+            <div id="success" class="success"></div>
+            <form onsubmit="handleLogin(event);">
                 <div class="form-group">
                     <label for="email">Email Address</label>
                     <input type="email" id="email" name="email" required>
@@ -911,12 +919,56 @@ async def login_page():
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
                 </div>
-                <button type="submit" class="btn">Login</button>
+                <button type="submit" class="btn" id="submit-btn">Login</button>
             </form>
             <div class="signup-link">
                 Don't have an account? <a href="/signup">Sign up here</a>
             </div>
         </div>
+
+        <script>
+            async function handleLogin(event) {
+                event.preventDefault();
+                const errorDiv = document.getElementById('error');
+                const successDiv = document.getElementById('success');
+                const submitBtn = document.getElementById('submit-btn');
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Logging in...';
+                
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        localStorage.setItem('token', data.access_token);
+                        localStorage.setItem('user', JSON.stringify(data.user || { email }));
+                        successDiv.textContent = 'Login successful! Redirecting...';
+                        successDiv.style.display = 'block';
+                        setTimeout(() => window.location.href = '/dashboard', 1500);
+                    } else {
+                        errorDiv.textContent = data.detail || 'Login failed. Please check your credentials.';
+                        errorDiv.style.display = 'block';
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Login';
+                    }
+                } catch (err) {
+                    errorDiv.textContent = 'Connection error: ' + err.message;
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Login';
+                }
+            }
+        </script>
     </body>
     </html>
     """
@@ -942,15 +994,20 @@ async def signup_page():
             input:focus { outline: none; border-color: #667eea; }
             .btn { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
             .btn:hover { background: #764ba2; }
+            .btn:disabled { background: #ccc; cursor: not-allowed; }
             .login-link { text-align: center; margin-top: 20px; }
             .login-link a { color: #667eea; text-decoration: none; }
             .login-link a:hover { text-decoration: underline; }
+            .error { color: #dc3545; background: #f8d7da; padding: 12px; border-radius: 5px; margin-bottom: 15px; display: none; }
+            .success { color: #155724; background: #d4edda; padding: 12px; border-radius: 5px; margin-bottom: 15px; display: none; }
         </style>
     </head>
     <body>
         <div class="form-container">
             <h1>⚡ Join SignalEdge AI</h1>
-            <form onsubmit="event.preventDefault(); alert('Signup functionality connected to API');">
+            <div id="error" class="error"></div>
+            <div id="success" class="success"></div>
+            <form onsubmit="handleSignup(event);">
                 <div class="form-group">
                     <label for="name">Full Name</label>
                     <input type="text" id="name" name="name" required>
@@ -967,12 +1024,76 @@ async def signup_page():
                     <label for="confirm">Confirm Password</label>
                     <input type="password" id="confirm" name="confirm" required>
                 </div>
-                <button type="submit" class="btn">Create Account</button>
+                <button type="submit" class="btn" id="submit-btn">Create Account</button>
             </form>
             <div class="login-link">
                 Already have an account? <a href="/login">Login here</a>
             </div>
         </div>
+
+        <script>
+            async function handleSignup(event) {
+                event.preventDefault();
+                const errorDiv = document.getElementById('error');
+                const successDiv = document.getElementById('success');
+                const submitBtn = document.getElementById('submit-btn');
+                
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const confirm = document.getElementById('confirm').value;
+                
+                errorDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                
+                if (password !== confirm) {
+                    errorDiv.textContent = 'Passwords do not match!';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                
+                if (password.length < 8) {
+                    errorDiv.textContent = 'Password must be at least 8 characters long!';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating account...';
+                
+                try {
+                    const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            username: email,
+                            email, 
+                            password,
+                            full_name: name
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        localStorage.setItem('token', data.access_token || '');
+                        successDiv.textContent = 'Account created successfully! Redirecting to login...';
+                        successDiv.style.display = 'block';
+                        setTimeout(() => window.location.href = '/login', 1500);
+                    } else {
+                        errorDiv.textContent = data.detail || 'Signup failed. Please try again.';
+                        errorDiv.style.display = 'block';
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Create Account';
+                    }
+                } catch (err) {
+                    errorDiv.textContent = 'Connection error: ' + err.message;
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Account';
+                }
+            }
+        </script>
     </body>
     </html>
     """
