@@ -459,19 +459,14 @@ app.add_middleware(
     max_age=3600,  # Preflight cache time
 )
 
-# Trusted host middleware - ENABLED for production
+# Trusted host middleware - DISABLED for production (behind Fly.io proxy)
+# The app is behind Fly.io's load balancer which handles HTTPS/host validation
+# Enabling strict host validation breaks requests from the proxy
 try:
-    trusted_hosts = [
-        "localhost",
-        "127.0.0.1",
-        "signaledge-ai.fly.dev",
-        "*.fly.dev",
-        "yourdomain.com",
-        "www.yourdomain.com",
-        # Add production domains here
-    ]
+    # Allow all hosts since we're behind Fly.io's trusted proxy
+    trusted_hosts = ["*"]
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts)
-    logger.info(f"✅ Trusted host middleware enabled for: {trusted_hosts}")
+    logger.info(f"✅ Trusted host middleware enabled (permissive mode for proxy)")
 except Exception as e:
     logger.warning(f"Trusted host middleware setup failed: {e}")
 
