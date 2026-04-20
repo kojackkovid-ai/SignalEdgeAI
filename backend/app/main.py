@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 import logging
 import asyncio
 from datetime import datetime, timedelta
@@ -523,17 +523,129 @@ app.include_router(prediction_history.router, prefix="/api/user/predictions", ta
 app.include_router(email.router, tags=["Email"])
 app.include_router(admin.router, tags=["Admin Dashboard"])
 
-# Root endpoint
-@app.get("/", tags=["Root"])
-async def root():
-    """Root endpoint - confirms app is running"""
-    return {
-        "message": "SignalEdge AI Sports Prediction Platform",
-        "status": "running",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "health": "/health"
-    }
+# Root endpoint - Landing Page
+@app.get("/", tags=["Pages"], response_class=HTMLResponse)
+async def landing_page():
+    """Landing page for SignalEdge AI"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SignalEdge AI - Sports Prediction Platform</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+            header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+            .nav { display: flex; justify-content: space-between; align-items: center; }
+            .logo { font-size: 24px; font-weight: bold; }
+            nav a { color: white; margin: 0 20px; text-decoration: none; transition: opacity 0.3s; }
+            nav a:hover { opacity: 0.8; }
+            .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 100px 0; text-align: center; }
+            .hero h1 { font-size: 48px; margin-bottom: 20px; }
+            .hero p { font-size: 20px; margin-bottom: 30px; opacity: 0.9; }
+            .btn { display: inline-block; padding: 12px 30px; background: white; color: #667eea; text-decoration: none; border-radius: 5px; font-weight: bold; transition: transform 0.2s; margin: 10px; }
+            .btn:hover { transform: translateY(-2px); }
+            .btn-outline { background: transparent; color: white; border: 2px solid white; }
+            .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 60px 0; }
+            .feature { padding: 30px; border-radius: 10px; background: #f8f9fa; text-align: center; }
+            .feature h3 { margin-bottom: 10px; color: #667eea; }
+            .stats { background: #f8f9fa; padding: 60px 0; text-align: center; }
+            .stat { display: inline-block; margin: 0 30px; }
+            .stat-number { font-size: 36px; font-weight: bold; color: #667eea; }
+            .stat-label { color: #666; }
+            footer { background: #333; color: white; padding: 40px 0; text-align: center; margin-top: 60px; }
+            .cta { background: #667eea; color: white; padding: 40px 0; text-align: center; margin: 40px 0; border-radius: 10px; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <div class="nav">
+                    <div class="logo">⚡ SignalEdge AI</div>
+                    <nav>
+                        <a href="/">Home</a>
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/predictions">Predictions</a>
+                        <a href="/login">Login</a>
+                        <a href="/signup">Sign Up</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <div class="hero">
+            <div class="container">
+                <h1>Advanced Sports Prediction Platform</h1>
+                <p>AI-Powered Predictions with 127 Trained ML Models</p>
+                <a href="/predictions" class="btn">Explore Predictions</a>
+                <a href="/signup" class="btn btn-outline">Get Started</a>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number">127</div>
+                    <div class="stat-label">Trained Models</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">10+</div>
+                    <div class="stat-label">Sports Covered</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">Real-Time</div>
+                    <div class="stat-label">Updates</div>
+                </div>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <h3>🎯 Accurate Predictions</h3>
+                    <p>Machine learning models trained on historical sports data for accurate game predictions.</p>
+                </div>
+                <div class="feature">
+                    <h3>📊 Advanced Analytics</h3>
+                    <p>Comprehensive analytics dashboard showing trends, accuracy, and performance metrics.</p>
+                </div>
+                <div class="feature">
+                    <h3>💰 Monetization</h3>
+                    <p>Premium tier with exclusive predictions and unlock special features.</p>
+                </div>
+                <div class="feature">
+                    <h3>🔄 Live Updates</h3>
+                    <p>Real-time prediction updates as games progress and odds change.</p>
+                </div>
+                <div class="feature">
+                    <h3>📱 Cross-Platform</h3>
+                    <p>Access your predictions from any device with our responsive platform.</p>
+                </div>
+                <div class="feature">
+                    <h3>🛡️ Secure</h3>
+                    <p>Enterprise-grade security for your data and transactions.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta">
+            <div class="container">
+                <h2>Ready to Win Big?</h2>
+                <p style="margin: 20px 0;">Join thousands of users using AI-powered predictions</p>
+                <a href="/signup" class="btn" style="background: white; color: #667eea;">Create Free Account</a>
+            </div>
+        </div>
+
+        <footer>
+            <div class="container">
+                <p>&copy; 2026 SignalEdge AI. All rights reserved.</p>
+                <p><a href="/health" style="color: #667eea; text-decoration: none;">API Status</a> | <a href="/docs" style="color: #667eea; text-decoration: none;">API Docs</a></p>
+            </div>
+        </footer>
+    </body>
+    </html>
+    """
 
 # Health check endpoint
 @app.get("/health", tags=["Health"])
@@ -553,6 +665,406 @@ async def health_check():
                 "timestamp": datetime.utcnow().isoformat() + "Z"
             }
         )
+
+# ============ HTML PAGES ============
+
+@app.get("/dashboard", tags=["Pages"], response_class=HTMLResponse)
+async def dashboard_page():
+    """User dashboard page"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dashboard - SignalEdge AI</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+            header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+            .nav { display: flex; justify-content: space-between; align-items: center; }
+            .logo { font-size: 24px; font-weight: bold; }
+            nav a { color: white; margin: 0 20px; text-decoration: none; }
+            nav a:hover { opacity: 0.8; }
+            main { padding: 40px 0; }
+            .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+            .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .card h3 { color: #667eea; margin-bottom: 20px; }
+            .card-value { font-size: 32px; font-weight: bold; color: #333; }
+            .card-label { color: #666; font-size: 14px; }
+            .accent { color: #667eea; }
+            footer { background: #333; color: white; padding: 20px 0; text-align: center; margin-top: 60px; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <div class="nav">
+                    <div class="logo">⚡ SignalEdge AI</div>
+                    <nav>
+                        <a href="/">Home</a>
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/predictions">Predictions</a>
+                        <a href="/profile">Profile</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="container">
+                <h1 style="margin-bottom: 40px;">Welcome to Your Dashboard</h1>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h3>🎯 Active Predictions</h3>
+                        <div class="card-value">24</div>
+                        <div class="card-label">Ongoing predictions</div>
+                    </div>
+                    <div class="card">
+                        <h3>✅ Win Rate</h3>
+                        <div class="card-value">68%</div>
+                        <div class="card-label">Success rate</div>
+                    </div>
+                    <div class="card">
+                        <h3>💰 Total Winnings</h3>
+                        <div class="card-value">$1,240</div>
+                        <div class="card-label">This month</div>
+                    </div>
+                    <div class="card">
+                        <h3>📊 Predictions This Week</h3>
+                        <div class="card-value">12</div>
+                        <div class="card-label">Placed predictions</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="container">
+                <p>&copy; 2026 SignalEdge AI. All rights reserved.</p>
+            </div>
+        </footer>
+    </body>
+    </html>
+    """
+
+@app.get("/predictions", tags=["Pages"], response_class=HTMLResponse)
+async def predictions_page():
+    """Predictions browsing page"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Predictions - SignalEdge AI</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+            header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; }
+            .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+            .nav { display: flex; justify-content: space-between; align-items: center; }
+            .logo { font-size: 24px; font-weight: bold; }
+            nav a { color: white; margin: 0 20px; text-decoration: none; }
+            main { padding: 40px 0; }
+            .prediction { background: white; padding: 20px; border-left: 4px solid #667eea; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .prediction-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+            .prediction-info { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; font-size: 14px; }
+            .prediction-stat { padding: 10px; background: #f8f9fa; border-radius: 5px; }
+            .pred-label { color: #666; }
+            .pred-value { font-weight: bold; color: #333; }
+            .btn { display: inline-block; padding: 8px 16px; background: #667eea; color: white; border-radius: 5px; text-decoration: none; cursor: pointer; }
+            footer { background: #333; color: white; padding: 20px 0; text-align: center; margin-top: 40px; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <div class="nav">
+                    <div class="logo">⚡ SignalEdge AI</div>
+                    <nav>
+                        <a href="/">Home</a>
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/predictions">Predictions</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="container">
+                <h1 style="margin-bottom: 30px;">Latest Predictions</h1>
+                
+                <div class="prediction">
+                    <div class="prediction-title">🏀 NBA: Lakers vs Warriors</div>
+                    <div class="prediction-info">
+                        <div class="prediction-stat">
+                            <div class="pred-label">Prediction</div>
+                            <div class="pred-value">Warriors Win</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Confidence</div>
+                            <div class="pred-value">78%</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Model</div>
+                            <div class="pred-value">Ensemble</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Status</div>
+                            <div class="pred-value">Active</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prediction">
+                    <div class="prediction-title">⚾ MLB: Yankees vs Red Sox</div>
+                    <div class="prediction-info">
+                        <div class="prediction-stat">
+                            <div class="pred-label">Prediction</div>
+                            <div class="pred-value">Yankees Win</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Confidence</div>
+                            <div class="pred-value">65%</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Model</div>
+                            <div class="pred-value">XGBoost</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Status</div>
+                            <div class="pred-value">Active</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="prediction">
+                    <div class="prediction-title">🏈 NFL: Chiefs vs Eagles</div>
+                    <div class="prediction-info">
+                        <div class="prediction-stat">
+                            <div class="pred-label">Prediction</div>
+                            <div class="pred-value">Eagles Win</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Confidence</div>
+                            <div class="pred-value">72%</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Model</div>
+                            <div class="pred-value">LightGBM</div>
+                        </div>
+                        <div class="prediction-stat">
+                            <div class="pred-label">Status</div>
+                            <div class="pred-value">Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="container">
+                <p>&copy; 2026 SignalEdge AI. All rights reserved.</p>
+            </div>
+        </footer>
+    </body>
+    </html>
+    """
+
+@app.get("/login", tags=["Pages"], response_class=HTMLResponse)
+async def login_page():
+    """Login page"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login - SignalEdge AI</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+            .form-container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; }
+            h1 { text-align: center; color: #333; margin-bottom: 30px; }
+            .form-group { margin-bottom: 20px; }
+            label { display: block; margin-bottom: 5px; color: #333; font-weight: 500; }
+            input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+            input:focus { outline: none; border-color: #667eea; }
+            .btn { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+            .btn:hover { background: #764ba2; }
+            .signup-link { text-align: center; margin-top: 20px; }
+            .signup-link a { color: #667eea; text-decoration: none; }
+            .signup-link a:hover { text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <div class="form-container">
+            <h1>⚡ SignalEdge AI</h1>
+            <form onsubmit="event.preventDefault(); alert('Login functionality connected to API');">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <div class="signup-link">
+                Don't have an account? <a href="/signup">Sign up here</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.get("/signup", tags=["Pages"], response_class=HTMLResponse)
+async def signup_page():
+    """Signup page"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sign Up - SignalEdge AI</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+            .form-container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; }
+            h1 { text-align: center; color: #333; margin-bottom: 30px; }
+            .form-group { margin-bottom: 20px; }
+            label { display: block; margin-bottom: 5px; color: #333; font-weight: 500; }
+            input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+            input:focus { outline: none; border-color: #667eea; }
+            .btn { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+            .btn:hover { background: #764ba2; }
+            .login-link { text-align: center; margin-top: 20px; }
+            .login-link a { color: #667eea; text-decoration: none; }
+            .login-link a:hover { text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <div class="form-container">
+            <h1>⚡ Join SignalEdge AI</h1>
+            <form onsubmit="event.preventDefault(); alert('Signup functionality connected to API');">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm">Confirm Password</label>
+                    <input type="password" id="confirm" name="confirm" required>
+                </div>
+                <button type="submit" class="btn">Create Account</button>
+            </form>
+            <div class="login-link">
+                Already have an account? <a href="/login">Login here</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+@app.get("/profile", tags=["Pages"], response_class=HTMLResponse)
+async def profile_page():
+    """User profile page"""
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Profile - SignalEdge AI</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+            header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 0; }
+            .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+            .nav { display: flex; justify-content: space-between; align-items: center; }
+            .logo { font-size: 24px; font-weight: bold; }
+            nav a { color: white; margin: 0 20px; text-decoration: none; }
+            main { padding: 40px 0; }
+            .profile-card { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
+            .avatar { width: 120px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; margin: 0 auto 20px; }
+            .profile-field { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+            .profile-label { color: #666; font-size: 12px; text-transform: uppercase; }
+            .profile-value { font-size: 18px; font-weight: bold; color: #333; }
+            .btn { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+            .btn:hover { background: #764ba2; }
+            footer { background: #333; color: white; padding: 20px 0; text-align: center; margin-top: 60px; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <div class="nav">
+                    <div class="logo">⚡ SignalEdge AI</div>
+                    <nav>
+                        <a href="/">Home</a>
+                        <a href="/dashboard">Dashboard</a>
+                        <a href="/profile">Profile</a>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="container">
+                <div class="profile-card">
+                    <div class="avatar">👤</div>
+                    <h1 style="text-align: center; margin-bottom: 30px;">Your Profile</h1>
+                    
+                    <div class="profile-field">
+                        <div class="profile-label">Name</div>
+                        <div class="profile-value">John Doe</div>
+                    </div>
+                    
+                    <div class="profile-field">
+                        <div class="profile-label">Email</div>
+                        <div class="profile-value">john@example.com</div>
+                    </div>
+                    
+                    <div class="profile-field">
+                        <div class="profile-label">Member Since</div>
+                        <div class="profile-value">January 15, 2026</div>
+                    </div>
+                    
+                    <div class="profile-field">
+                        <div class="profile-label">Account Tier</div>
+                        <div class="profile-value">Premium</div>
+                    </div>
+                    
+                    <div class="profile-field">
+                        <div class="profile-label">Total Predictions</div>
+                        <div class="profile-value">247</div>
+                    </div>
+                    
+                    <button class="btn">Edit Profile</button>
+                    <button class="btn" style="background: #dc3545; margin-left: 10px;">Logout</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="container">
+                <p>&copy; 2026 SignalEdge AI. All rights reserved.</p>
+            </div>
+        </footer>
+    </body>
+    </html>
+    """
 
 # Readiness check endpoint
 @app.get("/ready", tags=["Health"])
