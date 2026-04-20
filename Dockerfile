@@ -1,4 +1,5 @@
-# Fly.io Production Dockerfile
+# Fly.io Production Dockerfile - Production Build
+# Force rebuild: 2026-04-20 v2
 ARG PYTHON_VERSION=3.12.10
 FROM python:${PYTHON_VERSION}-slim
 
