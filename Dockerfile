@@ -37,7 +37,7 @@ RUN python -m pip install --upgrade pip && \
 
 # Copy application code - copy entire backend as app/ for proper imports
 COPY backend/ /app/backend/
-COPY ml-models/ /app/ml-models/ 2>/dev/null || true
+COPY ml-models/ /app/ml-models/
 
 # Create necessary directories
 RUN mkdir -p /app/logs && chown -R appuser:appuser /app

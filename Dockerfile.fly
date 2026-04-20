@@ -36,7 +36,8 @@ RUN python -m pip install --upgrade pip && \
 
 # Copy application code - copy entire backend as app/ for proper imports
 COPY backend/ /app/backend/
-COPY ml-models/ /app/ml-models/ 2>/dev/null || true
+# Copy ML models - they exist in the repository
+COPY ml-models/ /app/ml-models/
 
 # Create necessary directories
 RUN mkdir -p /app/logs && chown -R appuser:appuser /app
@@ -56,4 +57,5 @@ EXPOSE 8080
 
 # Change to backend directory and run uvicorn without reload
 WORKDIR /app/backend
-CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]
+ENTRYPOINT ["python"]
+CMD ["-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "2"]
