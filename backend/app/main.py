@@ -523,6 +523,18 @@ app.include_router(prediction_history.router, prefix="/api/user/predictions", ta
 app.include_router(email.router, tags=["Email"])
 app.include_router(admin.router, tags=["Admin Dashboard"])
 
+# Root endpoint
+@app.get("/", tags=["Root"])
+async def root():
+    """Root endpoint - confirms app is running"""
+    return {
+        "message": "SignalEdge AI Sports Prediction Platform",
+        "status": "running",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 # Health check endpoint
 @app.get("/health", tags=["Health"])
 async def health_check():
