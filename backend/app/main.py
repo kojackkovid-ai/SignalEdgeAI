@@ -464,6 +464,8 @@ try:
     trusted_hosts = [
         "localhost",
         "127.0.0.1",
+        "signaledge-ai.fly.dev",
+        "*.fly.dev",
         "yourdomain.com",
         "www.yourdomain.com",
         # Add production domains here
