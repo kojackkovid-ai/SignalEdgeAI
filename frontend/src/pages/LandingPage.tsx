@@ -350,7 +350,7 @@ const LandingPage: React.FC = () => {
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">Select the perfect plan based on your betting style and goals</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
             {[
               {
                 icon: '🚀',
@@ -404,12 +404,29 @@ const LandingPage: React.FC = () => {
                 featured: true
               },
               {
+                icon: '🎯',
+                name: 'Pro Plus',
+                price: '$49',
+                period: '/month',
+                features: [
+                  { icon: '✓', text: 'All Pro Features', included: true },
+                  { icon: '✓', text: 'Full AI Breakdown', included: true },
+                  { icon: '✓', text: 'Unlimited Picks', included: true },
+                  { icon: '✓', text: 'Real-time Alerts', included: true },
+                  { icon: '✓', text: 'Priority Support', included: true },
+                  { icon: '✓', text: 'Advanced Analytics', included: true }
+                ],
+                button: 'Upgrade to Pro Plus',
+                buttonColor: 'orange',
+                buttonAction: handleGetStarted
+              },
+              {
                 icon: '👑',
                 name: 'Elite',
                 price: '$99',
                 period: '/month',
                 features: [
-                  { icon: '✓', text: 'All Pro Features', included: true },
+                  { icon: '✓', text: 'All Pro Plus Features', included: true },
                   { icon: '✓', text: 'Full AI Breakdown', included: true },
                   { icon: '✓', text: 'Unlimited Picks', included: true },
                   { icon: '✓', text: 'Custom Models', included: true },
@@ -457,6 +474,7 @@ const LandingPage: React.FC = () => {
                     tier.buttonColor === 'blue' ? 'bg-blue-600 hover:bg-blue-700 text-white' :
                     tier.buttonColor === 'green' ? 'bg-green-600 hover:bg-green-700 text-white' :
                     tier.buttonColor === 'purple' ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:shadow-lg text-white' :
+                    tier.buttonColor === 'orange' ? 'bg-orange-600 hover:bg-orange-700 text-white' :
                     'bg-pink-600 hover:bg-pink-700 text-white'
                   }`}
                 >
