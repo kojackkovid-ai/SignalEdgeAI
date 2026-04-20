@@ -1,0 +1,315 @@
+C:\Users\bigba\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\pydantic\_internal\_fields.py:149: UserWarning: Field "model_update_interval" has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+  warnings.warn(
+DEBUG:asyncio:Using proactor: IocpProactor
+DEBUG:httpx:load_ssl_context verify=<ssl.SSLContext object at 0x0000019679BFACD0> cert=None trust_env=True http2=False
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+INFO:app.services.weather_service:Loaded 5 stadium locations
+INFO:app.services.weather_service:Loaded weather impact data for 6 sports
+INFO:app.services.odds_api_service:OddsApiService initialized with key: 5189c...
+INFO:app.services.enhanced_ml_service:============================================================
+INFO:app.services.enhanced_ml_service:ML MODEL LOADING - STARTING
+INFO:app.services.enhanced_ml_service:============================================================
+INFO:app.services.enhanced_ml_service:Models directory path: sports-prediction-platform\backend\ml-models\trained
+INFO:app.services.enhanced_ml_service:Models directory exists: True
+INFO:app.services.enhanced_ml_service:Models directory absolute: C:\Users\bigba\Desktop\New folder\sports-prediction-platform\sports-prediction-platform\backend\ml-models\trained
+INFO:app.services.enhanced_ml_service:Checking path: sports-prediction-platform\backend\ml-models\trained -> exists=True
+INFO:app.services.enhanced_ml_service:  Found 0 .joblib files in sports-prediction-platform\backend\ml-models\trained
+INFO:app.services.enhanced_ml_service:Checking path: ml-models\trained -> exists=True
+INFO:app.services.enhanced_ml_service:  Found 43 .joblib files in ml-models\trained
+INFO:app.services.enhanced_ml_service:  [OK] Using this path: ml-models\trained
+INFO:app.services.enhanced_ml_service:Loading models from: ml-models\trained
+INFO:app.services.enhanced_ml_service:Scanning sport directory: americanfootball_nfl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: baseball_mlb
+INFO:app.services.enhanced_ml_service:Scanning sport directory: basketball_nba
+INFO:app.services.enhanced_ml_service:Scanning sport directory: basketball_ncaa
+INFO:app.services.enhanced_ml_service:Scanning sport directory: icehockey_nhl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: mlb
+INFO:app.services.enhanced_ml_service:Scanning sport directory: nba
+INFO:app.services.enhanced_ml_service:Scanning sport directory: nfl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: nhl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: props
+INFO:app.services.enhanced_ml_service:Scanning sport directory: soccer_epl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: soccer_usa_mls
+INFO:app.services.enhanced_ml_service:Checking direct directory: americanfootball_nfl
+INFO:app.services.enhanced_ml_service:  Found 3 models in americanfootball_nfl
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\americanfootball_nfl for americanfootball_nfl
+INFO:app.services.enhanced_ml_service:Loaded ensemble model americanfootball_nfl_moneyline from ml-models\trained\americanfootball_nfl\americanfootball_nfl_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model americanfootball_nfl_spread from ml-models\trained\americanfootball_nfl\americanfootball_nfl_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model americanfootball_nfl_total from ml-models\trained\americanfootball_nfl\americanfootball_nfl_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: baseball_mlb
+INFO:app.services.enhanced_ml_service:  Found 3 models in baseball_mlb
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\baseball_mlb for baseball_mlb
+INFO:app.services.enhanced_ml_service:Loaded ensemble model baseball_mlb_moneyline from ml-models\trained\baseball_mlb\baseball_mlb_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model baseball_mlb_spread from ml-models\trained\baseball_mlb\baseball_mlb_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model baseball_mlb_total from ml-models\trained\baseball_mlb\baseball_mlb_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: basketball_nba
+INFO:app.services.enhanced_ml_service:  Found 3 models in basketball_nba
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\basketball_nba for basketball_nba
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_nba_moneyline from ml-models\trained\basketball_nba\basketball_nba_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_nba_spread from ml-models\trained\basketball_nba\basketball_nba_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_nba_total from ml-models\trained\basketball_nba\basketball_nba_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: basketball_ncaa
+INFO:app.services.enhanced_ml_service:  Found 3 models in basketball_ncaa
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\basketball_ncaa for basketball_ncaa
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_ncaa_moneyline from ml-models\trained\basketball_ncaa\basketball_ncaa_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_ncaa_spread from ml-models\trained\basketball_ncaa\basketball_ncaa_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_ncaa_total from ml-models\trained\basketball_ncaa\basketball_ncaa_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: icehockey_nhl
+INFO:app.services.enhanced_ml_service:  Found 3 models in icehockey_nhl
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\icehockey_nhl for icehockey_nhl
+INFO:app.services.enhanced_ml_service:Loaded ensemble model icehockey_nhl_moneyline from ml-models\trained\icehockey_nhl\icehockey_nhl_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model icehockey_nhl_spread from ml-models\trained\icehockey_nhl\icehockey_nhl_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model icehockey_nhl_total from ml-models\trained\icehockey_nhl\icehockey_nhl_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: soccer_epl
+INFO:app.services.enhanced_ml_service:  Found 3 models in soccer_epl
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\soccer_epl for soccer_epl
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_epl_moneyline from ml-models\trained\soccer_epl\soccer_epl_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_epl_spread from ml-models\trained\soccer_epl\soccer_epl_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_epl_total from ml-models\trained\soccer_epl\soccer_epl_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: soccer_usa_mls
+INFO:app.services.enhanced_ml_service:  Found 3 models in soccer_usa_mls
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\soccer_usa_mls for soccer_usa_mls
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_usa_mls_moneyline from ml-models\trained\soccer_usa_mls\soccer_usa_mls_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_usa_mls_spread from ml-models\trained\soccer_usa_mls\soccer_usa_mls_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_usa_mls_total from ml-models\trained\soccer_usa_mls\soccer_usa_mls_total_models.joblib
+INFO:app.services.enhanced_ml_service:============================================================
+INFO:app.services.enhanced_ml_service:ML MODEL LOADING - COMPLETE
+INFO:app.services.enhanced_ml_service:Loaded 21 model sets total
+INFO:app.services.enhanced_ml_service:Model keys: ['americanfootball_nfl_moneyline', 'americanfootball_nfl_spread', 'americanfootball_nfl_total', 'baseball_mlb_moneyline', 'baseball_mlb_spread', 'baseball_mlb_total', 'basketball_nba_moneyline', 'basketball_nba_spread', 'basketball_nba_total', 'basketball_ncaa_moneyline', 'basketball_ncaa_spread', 'basketball_ncaa_total', 'icehockey_nhl_moneyline', 'icehockey_nhl_spread', 'icehockey_nhl_total', 'soccer_epl_moneyline', 'soccer_epl_spread', 'soccer_epl_total', 'soccer_usa_mls_moneyline', 'soccer_usa_mls_spread', 'soccer_usa_mls_total']
+INFO:app.services.enhanced_ml_service:============================================================
+INFO:app.services.enhanced_ml_service:[OK] ML Models loaded successfully for real analysis
+INFO:app.services.odds_api_service:OddsApiService initialized with key: 5189c...
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+INFO:app.services.weather_service:Loaded 5 stadium locations
+INFO:app.services.weather_service:Loaded weather impact data for 6 sports
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000196098D9D30>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x000001960B153AD0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x0000019609BF77D0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'5583'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=10'), (b'Date', b'Sun, 19 Apr 2026 20:15:43 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260419 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Skipping game that already started: 740919 (started 11743.435026s ago)
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Skipping game that already started: 740925 (started 11743.435026s ago)
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Skipping game that already started: 740917 (started 11743.435026s ago)
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Skipping game that already started: 740916 (started 2743.435026s ago)
+INFO:app.services.espn_prediction_service:[GET_UPCOMING] Found 0 games for today (20260419), checking upcoming days for more...
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B478D40>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x000001960B190AD0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x0000019609CCCE00>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'2886'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=6'), (b'Date', b'Sun, 19 Apr 2026 20:15:43 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260420 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 96256.37806s: 740923
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B478230>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x000001960B4837D0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B47BA10>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'2893'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=8'), (b'Date', b'Sun, 19 Apr 2026 20:15:43 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260421 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 182656.193834s: 740928
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B447590>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x000001960B1FBDD0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B447170>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'3648'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=10'), (b'Date', b'Sun, 19 Apr 2026 20:15:44 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260422 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 269055.936572s: 740926
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 269055.936572s: 740929
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B479520>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x000001960B4835D0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B479DF0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'827'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=98'), (b'Date', b'Sun, 19 Apr 2026 20:15:44 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260423 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B47A750>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x000001960B4772D0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B47A570>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'2857'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=1'), (b'Date', b'Sun, 19 Apr 2026 20:15:44 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260424 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 441855.648894s: 740933
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B485340>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x000001960B4838D0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B4854C0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'5839'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=1'), (b'Date', b'Sun, 19 Apr 2026 20:15:44 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260425 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 501255.176997s: 740935
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 510255.176997s: 740927
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 510255.176997s: 740930
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 510255.176997s: 740934
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 519255.176997s: 740931
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B4AA420>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x0000019674B38E50> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B4AA510>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'827'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=97'), (b'Date', b'Sun, 19 Apr 2026 20:15:45 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260426 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:app.services.espn_prediction_service:[GET_UPCOMING] Final collection for soccer_epl: 10 total games
+DEBUG:app.services.espn_prediction_service:Cached data for key: 1b3bc3a98c0843f0...
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Fetching player props for soccer_epl/740923
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Starting internal props fetch for soccer_epl/740923
+INFO:app.services.espn_prediction_service:Cache hit for upcoming games: soccer_epl
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=10.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B4A85C0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x0000019679BFACD0> server_hostname='site.api.espn.com' timeout=10.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B4A84D0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'16123'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<summary.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=8'), (b'Date', b'Sun, 19 Apr 2026 20:15:45 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/summary?event=740923 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Teams extracted - Home: Crystal Palace (ID: 384), Away: West Ham United (ID: 371)
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Game: West Ham United @ Crystal Palace, Home: 384, Away: 371
+INFO:app.services.espn_prediction_service:[ROSTER] Fetching squad from https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/384/squad
+INFO:app.services.espn_prediction_service:[ROSTER] Fetching squad from https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/371/squad
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=30.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B4A8110>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x0000019679BFACD0> server_hostname='site.api.espn.com' timeout=30.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001960B4AA6C0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<teamSummary.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Content-Length', b'28'), (b'Cache-Control', b'max-age=3600'), (b'Date', b'Sun, 19 Apr 2026 20:15:45 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/384/squad "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[ROSTER] Fetched 0 players for team 384
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<teamSummary.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Content-Length', b'28'), (b'Cache-Control', b'max-age=3600'), (b'Date', b'Sun, 19 Apr 2026 20:15:45 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/371/squad "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[ROSTER] Fetched 0 players for team 371
+ERROR:app.services.espn_prediction_service:[PLAYER_PROPS] CRITICAL: No roster data available for either team - home_roster count=0, away_roster count=0
+ERROR:app.services.espn_prediction_service:[PLAYER_PROPS] CRITICAL: home_roster type=list, away_roster type=list
+WARNING:app.services.espn_prediction_service:[GAME_TOTALS] Cannot generate team props - game_data not available
+WARNING:app.services.espn_prediction_service:[GAME_TOTALS] Cannot generate team props - team names not available
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Enriched props with LinesMate detailed stats
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] FINAL RETURN: 0 total props for soccer_epl/740923
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Props breakdown: 0 with market_key field
+
+=== FETCHING EPL GAMES ===
+[OK] Found 10 EPL games
+
+Game: None
+ID: 740923
+Date: 2026-04-20T19:00Z
+
+=== FETCHING PROPS FOR None ===
+[OK] Returned 0 props
+[ERROR] NO PROPS RETURNED - This is the bug!

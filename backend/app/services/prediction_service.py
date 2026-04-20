@@ -183,6 +183,66 @@ class PredictionService:
                             p.actual_value = float(home_score + away_score) # Store total as value for now
                             updated_count += 1
             
+            # CRITICAL: After resolving predictions, update all affected users' metrics
+            if updated_count > 0:
+                logger.info(f"[RESOLVE] {updated_count} predictions resolved - updating user metrics...")
+                
+                # Get all users who have picks
+                all_users = await db.execute(select(User).distinct())
+                users_to_update = all_users.scalars().all()
+                
+                metrics_updated = 0
+                for user in users_to_update:
+                    try:
+                        # Count their total picks
+                        total_picks_stmt = select(func.count()).select_from(user_predictions).where(
+                            user_predictions.c.user_id == user.id
+                        )
+                        total_picks_result = await db.execute(total_picks_stmt)
+                        total_picks = total_picks_result.scalar() or 0
+                        
+                        # Count wins
+                        wins_stmt = select(func.count()).select_from(user_predictions).join(
+                            Prediction, user_predictions.c.prediction_id == Prediction.id
+                        ).where(
+                            and_(
+                                user_predictions.c.user_id == user.id,
+                                Prediction.result == 'win'
+                            )
+                        )
+                        wins_result = await db.execute(wins_stmt)
+                        wins = wins_result.scalar() or 0
+                        
+                        # Count losses
+                        losses_stmt = select(func.count()).select_from(user_predictions).join(
+                            Prediction, user_predictions.c.prediction_id == Prediction.id
+                        ).where(
+                            and_(
+                                user_predictions.c.user_id == user.id,
+                                Prediction.result == 'loss'
+                            )
+                        )
+                        losses_result = await db.execute(losses_stmt)
+                        losses = losses_result.scalar() or 0
+                        
+                        # Calculate new metrics
+                        new_total = total_picks
+                        new_win_rate = round((wins / (wins + losses) * 100), 1) if (wins + losses) > 0 else 0.0
+                        
+                        # Update if changed
+                        if user.total_predictions != new_total or abs(user.win_rate - new_win_rate) > 0.1:
+                            old_metrics = f"total={user.total_predictions}, win_rate={user.win_rate}%"
+                            user.total_predictions = new_total
+                            user.win_rate = new_win_rate
+                            new_metrics = f"total={new_total}, win_rate={new_win_rate}%"
+                            logger.info(f"[RESOLVE] User {user.email}: {old_metrics} → {new_metrics}")
+                            metrics_updated += 1
+                    except Exception as user_metric_err:
+                        logger.warning(f"[RESOLVE] Error updating metrics for user {user.id}: {user_metric_err}")
+                        continue
+                
+                logger.info(f"[RESOLVE] Updated metrics for {metrics_updated} users")
+            
             await db.commit()
             return updated_count
             
@@ -683,10 +743,12 @@ class PredictionService:
             try:
                 from app.services.prediction_history_service import PredictionHistoryService
                 history_service = PredictionHistoryService(db)
+                sport_key = prediction_data.get('sport_key') or 'unknown'
+                event_id = prediction_data.get('event_id') or 'unknown'
                 await history_service.record_prediction(
                     user_id=user_id,
-                    sport_key=prediction_data.get('sport_key'),
-                    event_id=prediction_data.get('event_id'),
+                    sport_key=sport_key,
+                    event_id=event_id,
                     prediction_data=prediction_data
                 )
                 logger.info(f"[FOLLOW_SERVICE] Recorded prediction in PredictionRecord for tracking")
@@ -704,6 +766,60 @@ class PredictionService:
             )
             await db.execute(ins_stmt)
             logger.info(f"[FOLLOW_SERVICE] Inserted into user_predictions: user_id={user_id}, prediction_id={prediction_id}")
+            
+            # 7. UPDATE USER METRICS: total_predictions and win_rate
+            # This ensures the dashboard shows current user performance
+            try:
+                # Re-fetch user to get latest state
+                user_result = await db.execute(select(User).where(User.id == user_id))
+                user = user_result.scalar_one_or_none()
+                
+                if user:
+                    # Count total picks (all time, not just today)
+                    total_picks_stmt = select(func.count()).select_from(user_predictions).where(
+                        user_predictions.c.user_id == user_id
+                    )
+                    total_picks_result = await db.execute(total_picks_stmt)
+                    total_picks = total_picks_result.scalar() or 0
+                    
+                    # Count wins from resolved predictions
+                    wins_stmt = select(func.count()).select_from(user_predictions).join(
+                        Prediction, user_predictions.c.prediction_id == Prediction.id
+                    ).where(
+                        and_(
+                            user_predictions.c.user_id == user_id,
+                            Prediction.result == 'win'
+                        )
+                    )
+                    wins_result = await db.execute(wins_stmt)
+                    wins = wins_result.scalar() or 0
+                    
+                    # Count losses from resolved predictions
+                    losses_stmt = select(func.count()).select_from(user_predictions).join(
+                        Prediction, user_predictions.c.prediction_id == Prediction.id
+                    ).where(
+                        and_(
+                            user_predictions.c.user_id == user_id,
+                            Prediction.result == 'loss'
+                        )
+                    )
+                    losses_result = await db.execute(losses_stmt)
+                    losses = losses_result.scalar() or 0
+                    
+                    # Update user metrics
+                    old_total = user.total_predictions
+                    old_win_rate = user.win_rate
+                    
+                    user.total_predictions = total_picks
+                    user.win_rate = round((wins / (wins + losses) * 100), 1) if (wins + losses) > 0 else 0.0
+                    
+                    logger.info(f"[FOLLOW_SERVICE] Updated metrics for user {user_id}:")
+                    logger.info(f"  total_predictions: {old_total} → {user.total_predictions}")
+                    logger.info(f"  win_rate: {old_win_rate}% → {user.win_rate}% (wins={wins}, losses={losses})")
+            except Exception as metric_err:
+                logger.warning(f"[FOLLOW_SERVICE] Warning: Failed to update user metrics: {metric_err}")
+                # Don't fail the whole follow if metric update fails
+                pass
             
             await db.commit()
             logger.info(f"[FOLLOW_SERVICE] ✅ Committed to database - user_id={user_id}, prediction_id={prediction_id}, is_club_100_pick={is_club_100_pick}")

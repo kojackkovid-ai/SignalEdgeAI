@@ -1,0 +1,814 @@
+C:\Users\bigba\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\LocalCache\local-packages\Python312\site-packages\pydantic\_internal\_fields.py:149: UserWarning: Field "model_update_interval" has conflict with protected namespace "model_".
+
+You may be able to resolve this warning by setting `model_config['protected_namespaces'] = ('settings_',)`.
+  warnings.warn(
+DEBUG:asyncio:Using proactor: IocpProactor
+DEBUG:httpx:load_ssl_context verify=<ssl.SSLContext object at 0x00000163AA0DD5D0> cert=None trust_env=True http2=False
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+INFO:app.services.weather_service:Loaded 5 stadium locations
+INFO:app.services.weather_service:Loaded weather impact data for 6 sports
+INFO:app.services.odds_api_service:OddsApiService initialized with key: 5189c...
+INFO:app.services.enhanced_ml_service:============================================================
+INFO:app.services.enhanced_ml_service:ML MODEL LOADING - STARTING
+INFO:app.services.enhanced_ml_service:============================================================
+INFO:app.services.enhanced_ml_service:Models directory path: sports-prediction-platform\backend\ml-models\trained
+INFO:app.services.enhanced_ml_service:Models directory exists: True
+INFO:app.services.enhanced_ml_service:Models directory absolute: C:\Users\bigba\Desktop\New folder\sports-prediction-platform\sports-prediction-platform\backend\ml-models\trained
+INFO:app.services.enhanced_ml_service:Checking path: sports-prediction-platform\backend\ml-models\trained -> exists=True
+INFO:app.services.enhanced_ml_service:  Found 0 .joblib files in sports-prediction-platform\backend\ml-models\trained
+INFO:app.services.enhanced_ml_service:Checking path: ml-models\trained -> exists=True
+INFO:app.services.enhanced_ml_service:  Found 43 .joblib files in ml-models\trained
+INFO:app.services.enhanced_ml_service:  [OK] Using this path: ml-models\trained
+INFO:app.services.enhanced_ml_service:Loading models from: ml-models\trained
+INFO:app.services.enhanced_ml_service:Scanning sport directory: americanfootball_nfl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: baseball_mlb
+INFO:app.services.enhanced_ml_service:Scanning sport directory: basketball_nba
+INFO:app.services.enhanced_ml_service:Scanning sport directory: basketball_ncaa
+INFO:app.services.enhanced_ml_service:Scanning sport directory: icehockey_nhl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: mlb
+INFO:app.services.enhanced_ml_service:Scanning sport directory: nba
+INFO:app.services.enhanced_ml_service:Scanning sport directory: nfl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: nhl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: props
+INFO:app.services.enhanced_ml_service:Scanning sport directory: soccer_epl
+INFO:app.services.enhanced_ml_service:Scanning sport directory: soccer_usa_mls
+INFO:app.services.enhanced_ml_service:Checking direct directory: americanfootball_nfl
+INFO:app.services.enhanced_ml_service:  Found 3 models in americanfootball_nfl
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\americanfootball_nfl for americanfootball_nfl
+INFO:app.services.enhanced_ml_service:Loaded ensemble model americanfootball_nfl_moneyline from ml-models\trained\americanfootball_nfl\americanfootball_nfl_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model americanfootball_nfl_spread from ml-models\trained\americanfootball_nfl\americanfootball_nfl_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model americanfootball_nfl_total from ml-models\trained\americanfootball_nfl\americanfootball_nfl_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: baseball_mlb
+INFO:app.services.enhanced_ml_service:  Found 3 models in baseball_mlb
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\baseball_mlb for baseball_mlb
+INFO:app.services.enhanced_ml_service:Loaded ensemble model baseball_mlb_moneyline from ml-models\trained\baseball_mlb\baseball_mlb_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model baseball_mlb_spread from ml-models\trained\baseball_mlb\baseball_mlb_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model baseball_mlb_total from ml-models\trained\baseball_mlb\baseball_mlb_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: basketball_nba
+INFO:app.services.enhanced_ml_service:  Found 3 models in basketball_nba
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\basketball_nba for basketball_nba
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_nba_moneyline from ml-models\trained\basketball_nba\basketball_nba_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_nba_spread from ml-models\trained\basketball_nba\basketball_nba_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_nba_total from ml-models\trained\basketball_nba\basketball_nba_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: basketball_ncaa
+INFO:app.services.enhanced_ml_service:  Found 3 models in basketball_ncaa
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\basketball_ncaa for basketball_ncaa
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_ncaa_moneyline from ml-models\trained\basketball_ncaa\basketball_ncaa_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_ncaa_spread from ml-models\trained\basketball_ncaa\basketball_ncaa_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model basketball_ncaa_total from ml-models\trained\basketball_ncaa\basketball_ncaa_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: icehockey_nhl
+INFO:app.services.enhanced_ml_service:  Found 3 models in icehockey_nhl
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\icehockey_nhl for icehockey_nhl
+INFO:app.services.enhanced_ml_service:Loaded ensemble model icehockey_nhl_moneyline from ml-models\trained\icehockey_nhl\icehockey_nhl_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model icehockey_nhl_spread from ml-models\trained\icehockey_nhl\icehockey_nhl_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model icehockey_nhl_total from ml-models\trained\icehockey_nhl\icehockey_nhl_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: soccer_epl
+INFO:app.services.enhanced_ml_service:  Found 3 models in soccer_epl
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\soccer_epl for soccer_epl
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_epl_moneyline from ml-models\trained\soccer_epl\soccer_epl_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_epl_spread from ml-models\trained\soccer_epl\soccer_epl_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_epl_total from ml-models\trained\soccer_epl\soccer_epl_total_models.joblib
+INFO:app.services.enhanced_ml_service:Checking direct directory: soccer_usa_mls
+INFO:app.services.enhanced_ml_service:  Found 3 models in soccer_usa_mls
+INFO:app.services.enhanced_ml_service:Loading models from ml-models\trained\soccer_usa_mls for soccer_usa_mls
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_usa_mls_moneyline from ml-models\trained\soccer_usa_mls\soccer_usa_mls_moneyline_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_usa_mls_spread from ml-models\trained\soccer_usa_mls\soccer_usa_mls_spread_models.joblib
+INFO:app.services.enhanced_ml_service:Loaded ensemble model soccer_usa_mls_total from ml-models\trained\soccer_usa_mls\soccer_usa_mls_total_models.joblib
+INFO:app.services.enhanced_ml_service:============================================================
+INFO:app.services.enhanced_ml_service:ML MODEL LOADING - COMPLETE
+INFO:app.services.enhanced_ml_service:Loaded 21 model sets total
+INFO:app.services.enhanced_ml_service:Model keys: ['americanfootball_nfl_moneyline', 'americanfootball_nfl_spread', 'americanfootball_nfl_total', 'baseball_mlb_moneyline', 'baseball_mlb_spread', 'baseball_mlb_total', 'basketball_nba_moneyline', 'basketball_nba_spread', 'basketball_nba_total', 'basketball_ncaa_moneyline', 'basketball_ncaa_spread', 'basketball_ncaa_total', 'icehockey_nhl_moneyline', 'icehockey_nhl_spread', 'icehockey_nhl_total', 'soccer_epl_moneyline', 'soccer_epl_spread', 'soccer_epl_total', 'soccer_usa_mls_moneyline', 'soccer_usa_mls_spread', 'soccer_usa_mls_total']
+INFO:app.services.enhanced_ml_service:============================================================
+INFO:app.services.enhanced_ml_service:[OK] ML Models loaded successfully for real analysis
+INFO:app.services.odds_api_service:OddsApiService initialized with key: 5189c...
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+INFO:app.services.weather_service:Loaded 5 stadium locations
+INFO:app.services.weather_service:Loaded weather impact data for 6 sports
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B16B7F20>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163B36DF950> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3849490>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'5583'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=2'), (b'Date', b'Sun, 19 Apr 2026 20:57:38 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260419 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Skipping game that already started: 740919 (started 14258.510519s ago)
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Skipping game that already started: 740925 (started 14258.510519s ago)
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Skipping game that already started: 740917 (started 14258.510519s ago)
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Skipping game that already started: 740916 (started 5258.510519s ago)
+INFO:app.services.espn_prediction_service:[GET_UPCOMING] Found 0 games for today (20260419), checking upcoming days for more...
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A24EF0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163B371BDD0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B1B0EE70>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'2886'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=5'), (b'Date', b'Sun, 19 Apr 2026 20:57:38 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260420 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 93741.318094s: 740923
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A27B30>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163B39E7950> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A27BF0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'2893'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=1'), (b'Date', b'Sun, 19 Apr 2026 20:57:39 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260421 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 180141.155935s: 740928
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B39EA7B0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163B39E7550> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B39EA930>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'3648'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=5'), (b'Date', b'Sun, 19 Apr 2026 20:57:39 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260422 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 266540.980716s: 740926
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 266540.980716s: 740929
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A27020>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163B39E68D0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A27080>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'827'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=106'), (b'Date', b'Sun, 19 Apr 2026 20:57:39 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260423 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A241D0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163B3A2B7D0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B1EBBB60>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'2857'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=6'), (b'Date', b'Sun, 19 Apr 2026 20:57:39 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260424 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 439340.451982s: 740933
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A2D4F0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163B39E7C50> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A2D6A0>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'5839'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=6'), (b'Date', b'Sun, 19 Apr 2026 20:57:40 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260425 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 498740.026172s: 740935
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 507740.026172s: 740927
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 507740.026172s: 740930
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 507740.026172s: 740934
+DEBUG:app.services.espn_prediction_service:[GAME_FILTER] Including game in 516740.026172s: 740931
+DEBUG:httpx:load_ssl_context verify=False cert=None trust_env=True http2=False
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A4E870>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163B37A1ED0> server_hostname='site.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A4E960>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'827'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<scoreboard.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=25'), (b'Date', b'Sun, 19 Apr 2026 20:57:40 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/scoreboard?dates=20260426 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.connection:close.started
+DEBUG:httpcore.connection:close.complete
+INFO:app.services.espn_prediction_service:[GET_UPCOMING] Final collection for soccer_epl: 10 total games
+DEBUG:app.services.espn_prediction_service:Cached data for key: 1b3bc3a98c0843f0...
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Fetching player props for soccer_epl/740923
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Starting internal props fetch for soccer_epl/740923
+INFO:app.services.espn_prediction_service:Cache hit for upcoming games: soccer_epl
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=10.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A4C800>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163AA0DD5D0> server_hostname='site.api.espn.com' timeout=10.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A4C770>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'16219'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<summary.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=4'), (b'Date', b'Sun, 19 Apr 2026 20:57:40 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/summary?event=740923 "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Teams extracted - Home: Crystal Palace (ID: 384), Away: West Ham United (ID: 371)
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Game: West Ham United @ Crystal Palace, Home: 384, Away: 371
+INFO:app.services.espn_prediction_service:[ROSTER] Fetching squad from https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/384/squad
+INFO:app.services.espn_prediction_service:[ROSTER] Fetching squad from https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/371/squad
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.connection:connect_tcp.started host='site.api.espn.com' port=443 local_address=None timeout=30.0 socket_options=None
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<teamSummary.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Content-Length', b'28'), (b'Cache-Control', b'max-age=1085'), (b'Date', b'Sun, 19 Apr 2026 20:57:40 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/384/squad "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[ROSTER] Fetched 0 players for team 384
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A4C3E0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163AA0DD5D0> server_hostname='site.api.espn.com' timeout=30.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3A4C260>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Link', b'<teamSummary.json#>; rel="describedby"'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Content-Length', b'28'), (b'Cache-Control', b'max-age=1085'), (b'Date', b'Sun, 19 Apr 2026 20:57:40 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/371/squad "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[ROSTER] Fetched 0 players for team 371
+WARNING:app.services.espn_prediction_service:[PLAYER_PROPS] Empty rosters from ESPN API - trying Odds API fallback...
+WARNING:app.services.espn_prediction_service:[PLAYER_PROPS] Odds API also returned no props
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Generating mock rosters for soccer to enable prop generation...
+INFO:app.services.espn_prediction_service:[MOCK_ROSTER] Generated mock roster for Crystal Palace with 12 players
+INFO:app.services.espn_prediction_service:[MOCK_ROSTER] Generated mock roster for West Ham United with 12 players
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Generated mock rosters - Home: 12 players, Away: 12 players
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Rosters fetched - Home: 12 players, Away: 12 players
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'302'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=1'), (b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/371/statistics "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'302'), (b'Access-Control-Allow-Origin', b'*'), (b'Access-Control-Allow-Methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'Access-Control-Expose-Headers', b'content-length,location'), (b'Content-Encoding', b'gzip'), (b'Accept-Ranges', b'bytes'), (b'Vary', b'Accept-Encoding'), (b'Cache-Control', b'max-age=1'), (b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Connection', b'keep-alive')])
+INFO:httpx:HTTP Request: GET https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/teams/384/statistics "HTTP/1.1 200 OK"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Generating Soccer player props - home_roster=12, away_roster=12
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_GEN] Starting generation for Crystal Palace with 12 athletes (event_id=740923, matchup=West Ham United @ Crystal Palace)
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_GEN] Found 6 key attacking players for Crystal Palace
+DEBUG:httpcore.connection:connect_tcp.started host='site.web.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.started host='site.web.api.espn.com' port=443 local_address=None timeout=15.0 socket_options=None
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3AE0E60>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163AA0DD5D0> server_hostname='site.web.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3AE13A0>
+DEBUG:httpcore.connection:start_tls.started ssl_context=<ssl.SSLContext object at 0x00000163AA0DD5D0> server_hostname='site.web.api.espn.com' timeout=15.0
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3AE1370>
+DEBUG:httpcore.connection:start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x00000163B3AE1940>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 adcffb1f33cc (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/2/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 2 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/2/stats
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 b94c3fd5710e (Varnish/7.5)'), (b'Cache-Control', b'max-age=300'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/2/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 2 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/2/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 2 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for Crystal Palace Forward 1 (FW): {'goalsPerGame': 0.3, 'assistsPerGame': 0.2, 'shotsPerGame': 2.5}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.3 in 1 games = 0.300 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.30, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Forward 1 goals: season=0.3, recent_10=0.31
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.2 in 1 games = 0.200 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.20, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Forward 1 assists: season=0.2, recent_10=0.21
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 c819642bb2ad (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/1/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 da300c03f921 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/1/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 1 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/1/stats
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 1 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/1/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 1 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for Crystal Palace Striker 1 (ST): {'goalsPerGame': 0.3, 'assistsPerGame': 0.2, 'shotsPerGame': 2.5}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.3 in 1 games = 0.300 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.30, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Striker 1 goals: season=0.3, recent_10=0.31
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.2 in 1 games = 0.200 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.20, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Striker 1 assists: season=0.2, recent_10=0.21
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 25035c1a4967 (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/4/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 4 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/4/stats
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 02415e320188 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/4/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 4 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/4/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 4 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for Crystal Palace Winger Left (LW): {'goalsPerGame': 0.15, 'assistsPerGame': 0.25, 'shotsPerGame': 1.8}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.15 in 1 games = 0.150 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.15, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Winger Left goals: season=0.15, recent_10=0.15
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.25 in 1 games = 0.250 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.25, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Winger Left assists: season=0.25, recent_10=0.26
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 ad284d5aad63 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/5/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 5 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/5/gamelog
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:41 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 92c16d579f6c (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/5/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 5 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/5/stats
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 5 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for Crystal Palace Winger Right (RW): {'goalsPerGame': 0.15, 'assistsPerGame': 0.25, 'shotsPerGame': 1.8}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.15 in 1 games = 0.150 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.15, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Winger Right goals: season=0.15, recent_10=0.15
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.25 in 1 games = 0.250 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.25, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Winger Right assists: season=0.25, recent_10=0.26
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 02415e320188 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/6/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 60460bbbd955 (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/6/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 6 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/6/gamelog
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 6 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/6/stats
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 6 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for Crystal Palace Midfielder 1 (CM): {'goalsPerGame': 0.1, 'assistsPerGame': 0.3, 'shotsPerGame': 1.2}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.1 in 1 games = 0.100 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.10, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Midfielder 1 goals: season=0.1, recent_10=0.1
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.3 in 1 games = 0.300 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.30, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Midfielder 1 assists: season=0.3, recent_10=0.31
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 c4a442c60c90 (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/8/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Transfer-Encoding', b'chunked'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 ad284d5aad63 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/8/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 8 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/8/stats
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 8 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/8/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 8 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for Crystal Palace Midfielder Attack (CAM): {'goalsPerGame': 0.1, 'assistsPerGame': 0.3, 'shotsPerGame': 1.2}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.1 in 1 games = 0.100 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.10, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Midfielder Attack goals: season=0.1, recent_10=0.1
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.3 in 1 games = 0.300 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.30, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] Crystal Palace Midfielder Attack assists: season=0.3, recent_10=0.31
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_GEN] \u2705 Finished generation for Crystal Palace: 12 total props (goals=6, assists=6)
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Home Soccer props generated: 12 props
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_GEN] Starting generation for West Ham United with 12 athletes (event_id=740923, matchup=West Ham United @ Crystal Palace)
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_GEN] Found 6 key attacking players for West Ham United
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'72'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 adcffb1f33cc (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/2/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 2 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/2/stats
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'107'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 b94c3fd5710e (Varnish/7.5)'), (b'Cache-Control', b'max-age=300'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/2/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 2 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/2/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 2 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for West Ham United Forward 1 (FW): {'goalsPerGame': 0.3, 'assistsPerGame': 0.2, 'shotsPerGame': 2.5}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.3 in 1 games = 0.300 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.30, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Forward 1 goals: season=0.3, recent_10=0.31
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.2 in 1 games = 0.200 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.20, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Forward 1 assists: season=0.2, recent_10=0.21
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'72'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 c819642bb2ad (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/1/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 1 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/1/stats
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'107'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 da300c03f921 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/1/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 1 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/1/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 1 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for West Ham United Striker 1 (ST): {'goalsPerGame': 0.3, 'assistsPerGame': 0.2, 'shotsPerGame': 2.5}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.3 in 1 games = 0.300 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.30, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Striker 1 goals: season=0.3, recent_10=0.31
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.2 in 1 games = 0.200 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.20, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Striker 1 assists: season=0.2, recent_10=0.21
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'72'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 25035c1a4967 (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/4/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 4 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/4/stats
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'107'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 02415e320188 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/4/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 4 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/4/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 4 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for West Ham United Winger Left (LW): {'goalsPerGame': 0.15, 'assistsPerGame': 0.25, 'shotsPerGame': 1.8}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.15 in 1 games = 0.150 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.15, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Winger Left goals: season=0.15, recent_10=0.15
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.25 in 1 games = 0.250 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.25, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Winger Left assists: season=0.25, recent_10=0.26
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'72'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 92c16d579f6c (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/5/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 5 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/5/stats
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'107'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 ad284d5aad63 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/5/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 5 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/5/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 5 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for West Ham United Winger Right (RW): {'goalsPerGame': 0.15, 'assistsPerGame': 0.25, 'shotsPerGame': 1.8}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.15 in 1 games = 0.150 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.15, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Winger Right goals: season=0.15, recent_10=0.15
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.25 in 1 games = 0.250 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.25, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Winger Right assists: season=0.25, recent_10=0.26
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'72'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 60460bbbd955 (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/6/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 6 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/6/stats
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'107'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 02415e320188 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/6/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 6 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/6/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 6 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for West Ham United Midfielder 1 (CM): {'goalsPerGame': 0.1, 'assistsPerGame': 0.3, 'shotsPerGame': 1.2}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.1 in 1 games = 0.100 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.10, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Midfielder 1 goals: season=0.1, recent_10=0.1
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.3 in 1 games = 0.300 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.30, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Midfielder 1 assists: season=0.3, recent_10=0.31
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_headers.complete
+DEBUG:httpcore.http11:send_request_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:send_request_body.complete
+DEBUG:httpcore.http11:receive_response_headers.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 500, b'Internal Server Error', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'72'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 c4a442c60c90 (Varnish/7.5)'), (b'Cache-Control', b'max-age=5'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/8/stats "HTTP/1.1 500 Internal Server Error"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[SEASON_STATS] Stats endpoint returned 500 for 8 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/8/stats
+DEBUG:httpcore.http11:receive_response_headers.complete return_value=(b'HTTP/1.1', 404, b'Not Found', [(b'Date', b'Sun, 19 Apr 2026 20:57:42 GMT'), (b'Content-Type', b'application/json;charset=UTF-8'), (b'Content-Length', b'107'), (b'Connection', b'keep-alive'), (b'access-control-allow-origin', b'*'), (b'access-control-allow-methods', b'GET,PUT,POST,DELETE,OPTIONS,HEAD'), (b'access-control-expose-headers', b'content-length,location'), (b'content-encoding', b'gzip'), (b'via', b'1.1 ad284d5aad63 (Varnish/7.5)'), (b'Cache-Control', b'max-age=900'), (b'vary', b'Accept-Encoding')])
+INFO:httpx:HTTP Request: GET https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/8/gamelog "HTTP/1.1 404 Not Found"
+DEBUG:httpcore.http11:receive_response_body.started request=<Request [b'GET']>
+DEBUG:httpcore.http11:receive_response_body.complete
+DEBUG:httpcore.http11:response_closed.started
+DEBUG:httpcore.http11:response_closed.complete
+INFO:app.services.espn_prediction_service:[RECENT_GAMES] Gamelog endpoint returned 404 for 8 - https://site.web.api.espn.com/apis/common/v3/sports/soccer/eng.1/athletes/8/gamelog
+WARNING:app.services.espn_prediction_service:[ATHLETE_STATS] No stats found for 8 from either endpoint - will use defaults
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS] Using position-based fallback for West Ham United Midfielder Attack (CAM): {'goalsPerGame': 0.1, 'assistsPerGame': 0.3, 'shotsPerGame': 1.2}
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for goals
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=goals, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Goals: 0.1 in 1 games = 0.100 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] goals: stat=0.10, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Midfielder Attack goals: season=0.1, recent_10=0.1
+INFO:app.services.espn_prediction_service:[CONFIDENCE] No ESPN player stats - using fallback for assists
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE_DEBUG] sport=soccer_epl, market=assists, available_keys=['goalsPerGame', 'assistsPerGame', 'shotsPerGame']
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] Soccer Assists: 0.3 in 1 games = 0.300 per game
+INFO:app.services.espn_prediction_service:[DYNAMIC_LINE] assists: stat=0.30, multiplier=0.75, line=0.5
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_STATS] West Ham United Midfielder Attack assists: season=0.3, recent_10=0.31
+INFO:app.services.espn_prediction_service:[SOCCER_PROPS_GEN] \u2705 Finished generation for West Ham United: 12 total props (goals=6, assists=6)
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Away Soccer props generated: 12 props
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Total Soccer props after extend: 24
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Generated 24 total props for soccer_epl/740923
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Returning data structure: all_props count=24, has game_data=True, has home_stats=True, has away_stats=True
+INFO:app.services.espn_prediction_service:[GAME_TOTALS] Attempting team props generation - game_data present=True, team_names present=True
+INFO:app.services.espn_prediction_service:[GAME_TOTALS] Current all_props count: 24
+INFO:app.services.espn_prediction_service:[GAME_TOTALS] Generating team props for Crystal Palace @ West Ham United
+INFO:app.services.espn_prediction_service:[GAME_TOTALS] Team Stats Available - Home: True, Away: True
+DEBUG:app.services.espn_prediction_service:[TEAM_STATS] Could not extract scoring from team_stats - returning 0.0
+DEBUG:app.services.espn_prediction_service:[TEAM_STATS] Could not extract scoring from team_stats - returning 0.0
+DEBUG:app.services.espn_prediction_service:[TEAM_STATS] Could not extract allowed score from team_stats for soccer_epl - returning 0.0
+DEBUG:app.services.espn_prediction_service:[TEAM_STATS] Could not extract allowed score from team_stats for soccer_epl - returning 0.0
+INFO:app.services.espn_prediction_service:[GAME_TOTALS_SOCCER] Extracted stats - Home: 0.00 GPG / 0.00 GA, Away: 0.00 GPG / 0.00 GA (Stats provided: True)
+INFO:app.services.espn_prediction_service:[GAME_TOTALS_SOCCER] Using estimated stats - Home: 1.85 GPG / 1.85 GA, Away: 1.85 GPG / 1.85 GA
+INFO:app.services.espn_prediction_service:[GAME_TOTALS] Soccer: 3.5 goals total (expected: 3.70) - Crystal Palace vs West Ham United
+INFO:app.services.espn_prediction_service:[ANYTIME_GOAL_TEAM] Generating team-level anytime goal prop for Crystal Palace @ West Ham United
+INFO:app.services.espn_prediction_service:[ANYTIME_GOAL_TEAM] Added team anytime goal prop
+INFO:app.services.espn_prediction_service:[GAME_TOTALS] Generated 2 game total props
+INFO:app.services.espn_prediction_service:[GAME_TOTALS] Added 2 game total props (total: 26)
+INFO:app.services.espn_prediction_service:[LINESMATE] Skipping enrichment for 26 props (using ESPN data only)
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Enriched props with LinesMate detailed stats
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] FINAL RETURN: 26 total props for soccer_epl/740923
+INFO:app.services.espn_prediction_service:[PLAYER_PROPS] Props breakdown: 26 with market_key field
+
+=== FETCHING EPL GAMES ===
+[OK] Found 10 EPL games
+
+Game: None
+ID: 740923
+Date: 2026-04-20T19:00Z
+
+=== FETCHING PROPS FOR None ===
+[OK] Returned 26 props
+
+First 5 props:
+  - None (goals): 0.5 @ -110
+  - None (assists): 0.5 @ -110
+  - None (goals): 0.5 @ -110
+  - None (assists): 0.5 @ -110
+  - None (goals): 0.5 @ -110

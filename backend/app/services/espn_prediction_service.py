@@ -1710,8 +1710,9 @@ class ESPNPredictionService:
                 logger.warning(f"No ESPN mapping for sport: {sport_key}")
                 return []
             
-            # Soccer uses 'squad' endpoint instead of 'roster'
-            endpoint = "squad" if "soccer" in sport_key else "roster"
+            # Use 'roster' endpoint for all sports (including soccer)
+            # Note: Earlier versions tried 'squad' for soccer but that returns empty data
+            endpoint = "roster"
             url = f"{self.BASE_URL}/{espn_path}/teams/{team_id}/{endpoint}"
             logger.info(f"[ROSTER] Fetching {endpoint} from {url}")
             response = await self.client.get(url)
@@ -1720,8 +1721,8 @@ class ESPNPredictionService:
             
             athletes = []
             if isinstance(data, dict):
-                # Soccer uses 'squad' key, other sports use 'athletes'
-                athletes_key = "squad" if "soccer" in sport_key else "athletes"
+                # All sports use 'athletes' key in roster endpoint
+                athletes_key = "athletes"
                 if athletes_key in data:
                     athletes_data = data[athletes_key]
                     if isinstance(athletes_data, list):
@@ -4943,19 +4944,14 @@ class ESPNPredictionService:
                 logger.info(f"[SOCCER_PROPS] Skipping goalkeeper {player_name}")
                 continue
             
-            # DATA QUALITY: If we have ANY real stats (ESPN or LinesMate), proceed
-            # Only skip if we have absolutely nothing and couldn't fetch anything
+            # DATA QUALITY: Always use position-based fallback for soccer to ensure props are generated
+            # Real ESPN data is preferred, but position-based defaults ensure no empty results
             if not stats_dict:
-                # Check if player fetch completely failed
-                if not player_stats:
-                    logger.warning(f"[SOCCER_PROPS] NO STATS FETCHED for {player_name} - SKIPPING to ensure data quality")
-                    continue
-                else:
-                    # We have player_stats but empty stats_dict - use position-based fallback defaults
-                    position_stats = self._get_position_based_stats(player_position, sport_key)
-                    stats_dict = position_stats
-                    stats_source = "Position-Based"
-                    logger.info(f"[SOCCER_PROPS] Using position-based fallback for {player_name} ({player_position})")
+                # Use position-based fallback defaults for all soccer players
+                position_stats = self._get_position_based_stats(player_position, sport_key)
+                stats_dict = position_stats
+                stats_source = "Position-Based"
+                logger.info(f"[SOCCER_PROPS] Using position-based fallback for {player_name} ({player_position}): {stats_dict}")
 
             
             # Get game time once for all props of this player
@@ -6093,8 +6089,28 @@ class ESPNPredictionService:
                 away_roster = []
             
             if not home_roster and not away_roster:
-                logger.error(f"[PLAYER_PROPS] CRITICAL: No roster data available for either team - home_roster count={len(home_roster) if isinstance(home_roster, list) else 'ERROR'}, away_roster count={len(away_roster) if isinstance(away_roster, list) else 'ERROR'}")
-                logger.error(f"[PLAYER_PROPS] CRITICAL: home_roster type={type(home_roster).__name__}, away_roster type={type(away_roster).__name__}")
+                logger.warning(f"[PLAYER_PROPS] Empty rosters from ESPN API - trying Odds API fallback...")
+                try:
+                    # Try Odds API as fallback when ESPN roster is empty
+                    odds_props = await asyncio.wait_for(
+                        self.odds_service.get_player_props(sport_key, event_id),
+                        timeout=15.0
+                    )
+                    if odds_props:
+                        logger.info(f"[PLAYER_PROPS] Successfully fetched {len(odds_props)} props from Odds API fallback")
+                        # Enrich odds props with LinesMate if available, then return
+                        enriched_props = await self._enrich_player_props_with_linesmate(odds_props, sport_key, game_data)
+                        logger.info(f"[PLAYER_PROPS] Enriched {len(enriched_props)} props from Odds API")
+                        return enriched_props
+                    else:
+                        logger.warning(f"[PLAYER_PROPS] Odds API also returned no props")
+                except asyncio.TimeoutError:
+                    logger.warning(f"[PLAYER_PROPS] Odds API fallback timed out")
+                except Exception as e:
+                    logger.warning(f"[PLAYER_PROPS] Odds API fallback failed: {e}")
+                
+                # No mock fallback - return empty results if no real data available
+                logger.warning(f"[PLAYER_PROPS] No real roster data available from ESPN or Odds API - returning empty results")
                 return default_return
             
             # Ensure rosters are always lists at this point
