@@ -51,3 +51,21 @@ htmlcov/
 *.joblib
 *.h5
 models/old/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+sports_predictions.db
+
+# Large ML artifacts
+backend/models/
+backend/cache/
+backend/.cache/
+backend/tmp/
+backend/logs/
+
+# Other build artifacts  
+*.pyc
+backend/**/*.pyc
+frontend/**/*.pyc
