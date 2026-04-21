@@ -1,10 +1,58 @@
-# Exclude everything by default
+# Ignore everything by default
 **
 
-# Then allow only what we need
-!README.md
+# Explicitly include only what we need
 !Dockerfile
-!fly.toml
 !.dockerignore
 !backend/
+!backend/app/
+!backend/requirements.txt
+!frontend/
 !frontend/dist/
+!frontend/dist/**
+
+# Exclude everything we don't want, with explicit patterns
+backend/.venv
+backend/venv
+backend/.venv/**
+backend/venv/**
+backend/__pycache__/**
+backend/.pytest_cache/**
+backend/.git/**
+backend/ml-models
+backend/ml-models/**
+backend/models
+backend/models/**
+backend/.cache
+backend/.cache/**
+backend/**/*.db
+backend/**/*.log
+backend/**/*.pyc
+backend/.env
+backend/.env.local
+
+frontend/node_modules
+frontend/node_modules/**
+frontend/src
+frontend/src/**
+frontend/public
+frontend/public/**
+frontend/.env
+frontend/.env.local
+frontend/dist/index.html.bak
+frontend/**/*.map
+
+# Ignore common junk
+.git
+.gitignore
+.dockerignore
+*.md
+*.txt
+*.log
+.DS_Store
+.env.example
+.vscode
+.idea
+*.swp
+*.swo
+*~

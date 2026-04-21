@@ -62,8 +62,8 @@ class Settings(BaseSettings):
     odds_api_base_url: str = "https://api.the-odds-api.com/v4/"
     
     # Security Settings
-    allowed_hosts: str = "localhost,127.0.0.1,backend,frontend,sports-prediction-api,sports-prediction-web"
-    cors_origins: str = "http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177,http://localhost:3000,http://localhost:3001,http://127.0.0.1:3001,http://127.0.0.1:5173"
+    allowed_hosts: str = "localhost,127.0.0.1,backend,frontend,sports-prediction-api,sports-prediction-web,signaledge-ai.fly.dev,*.fly.dev"
+    cors_origins: str = "http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177,http://localhost:3000,http://localhost:3001,http://127.0.0.1:3001,http://127.0.0.1:5173,https://signaledge-ai.fly.dev,https://*.fly.dev"
     enable_https_redirect: bool = False
     
     model_config = SettingsConfigDict(
