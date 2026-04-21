@@ -23,6 +23,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
+# Cache busting - force rebuild on April 21
+ENV BUILD_DATE=2026-04-21-0935
+
 WORKDIR /app
 
 # Create a non-privileged user that the app will run under.
