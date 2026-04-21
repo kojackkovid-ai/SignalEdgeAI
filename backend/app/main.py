@@ -446,9 +446,9 @@ allowed_origins = [
     "https://localhost",           # Local HTTPS
     "http://127.0.0.1:3000",      # Loopback
     "https://127.0.0.1:3000",     # Loopback HTTPS
-    # Production origins - ADD THESE:
-    # "https://yourdomain.com",
-    # "https://www.yourdomain.com",
+    # Production origins
+    "https://signaledge-ai.fly.dev",
+    "http://signaledge-ai.fly.dev",
 ]
 
 app.add_middleware(
