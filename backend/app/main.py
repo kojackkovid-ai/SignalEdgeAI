@@ -10,7 +10,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 import logging
 import asyncio
 from datetime import datetime, timedelta
@@ -510,6 +511,16 @@ except Exception as e:
         ],
     )
 
+# === STATIC FILES & SPA ROUTING ===
+
+# Mount static files
+static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+if os.path.isdir(static_dir):
+    app.mount("/assets", StaticFiles(directory=static_dir), name="static")
+    logger.info(f"[STARTUP] Static files mounted from {static_dir}")
+else:
+    logger.warning(f"[STARTUP] Static files directory not found at {static_dir}")
+
 # === ROUTES (after middleware) ===
 
 # Include routers
@@ -762,6 +773,34 @@ async def shutdown_event():
         
     except Exception as e:
         logger.error(f"Error during shutdown: {e}")
+
+# === SPA FALLBACK ROUTE ===
+# Serve index.html for all non-API routes (SPA routing)
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_spa(full_path: str):
+    """Serve SPA index.html for frontend routing"""
+    # Don't intercept API routes
+    if full_path.startswith("api/") or full_path.startswith("."):
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    # Try to serve the static file first
+    static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+    file_path = os.path.join(static_dir, full_path)
+    
+    # Prevent directory traversal
+    if not os.path.abspath(file_path).startswith(os.path.abspath(static_dir)):
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    # If it's a file and exists, serve it
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # Otherwise serve index.html for SPA routing
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path, media_type="text/html")
+    
+    raise HTTPException(status_code=404, detail="Frontend not found")
 
 if __name__ == "__main__":
     import uvicorn

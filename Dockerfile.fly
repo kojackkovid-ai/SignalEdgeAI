@@ -37,9 +37,10 @@ RUN python -m pip install --upgrade pip && \
 # Copy application code
 COPY backend/ ./backend/
 COPY ml-models/ ./ml-models/ 2>/dev/null || true
+COPY frontend/dist/ ./backend/static/ 2>/dev/null || true
 
 # Create necessary directories
-RUN mkdir -p /app/logs && chown -R appuser:appuser /app
+RUN mkdir -p /app/logs /app/backend/static && chown -R appuser:appuser /app
 
 # Switch to non-privileged user
 USER appuser
