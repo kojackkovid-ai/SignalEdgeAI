@@ -1,18 +1,10 @@
-# Include any files or directories that you don't want to be copied to your
-# container here (e.g., local build artifacts, temporary files, etc.).
-#
-# For more help, visit the .dockerignore file reference guide at
-# https://docs.docker.com/go/build-context-dockerignore/
+# Exclude everything by default
+**
 
-**/.DS_Store
-**/__pycache__
-**/.venv
-**/.env
-**/.venv/**
-backend/.venv
-backend/.venv/**
-*.pyc
-.git
-.gitignore
-.pytest_cache
-.coverage
+# Then allow only what we need
+!README.md
+!Dockerfile
+!fly.toml
+!.dockerignore
+!backend/
+!frontend/dist/
