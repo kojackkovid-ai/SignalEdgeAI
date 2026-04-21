@@ -23,7 +23,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app
+WORKDIR /app/backend
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
@@ -47,11 +47,14 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Switch to the non-privileged user to run the application.
 USER appuser
 
-# Copy the source code into the container.
-COPY . .
+# Copy the source code into the container
+# Copy everything from backend directory to /app/backend
+COPY --chown=appuser:appuser backend/ .
+# Copy frontend dist to be served by FastAPI
+COPY --chown=appuser:appuser frontend/dist/ ./static/
 
 # Expose the port that the application listens on.
-EXPOSE 8000
+EXPOSE 8080
 
 # Run the application.
-CMD python -m uvicorn app.main:app --reload
+CMD python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 --no-reload
