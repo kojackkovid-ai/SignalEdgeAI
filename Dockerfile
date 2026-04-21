@@ -59,4 +59,4 @@ EXPOSE 8080
 
 # Run the application from backend directory with uvicorn.
 WORKDIR /app/backend
-CMD python -m uvicorn app.main:app --host 0.0.0.0 --port 8080 --no-reload
+CMD python -m uvicorn app.main:app --host 0.0.0.0 --port 8080
