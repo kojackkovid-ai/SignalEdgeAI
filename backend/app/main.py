@@ -516,11 +516,12 @@ except Exception as e:
 
 # Mount static files
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
-if os.path.isdir(static_dir):
-    app.mount("/assets", StaticFiles(directory=static_dir), name="static")
-    logger.info(f"[STARTUP] Static files mounted from {static_dir}")
+assets_dir = os.path.join(static_dir, "assets")
+if os.path.isdir(assets_dir):
+    app.mount("/assets", StaticFiles(directory=assets_dir), name="static")
+    logger.info(f"[STARTUP] Static files mounted from {assets_dir}")
 else:
-    logger.warning(f"[STARTUP] Static files directory not found at {static_dir}")
+    logger.warning(f"[STARTUP] Assets directory not found at {assets_dir}")
 
 # === ROUTES (after middleware) ===
 
