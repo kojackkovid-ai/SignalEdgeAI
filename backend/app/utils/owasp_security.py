@@ -28,11 +28,11 @@ class OWASPSecurityMiddleware(BaseHTTPMiddleware):
         # Prevents XSS attacks by restricting content sources
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net https://js.stripe.com; "
             "style-src 'self' 'unsafe-inline' fonts.googleapis.com; "
             "img-src 'self' data: https:; "
             "font-src 'self' fonts.gstatic.com; "
-            "connect-src 'self' https:; "
+            "connect-src 'self' https: https://api.stripe.com; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
             "form-action 'self'"
