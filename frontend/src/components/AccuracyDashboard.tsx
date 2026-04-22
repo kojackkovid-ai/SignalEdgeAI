@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, BarChart3, Award, Zap } from 'lucide-react';
+import { TrendingUp, BarChart3, Award, Zap, Globe } from 'lucide-react';
 import api from '../utils/api';
 import { analyticsTracker } from '../utils/analytics';
 
@@ -33,8 +33,32 @@ interface ConfidenceCalibration {
   calibration_error: number;
 }
 
+interface PlatformMetrics {
+  platform_overall: {
+    total_predictions: number;
+    hits: number;
+    misses: number;
+    pending: number;
+    voids: number;
+    win_rate: number;
+    avg_confidence: number;
+  };
+  by_sport: {
+    [sport: string]: {
+      total: number;
+      hits: number;
+      misses: number;
+      pending: number;
+      win_rate: number;
+      avg_confidence: number;
+    };
+  };
+  generated_at: string;
+}
+
 const AccuracyDashboard: React.FC = () => {
   const [overstatsOverall, setStatsOverall] = useState<AccuracyStats | null>(null);
+  const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null);
   const [sportStats, setSportStats] = useState<SportStats | null>(null);
   const [trendData, setTrendData] = useState<TrendDataPoint[]>([]);
   const [calibrationData, setCalibrationData] = useState<ConfidenceCalibration[]>([]);
@@ -51,9 +75,20 @@ const AccuracyDashboard: React.FC = () => {
         // Track accuracy dashboard view
         analyticsTracker.trackAccuracyDashboardView('').catch(() => {});
 
-        // Fetch overall stats
+        // Fetch overall stats (individual user)
         const statsResponse = await api.get('/user/predictions/stats');
         setStatsOverall(statsResponse.data);
+
+        // Fetch platform-wide metrics
+        try {
+          const platformResponse = await api.get('/analytics/platform-metrics', {
+            params: { days: selectedDays }
+          });
+          setPlatformMetrics(platformResponse.data);
+        } catch (err: any) {
+          console.warn('Failed to load platform metrics:', err);
+          // Platform metrics is not critical, continue loading other data
+        }
 
         // Fetch sport-specific stats
         const sportStatsResponse = await api.get('/user/predictions/stats/by-sport');
@@ -136,7 +171,108 @@ const AccuracyDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Overall Stats Cards */}
+      {/* Platform-Wide Metrics Section */}
+      {platformMetrics && (
+        <div className="bg-gradient-to-br from-indigo-950 via-slate-950 to-slate-900 border border-indigo-500/30 rounded-xl p-6">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <Globe className="w-6 h-6 text-indigo-400" />
+            Platform Metrics (All Users Combined)
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {/* Platform Win Rate */}
+            <div className="bg-slate-900/50 border border-indigo-400/30 rounded-lg p-4">
+              <p className="text-slate-300 text-xs font-medium uppercase tracking-wide">Platform Win Rate</p>
+              <p className="text-3xl font-bold text-indigo-300 mt-2">
+                {(platformMetrics.platform_overall.win_rate * 100).toFixed(1)}%
+              </p>
+              <p className="text-slate-500 text-xs mt-2">
+                {platformMetrics.platform_overall.hits} wins / {platformMetrics.platform_overall.hits + platformMetrics.platform_overall.misses} resolved
+              </p>
+            </div>
+
+            {/* Platform Total Predictions */}
+            <div className="bg-slate-900/50 border border-indigo-400/30 rounded-lg p-4">
+              <p className="text-slate-300 text-xs font-medium uppercase tracking-wide">Total Predictions</p>
+              <p className="text-3xl font-bold text-indigo-300 mt-2">
+                {platformMetrics.platform_overall.total_predictions}
+              </p>
+              <p className="text-slate-500 text-xs mt-2">
+                Across all platform users
+              </p>
+            </div>
+
+            {/* Platform Avg Confidence */}
+            <div className="bg-slate-900/50 border border-indigo-400/30 rounded-lg p-4">
+              <p className="text-slate-300 text-xs font-medium uppercase tracking-wide">Avg Confidence</p>
+              <p className="text-3xl font-bold text-indigo-300 mt-2">
+                {(platformMetrics.platform_overall.avg_confidence * 100).toFixed(0)}%
+              </p>
+              <p className="text-slate-500 text-xs mt-2">
+                Platform average
+              </p>
+            </div>
+
+            {/* Pending Predictions */}
+            <div className="bg-slate-900/50 border border-indigo-400/30 rounded-lg p-4">
+              <p className="text-slate-300 text-xs font-medium uppercase tracking-wide">Pending</p>
+              <p className="text-3xl font-bold text-yellow-400 mt-2">
+                {platformMetrics.platform_overall.pending}
+              </p>
+              <p className="text-slate-500 text-xs mt-2">
+                Awaiting resolution
+              </p>
+            </div>
+
+            {/* Hits vs Misses */}
+            <div className="bg-slate-900/50 border border-indigo-400/30 rounded-lg p-4">
+              <p className="text-slate-300 text-xs font-medium uppercase tracking-wide">Hits / Misses</p>
+              <div className="mt-2 space-y-1">
+                <p className="text-lg font-bold">
+                  <span className="text-green-400">{platformMetrics.platform_overall.hits}</span>
+                  <span className="text-slate-500 mx-1">/</span>
+                  <span className="text-red-400">{platformMetrics.platform_overall.misses}</span>
+                </p>
+                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-green-500 to-green-400"
+                    style={{
+                      width: `${(platformMetrics.platform_overall.hits / (platformMetrics.platform_overall.hits + platformMetrics.platform_overall.misses) * 100) || 0}%`
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Platform By Sport */}
+          {Object.keys(platformMetrics.by_sport).length > 0 && (
+            <div className="mt-6 pt-6 border-t border-indigo-500/20">
+              <h3 className="text-sm font-bold text-indigo-200 mb-4 uppercase tracking-wide">Performance by Sport</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {Object.entries(platformMetrics.by_sport).map(([sport, stats]) => (
+                  <div key={sport} className="bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
+                    <p className="text-white font-medium capitalize text-sm mb-2">{sport.replace('_', ' ').toUpperCase()}</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-400">
+                      <span>Predictions: {stats.total}</span>
+                      <span>Win Rate: {(stats.win_rate * 100).toFixed(1)}%</span>
+                      <span>Hits: {stats.hits}</span>
+                      <span>Confidence: {(stats.avg_confidence * 100).toFixed(0)}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Your Individual Metrics Section */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-cyan-400" />
+          <h2 className="text-xl font-bold text-white">Your Personal Metrics</h2>
+        </div>
+      </div>
       {overstatsOverall && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Win Rate Card */}
