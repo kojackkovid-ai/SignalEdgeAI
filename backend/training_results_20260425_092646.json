@@ -1,0 +1,723 @@
+{
+  "timestamp": "2026-04-25T09:26:46.941806",
+  "summary": {
+    "total": 29,
+    "successful": 29,
+    "failed": 0,
+    "success_rate": 1.0
+  },
+  "results": [
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "basketball_nba",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.57,
+            "precision": 0.5474217074217074,
+            "recall": 0.57,
+            "f1": 0.5562626045912894
+          },
+          "lightgbm": {
+            "accuracy": 0.52,
+            "precision": 0.4983786078098473,
+            "recall": 0.52,
+            "f1": 0.507559829059829
+          },
+          "random_forest": {
+            "accuracy": 0.51,
+            "precision": 0.4871771771771772,
+            "recall": 0.51,
+            "f1": 0.4963977687191589
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "spread",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "basketball_nba",
+        "market_type": "spread",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.52,
+            "precision": 0.5004035308953342,
+            "recall": 0.52,
+            "f1": 0.509080459770115
+          },
+          "lightgbm": {
+            "accuracy": 0.53,
+            "precision": 0.5137698898408813,
+            "recall": 0.53,
+            "f1": 0.5217542016806722
+          },
+          "neural_net": {
+            "accuracy": 0.54,
+            "precision": 0.5203333333333333,
+            "recall": 0.54,
+            "f1": 0.5294167550371156
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "basketball_nba",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "basketball_nba",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.5282098332047462,
+            "rmse": 0.5602257632241224,
+            "mape": 26904497.37021362
+          },
+          "random_forest": {
+            "mae": 0.5461338271133426,
+            "rmse": 0.5988008296786095,
+            "mape": 26662428.850529425
+          },
+          "neural_net": {
+            "mae": 0.5461338271133426,
+            "rmse": 0.5988008296786094,
+            "mape": 26662428.850529425
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "americanfootball_nfl",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.59,
+            "precision": 0.5741655359565807,
+            "recall": 0.59,
+            "f1": 0.5796325459317585
+          },
+          "lightgbm": {
+            "accuracy": 0.58,
+            "precision": 0.5696653796653797,
+            "recall": 0.58,
+            "f1": 0.5744736842105262
+          },
+          "random_forest": {
+            "accuracy": 0.58,
+            "precision": 0.5498026315789474,
+            "recall": 0.58,
+            "f1": 0.5508963585434173
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "spread",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "americanfootball_nfl",
+        "market_type": "spread",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.52,
+            "precision": 0.49442857142857144,
+            "recall": 0.52,
+            "f1": 0.5028093645484951
+          },
+          "lightgbm": {
+            "accuracy": 0.55,
+            "precision": 0.5416298811544992,
+            "recall": 0.55,
+            "f1": 0.5456844794549712
+          },
+          "neural_net": {
+            "accuracy": 0.57,
+            "precision": 0.5431963470319634,
+            "recall": 0.57,
+            "f1": 0.5478332194121669
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "americanfootball_nfl",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "americanfootball_nfl",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.50112373650074,
+            "rmse": 0.5212269296193633,
+            "mape": 26335955.169607613
+          },
+          "random_forest": {
+            "mae": 0.537706121498704,
+            "rmse": 0.5694973634785138,
+            "mape": 27378769.2268274
+          },
+          "neural_net": {
+            "mae": 0.537706121498704,
+            "rmse": 0.5694973634785138,
+            "mape": 27378769.2268274
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "baseball_mlb",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.47,
+            "precision": 0.40343340380549675,
+            "recall": 0.47,
+            "f1": 0.434135430748433
+          },
+          "lightgbm": {
+            "accuracy": 0.43,
+            "precision": 0.40515508021390373,
+            "recall": 0.43,
+            "f1": 0.4099653679653679
+          },
+          "random_forest": {
+            "accuracy": 0.52,
+            "precision": 0.43331868131868134,
+            "recall": 0.52,
+            "f1": 0.4697394989405459
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "baseball_mlb",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "baseball_mlb",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.6001752564311027,
+            "rmse": 0.6698551100247278,
+            "mape": 31943073.009126253
+          },
+          "random_forest": {
+            "mae": 0.6345563899516621,
+            "rmse": 0.7286379093413391,
+            "mape": 34198119.38212369
+          },
+          "neural_net": {
+            "mae": 0.634556389951662,
+            "rmse": 0.7286379093413391,
+            "mape": 34198119.38212369
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "icehockey_nhl",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.46,
+            "precision": 0.41812087026591455,
+            "recall": 0.46,
+            "f1": 0.41484858273439396
+          },
+          "lightgbm": {
+            "accuracy": 0.4,
+            "precision": 0.4053073593073593,
+            "recall": 0.4,
+            "f1": 0.3991373626373626
+          },
+          "random_forest": {
+            "accuracy": 0.49,
+            "precision": 0.4476422764227642,
+            "recall": 0.49,
+            "f1": 0.41732574600971545
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "puck_line",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "icehockey_nhl",
+        "market_type": "puck_line",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.0,
+            "error": "Classification metrics can't handle a mix of multiclass and continuous targets"
+          },
+          "lightgbm": {
+            "accuracy": 0.0,
+            "error": "Classification metrics can't handle a mix of multiclass and continuous targets"
+          },
+          "random_forest": {
+            "accuracy": 0.51,
+            "precision": 0.4577590361445783,
+            "recall": 0.51,
+            "f1": 0.42977272727272736
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "icehockey_nhl",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "icehockey_nhl",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.7004874792695045,
+            "rmse": 0.7894105584164515,
+            "mape": 34519133.33164503
+          },
+          "random_forest": {
+            "mae": 0.7301064759024336,
+            "rmse": 0.8499438746267514,
+            "mape": 35039497.471429
+          },
+          "neural_net": {
+            "mae": 0.7301064759024336,
+            "rmse": 0.8499438746267514,
+            "mape": 35039497.471429
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_epl",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.39,
+            "precision": 0.385294930875576,
+            "recall": 0.39,
+            "f1": 0.37980150269062846
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "spread",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_epl",
+        "market_type": "spread",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.35,
+            "precision": 0.35075757575757577,
+            "recall": 0.35,
+            "f1": 0.34651001705029844
+          },
+          "lightgbm": {
+            "accuracy": 0.31,
+            "precision": 0.3142938630999213,
+            "recall": 0.31,
+            "f1": 0.3107096098455093
+          },
+          "random_forest": {
+            "accuracy": 0.32,
+            "precision": 0.313037323037323,
+            "recall": 0.32,
+            "f1": 0.26831380622063106
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_epl",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_epl",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.4911810064315796,
+            "rmse": 0.4933216275320349,
+            "mape": 28163118.485585567
+          },
+          "random_forest": {
+            "mae": 0.5056515082563964,
+            "rmse": 0.5258149055144593,
+            "mape": 29639889.1843133
+          },
+          "neural_net": {
+            "mae": 0.5056515082563964,
+            "rmse": 0.5258149055144593,
+            "mape": 29639889.1843133
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_usa_mls",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.39,
+            "precision": 0.385294930875576,
+            "recall": 0.39,
+            "f1": 0.37980150269062846
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "spread",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_usa_mls",
+        "market_type": "spread",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.35,
+            "precision": 0.35075757575757577,
+            "recall": 0.35,
+            "f1": 0.34651001705029844
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_usa_mls",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_usa_mls",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.4911810064315796,
+            "rmse": 0.4933216275320349,
+            "mape": 28163118.485585567
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_esp.1",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.39,
+            "precision": 0.385294930875576,
+            "recall": 0.39,
+            "f1": 0.37980150269062846
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "spread",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_esp.1",
+        "market_type": "spread",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.35,
+            "precision": 0.35075757575757577,
+            "recall": 0.35,
+            "f1": 0.34651001705029844
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_esp.1",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_esp.1",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.4911810064315796,
+            "rmse": 0.4933216275320349,
+            "mape": 28163118.485585567
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_ita.1",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.39,
+            "precision": 0.385294930875576,
+            "recall": 0.39,
+            "f1": 0.37980150269062846
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "spread",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_ita.1",
+        "market_type": "spread",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.35,
+            "precision": 0.35075757575757577,
+            "recall": 0.35,
+            "f1": 0.34651001705029844
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_ita.1",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_ita.1",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.4911810064315796,
+            "rmse": 0.4933216275320349,
+            "mape": 28163118.485585567
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_ger.1",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.39,
+            "precision": 0.385294930875576,
+            "recall": 0.39,
+            "f1": 0.37980150269062846
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "spread",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_ger.1",
+        "market_type": "spread",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.35,
+            "precision": 0.35075757575757577,
+            "recall": 0.35,
+            "f1": 0.34651001705029844
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_ger.1",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_ger.1",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.4911810064315796,
+            "rmse": 0.4933216275320349,
+            "mape": 28163118.485585567
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "moneyline",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_fra.1",
+        "market_type": "moneyline",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.39,
+            "precision": 0.385294930875576,
+            "recall": 0.39,
+            "f1": 0.37980150269062846
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "spread",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_fra.1",
+        "market_type": "spread",
+        "model_scores": {
+          "xgboost": {
+            "accuracy": 0.35,
+            "precision": 0.35075757575757577,
+            "recall": 0.35,
+            "f1": 0.34651001705029844
+          }
+        },
+        "ensemble_created": true
+      }
+    },
+    {
+      "sport_key": "soccer_fra.1",
+      "market_type": "total",
+      "status": "success",
+      "samples": 500,
+      "result": {
+        "status": "success",
+        "sport_key": "soccer_fra.1",
+        "market_type": "total",
+        "model_scores": {
+          "xgboost": {
+            "mae": 0.4911810064315796,
+            "rmse": 0.4933216275320349,
+            "mape": 28163118.485585567
+          }
+        },
+        "ensemble_created": true
+      }
+    }
+  ]
+}

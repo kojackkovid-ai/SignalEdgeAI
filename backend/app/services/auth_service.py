@@ -95,15 +95,19 @@ class AuthService:
         return self._decode_token(token)
 
     async def register_user(self, db, email: str, password: str, username: str):
-        """Register new user"""
+        """Register new user with proper error handling for duplicate users"""
         from sqlalchemy import select
+        from sqlalchemy.exc import IntegrityError
         from app.models.db_models import User
         
         # Check if user already exists
         result = await db.execute(select(User).where((User.email == email) | (User.username == username)))
         existing_user = result.scalars().first()
         if existing_user:
-            raise ValueError("User already exists")
+            if existing_user.email == email:
+                raise ValueError(f"Email '{email}' is already registered")
+            else:
+                raise ValueError(f"Username '{username}' is already taken")
         
         # Create new user
         user = User(
@@ -113,9 +117,23 @@ class AuthService:
             subscription_tier="free"
         )
         db.add(user)
-        await db.commit()
-        await db.refresh(user)
-        return user
+        
+        try:
+            await db.commit()
+            await db.refresh(user)
+            return user
+        except IntegrityError as e:
+            await db.rollback()
+            # Handle race condition where another request created the same user
+            if "email" in str(e).lower():
+                raise ValueError(f"Email '{email}' is already registered")
+            elif "username" in str(e).lower():
+                raise ValueError(f"Username '{username}' is already taken")
+            else:
+                raise ValueError("User registration failed - user may already exist")
+        except Exception as e:
+            await db.rollback()
+            raise ValueError(f"User registration failed: {str(e)}")
 
     async def authenticate_user(self, db, email: str, password: str):
         """Authenticate user"""

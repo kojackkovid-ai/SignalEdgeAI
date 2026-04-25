@@ -129,12 +129,12 @@ class PredictionResponse(BaseModel):
     id: str
     sport: Optional[str] = None
     league: Optional[str] = None
-    matchup: str
+    matchup: Optional[str] = None
     game_time: Optional[str] = None
     prediction: str
     confidence: float
-    prediction_type: str
-    created_at: str
+    prediction_type: Optional[str] = None
+    created_at: Optional[str] = None
     odds: Optional[str] = None
     reasoning: Optional[List[ReasoningPoint]] = None
     models: Optional[List[ModelEnsemble]] = None
@@ -152,6 +152,16 @@ class PredictionResponse(BaseModel):
     team_name: Optional[str] = None  # Add team name
     season_avg: Optional[float] = None  # Add season average stat
     recent_10_avg: Optional[float] = None  # Add recent 10 games average
+    
+    class Config:
+        populate_by_name = True
+    
+    @classmethod
+    def validate_odds(cls, v):
+        """Convert odds to string if it's an integer"""
+        if isinstance(v, int):
+            return str(v)
+        return v
 
 class GetPredictionsQuery(BaseModel):
     sport: Optional[str] = None
@@ -1267,16 +1277,21 @@ async def get_club_100_status(
 ):
     """Get Club 100 unlock status for current user"""
     try:
+        logger.info(f"[Club100] Getting status for user: {current_user_id}")
         from app.services.club_100_service import Club100Service
         service = Club100Service()
         status_info = await service.check_user_club_100_status(db, current_user_id)
+        logger.info(f"[Club100] Status retrieved successfully: {status_info}")
         return status_info
     except Exception as e:
-        logger.error(f"Error checking Club 100 status: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to check Club 100 status"
-        )
+        logger.error(f"Error checking Club 100 status: {str(e)}", exc_info=True)
+        # Return safe default instead of 500
+        return {
+            "unlocked": False,
+            "access_count": 0,
+            "access_remaining": 0,
+            "error": "Could not fetch status - please try again"
+        }
 
 
 @router.get("/club-100/can-unlock")
@@ -1717,6 +1732,59 @@ async def get_club_100_platform_metrics(
 
 
 # ====== TEST ENDPOINT (No Auth Required) ======
+@router.get("/test/debug-espn")
+async def debug_espn():
+    """Direct test of ESPN API for debugging timeout issues"""
+    import httpx
+    from datetime import datetime
+    
+    result = {}
+    async with httpx.AsyncClient(timeout=2.0, verify=False) as client:
+        url = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard"
+        today = datetime.now().strftime("%Y%m%d")
+        
+        try:
+            start = asyncio.get_event_loop().time()
+            resp = await asyncio.wait_for(
+                client.get(url, params={"dates": today}),
+                timeout=2.0
+            )
+            elapsed = asyncio.get_event_loop().time() - start
+            data = resp.json()
+            result['status'] = 'success'
+            result['elapsed_s'] = elapsed
+            result['events_count'] = len(data.get('events', []))
+        except asyncio.TimeoutError:
+            result['status'] = 'timeout'
+            result['timeout_s'] = 2.0
+        except Exception as e:
+            result['status'] = 'error'
+            result['error'] = str(e)
+    
+    return result
+
+@router.get("/test/debug-upcoming-games/{sport}")
+async def debug_upcoming_games(sport: str):
+    """Direct test of get_upcoming_games for debugging"""
+    espn_service = get_espn_service()
+    sport_key = espn_service._normalize_sport_key(sport)
+    
+    if not sport_key:
+        raise HTTPException(status_code=400, detail=f"Unknown sport: {sport}")
+    
+    try:
+        start = asyncio.get_event_loop().time()
+        games = await asyncio.wait_for(
+            espn_service.get_upcoming_games(sport_key),
+            timeout=5.0
+        )
+        elapsed = asyncio.get_event_loop().time() - start
+        return {'status': 'success', 'elapsed_s': elapsed, 'games_count': len(games)}
+    except asyncio.TimeoutError:
+        return {'status': 'timeout', 'timeout_s': 5.0}
+    except Exception as e:
+        return {'status': 'error', 'error': str(e)}
+
 @router.get("/test/player-props")
 async def test_player_props(
     sport_key: str = Query("basketball_nba", description="Sport key"),

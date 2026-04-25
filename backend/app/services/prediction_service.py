@@ -202,17 +202,17 @@ class PredictionService:
     ) -> List[Dict[str, Any]]:
         """Get predictions with filtering and feature gating by user tier using ESPN API only"""
         try:
-            # CRITICAL: Extended 180-second timeout to allow full enrichment of predictions
-            # Allows ESPN API calls, data enrichment, and model predictions to complete
-            # This timeout is necessary for enriching multiple games with stats lookups
+            # Single top-level timeout for entire prediction pipeline
+            # Includes: ESPN API fetch + game enrichment + stat gathering
+            # 30 seconds allows more time for ESPN API calls and enrichment
             espn_preds = await asyncio.wait_for(
                 self._get_predictions_internal(db, user, sport, league, min_confidence, limit, offset),
-                timeout=180.0  # Extended timeout: 180s (3 min) for full enrichment of all sports
+                timeout=30.0
             )
             return espn_preds
             
         except asyncio.TimeoutError as e:
-            logger.error(f"[PREDICTION_SERVICE] Timeout after 180s fetching predictions for {sport}", exc_info=False)
+            logger.error(f"[PREDICTION_SERVICE] Timeout after 30s fetching predictions for {sport}", exc_info=False)
             # Return empty array on timeout - no fake data
             return []
         except Exception as e:

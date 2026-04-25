@@ -602,7 +602,16 @@ async def get_platform_metrics(
         
         total_decided = hits + misses
         overall_win_rate = (hits / total_decided) if total_decided > 0 else 0.0
-        overall_avg_confidence = np.mean([r.confidence for r in all_records if r.confidence]) if any(r.confidence for r in all_records) else 0.0
+        
+        # IMPORTANT: Normalize confidence from 0-100 to 0-1 if needed
+        confidence_values = [r.confidence for r in all_records if r.confidence]
+        if confidence_values:
+            overall_avg_confidence = np.mean(confidence_values)
+            # Normalize if in 0-100 range (if avg > 1.0, divide by 100)
+            if overall_avg_confidence > 1.0:
+                overall_avg_confidence = overall_avg_confidence / 100.0
+        else:
+            overall_avg_confidence = 0.0
         
         # By sport breakdown
         by_sport = {}
@@ -614,7 +623,15 @@ async def get_platform_metrics(
             
             sport_decided = sport_hits + sport_misses
             sport_win_rate = (sport_hits / sport_decided) if sport_decided > 0 else 0.0
-            sport_avg_confidence = np.mean([r.confidence for r in sport_records if r.confidence]) if any(r.confidence for r in sport_records) else 0.0
+            
+            # IMPORTANT: Normalize sport confidence the same way
+            sport_confidence_values = [r.confidence for r in sport_records if r.confidence]
+            if sport_confidence_values:
+                sport_avg_confidence = np.mean(sport_confidence_values)
+                if sport_avg_confidence > 1.0:
+                    sport_avg_confidence = sport_avg_confidence / 100.0
+            else:
+                sport_avg_confidence = 0.0
             
             by_sport[sport] = {
                 "total": len(sport_records),
@@ -622,7 +639,7 @@ async def get_platform_metrics(
                 "misses": sport_misses,
                 "pending": sport_pending,
                 "win_rate": round(sport_win_rate, 4),
-                "avg_confidence": round(sport_avg_confidence, 2),
+                "avg_confidence": round(sport_avg_confidence, 4),  # Return as 0-1 decimal
             }
         
         response = {
@@ -633,7 +650,7 @@ async def get_platform_metrics(
                 "pending": pending,
                 "voids": voids,
                 "win_rate": round(overall_win_rate, 4),
-                "avg_confidence": round(overall_avg_confidence, 2),
+                "avg_confidence": round(overall_avg_confidence, 4),  # Return as 0-1 decimal
             },
             "by_sport": by_sport,
             "generated_at": datetime.utcnow().isoformat()

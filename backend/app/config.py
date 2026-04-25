@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     model_update_interval: int = 3600
     retrain_days: int = 7
     min_training_samples: int = 1000
-    ml_models_dir: str = "sports-prediction-platform/backend/ml-models/trained"
+    ml_models_dir: str = "ml-models/trained"
 
     
     # Monetization
@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     mailgun_sender: str = "noreply@sportstats.com"
     
     # Redis
-    redis_url: str = "redis://localhost:6379"
+    redis_url: Optional[str] = os.environ.get("REDIS_URL", "redis://localhost:6379")
 
     # Weather API
     openweather_api_key: str = ""
@@ -59,6 +59,11 @@ class Settings(BaseSettings):
 
     # Odds API - MUST be set in environment, no hardcoded defaults
     odds_api_key: str = ""
+    odds_api_key_backup_1: Optional[str] = None
+    odds_api_key_backup_2: Optional[str] = None
+    odds_api_key_backup_3: Optional[str] = None
+    odds_api_key_backup_4: Optional[str] = None
+    odds_api_key_backup_5: Optional[str] = None
     odds_api_base_url: str = "https://api.the-odds-api.com/v4/"
     
     # Security Settings
@@ -101,10 +106,10 @@ class Settings(BaseSettings):
                 )
         
         # Check odds API key
-        if not self.odds_api_key:
+        if not self.odds_api_keys:
             warnings.warn(
                 "ODDS_API_KEY not set. Odds API features will be disabled. "
-                "Set your API key in the .env file.",
+                "Set your API key or fallback keys in the .env file.",
                 SecurityWarning,
                 stacklevel=2
             )
@@ -155,6 +160,23 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list:
         """Parse CORS origins from comma-separated string"""
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def odds_api_keys(self) -> list[str]:
+        """Return primary and fallback Odds API keys in priority order."""
+        keys = []
+        if self.odds_api_key:
+            keys.append(self.odds_api_key.strip())
+        for backup_key in (
+            self.odds_api_key_backup_1,
+            self.odds_api_key_backup_2,
+            self.odds_api_key_backup_3,
+            self.odds_api_key_backup_4,
+            self.odds_api_key_backup_5,
+        ):
+            if backup_key:
+                keys.append(backup_key.strip())
+        return [k for k in keys if k]
 
 class SecurityWarning(Warning):
     """Custom warning for security-related issues"""

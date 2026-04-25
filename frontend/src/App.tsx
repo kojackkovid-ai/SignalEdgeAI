@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
@@ -19,9 +19,35 @@ import ResponsibleGambling from './pages/ResponsibleGambling';
 import RefundPolicy from './pages/RefundPolicy';
 import CookiePolicy from './pages/CookiePolicy';
 import RiskDisclosure from './pages/RiskDisclosure';
+import { tokenManager } from './utils/tokenManager';
 import './styles/theme.css';
 
 const App: React.FC = () => {
+  // Initialize token monitoring on app load
+  useEffect(() => {
+    // Start monitoring token expiration
+    tokenManager.startMonitoring(
+      // On token expired
+      () => {
+        console.warn('[App] Token monitoring - expiration detected, user will be logged out');
+        window.location.href = '/login';
+      },
+      // On token refreshed
+      (newToken) => {
+        console.log('[App] Token monitoring - token refreshed successfully');
+      }
+    );
+
+    // Log token info on startup
+    const tokenInfo = tokenManager.getTokenInfo();
+    console.log('[App] Token Manager Started:', tokenInfo);
+
+    // Cleanup on unmount
+    return () => {
+      tokenManager.stopMonitoring();
+    };
+  }, []);
+
   return (
     <ErrorBoundary>
       <BrowserRouter>

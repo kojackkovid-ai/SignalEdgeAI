@@ -59,14 +59,84 @@ class ApiClient {
       return config;
     });
 
-    // Handle responses
+    // Handle responses with automatic token refresh on 401
+    let isRefreshing = false;
+    let refreshSubscribers: Array<(token: string) => void> = [];
+
+    const onRefreshed = (token: string) => {
+      refreshSubscribers.forEach(callback => callback(token));
+      refreshSubscribers = [];
+    };
+
+    const addRefreshSubscriber = (callback: (token: string) => void) => {
+      refreshSubscribers.push(callback);
+    };
+
     this.client.interceptors.response.use(
       (response) => response,
-      (error) => {
+      async (error) => {
+        const originalRequest = error.config;
+
+        // Handle 401 Unauthorized - attempt token refresh
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          if (!isRefreshing) {
+            isRefreshing = true;
+            console.log('[Auth] Token expired or invalid - attempting refresh...');
+
+            try {
+              // Create a new axios instance to avoid infinite loops
+              const refreshClient = axios.create({
+                baseURL: API_BASE_URL,
+                timeout: 10000,
+                headers: { 'Content-Type': 'application/json' },
+              });
+
+              const token = localStorage.getItem('access_token');
+              if (token) {
+                refreshClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+              }
+
+              // Call refresh endpoint
+              const response = await refreshClient.post('/auth/refresh');
+              const newToken = response.data.access_token;
+
+              console.log('[Auth] ✅ Token refreshed successfully');
+              localStorage.setItem('access_token', newToken);
+              this.client.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+              onRefreshed(newToken);
+              isRefreshing = false;
+
+              // Retry original request with new token
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              return this.client(originalRequest);
+            } catch (refreshError) {
+              console.error('[Auth] ❌ Token refresh failed:', refreshError);
+              localStorage.removeItem('access_token');
+              isRefreshing = false;
+              refreshSubscribers = [];
+              window.location.href = '/login';
+              return Promise.reject(refreshError);
+            }
+          } else {
+            // Wait for token refresh to complete, then retry
+            return new Promise((resolve) => {
+              addRefreshSubscriber((token: string) => {
+                originalRequest.headers.Authorization = `Bearer ${token}`;
+                resolve(this.client(originalRequest));
+              });
+            });
+          }
+        }
+
+        // For other 401 errors without retry attempt
         if (error.response?.status === 401) {
+          console.warn('[Auth] 401 Unauthorized - clearing session');
           localStorage.removeItem('access_token');
           window.location.href = '/login';
         }
+
         return Promise.reject(error);
       }
     );

@@ -31,7 +31,11 @@ def get_prediction_service() -> PredictionService:
 
 async def get_current_user(authorization: Optional[str] = Header(None, description="Bearer token")) -> str:
     """Extract user ID from Bearer token in Authorization header"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     if authorization is None:
+        logger.warning("[AUTH] Missing authorization header")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing authorization header"
@@ -40,17 +44,28 @@ async def get_current_user(authorization: Optional[str] = Header(None, descripti
     auth_service = AuthService()
     try:
         # Extract token from "Bearer <token>"
+        logger.debug(f"[AUTH] Authorization header present, length: {len(authorization)}")
         scheme, token = authorization.split()
         if scheme.lower() != "bearer":
+            logger.warning(f"[AUTH] Invalid scheme: {scheme}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication scheme"
             )
-        return auth_service._decode_token(token)
-    except ValueError:
+        user_id = auth_service._decode_token(token)
+        logger.debug(f"[AUTH] Successfully extracted user_id: {user_id}")
+        return user_id
+    except ValueError as e:
+        logger.warning(f"[AUTH] Invalid authorization header format: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authorization header format"
+        )
+    except Exception as e:
+        logger.error(f"[AUTH] Unexpected error decoding token: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token"
         )
 
 
@@ -194,9 +209,14 @@ async def get_user_stats(
         from sqlalchemy import select, func as sa_func
         from app.models.db_models import Prediction
         
+        logger.info(f"[STATS] Fetching stats for user: {current_user_id}")
+        
         user = await get_auth_service().get_user_by_id(db, current_user_id)
         if not user:
+            logger.warning(f"[STATS] User not found: {current_user_id}")
             raise HTTPException(status_code=404, detail="User not found")
+        
+        logger.info(f"[STATS] User found: {user.email}")
         
         # Calculate total predictions from database (fresh count, not just model field)
         # EXCLUDE Club 100 access picks (sport='club_100_access')
@@ -211,6 +231,7 @@ async def get_user_stats(
             )
         )
         total_predictions = total_predictions_result.scalar() or 0
+        logger.debug(f"[STATS] Total predictions: {total_predictions}")
         
         # Calculate average confidence from user's predictions
         # IMPORTANT: Confidence stored as 0-100; normalize to 0-1 for API
@@ -233,6 +254,7 @@ async def get_user_stats(
                 # Normalize from 0-100 to 0-1 if value is > 1
                 if avg_confidence > 1.0:
                     avg_confidence = avg_confidence / 100.0
+            logger.debug(f"[STATS] Avg confidence: {avg_confidence} (normalized)")
         except Exception as e:
             logger.warning(f"Error calculating average confidence: {e}")
             avg_confidence = 0.0
@@ -243,7 +265,7 @@ async def get_user_stats(
         tier_config = TierFeatures.get_tier_config(tier_name)
         daily_picks_limit = tier_config.get('predictions_per_day', 1) if tier_config else 1
         
-        return {
+        result_dict = {
             "win_rate": user.win_rate or 0.0,
             "total_predictions": total_predictions,
             "avg_confidence": avg_confidence,  # Changed from profit_loss to avg_confidence
@@ -252,10 +274,14 @@ async def get_user_stats(
             "daily_picks_used": 0,  # Will be calculated separately
             "daily_picks_limit": daily_picks_limit   # Now using tier config
         }
+        
+        logger.info(f"[STATS] Successfully returning stats: {result_dict}")
+        return result_dict
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching user stats: {str(e)}")
+        logger.error(f"Error fetching user stats: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/tier")

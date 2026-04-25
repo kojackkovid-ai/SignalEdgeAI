@@ -24,7 +24,10 @@ def get_auth_service():
 # Dependency function to extract current user from Authorization header
 async def get_current_user(authorization: Optional[str] = Header(None, description="Bearer token")) -> str:
     """Extract user ID from Bearer token in Authorization header"""
+    logger.debug(f"[Payment Auth] Authorization header present: {bool(authorization)}")
+    
     if authorization is None:
+        logger.warning("[Payment Auth] Missing authorization header")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing authorization header"
@@ -33,17 +36,37 @@ async def get_current_user(authorization: Optional[str] = Header(None, descripti
     auth_service = AuthService()
     try:
         # Extract token from "Bearer <token>"
-        scheme, token = authorization.split()
+        parts = authorization.split()
+        if len(parts) != 2:
+            logger.warning(f"[Payment Auth] Invalid header format - expected 'Bearer <token>', got: {len(parts)} parts")
+            raise ValueError("Invalid format")
+        
+        scheme, token = parts
         if scheme.lower() != "bearer":
+            logger.warning(f"[Payment Auth] Invalid scheme: {scheme}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication scheme"
             )
-        return auth_service._decode_token(token)
-    except ValueError:
+        
+        logger.debug(f"[Payment Auth] Decoding token: {token[:30]}...")
+        user_id = auth_service._decode_token(token)
+        logger.info(f"[Payment Auth] ✅ User extracted: {user_id}")
+        return user_id
+        
+    except HTTPException:
+        raise
+    except ValueError as e:
+        logger.warning(f"[Payment Auth] Invalid authorization header format: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authorization header format"
+        )
+    except Exception as e:
+        logger.error(f"[Payment Auth] ❌ Token decode error: {type(e).__name__}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Authentication failed: {str(e)}"
         )
 
 
@@ -76,17 +99,46 @@ async def create_payment_intent(
         logger.info(f"[Payment] Starting payment intent creation for user {current_user_id}")
         logger.info(f"[Payment] Request - plan: {request.plan}, cycle: {request.billing_cycle}")
         
-        # Get user
+        # Validate user ID format
+        if not current_user_id or not isinstance(current_user_id, str):
+            logger.error(f"[Payment] Invalid user ID format: {current_user_id} (type: {type(current_user_id)})")
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
+        
+        # Get user with detailed error handling
+        user = None
+        user_lookup_error = None
         try:
+            logger.info(f"[Payment] Looking up user by ID: {current_user_id}")
             user = await get_auth_service().get_user_by_id(db, current_user_id)
-            if not user:
-                logger.error(f"[Payment] User not found: {current_user_id}")
-                raise HTTPException(status_code=404, detail="User not found")
             
-            logger.info(f"[Payment] User found: {user.id} ({user.email}), current tier: {user.subscription_tier}")
+            if not user:
+                logger.error(f"[Payment] ❌ User not found in database: {current_user_id}")
+                user_lookup_error = "User not found in database - your session may be invalid"
+                # Refresh database connection and try again
+                try:
+                    await db.refresh()
+                    user = await get_auth_service().get_user_by_id(db, current_user_id)
+                    if user:
+                        logger.info(f"[Payment] ✅ User found after DB refresh: {user.id}")
+                except Exception as refresh_error:
+                    logger.warning(f"[Payment] Failed to refresh DB connection: {refresh_error}")
+            
+            if not user:
+                logger.error(f"[Payment] User still not found after retry: {current_user_id}")
+                raise HTTPException(
+                    status_code=401,
+                    detail="User session is invalid. Please log in again."
+                )
+            
+            logger.info(f"[Payment] ✅ User found: {user.id} ({user.email}), tier: {user.subscription_tier}")
+            
+        except HTTPException:
+            # Re-raise HTTP exceptions
+            raise
         except Exception as e:
             logger.error(f"[Payment] ❌ Error getting user: {type(e).__name__}: {str(e)}", exc_info=True)
-            raise HTTPException(status_code=500, detail=f"Failed to retrieve user: {str(e)}")
+            error_detail = user_lookup_error or f"Failed to retrieve user information: {str(e)}"
+            raise HTTPException(status_code=401, detail=error_detail)
         
         # Get pricing from tier_features.py for consistency and maintainability
         from app.models.tier_features import TierFeatures

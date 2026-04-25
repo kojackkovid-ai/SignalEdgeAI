@@ -9,34 +9,79 @@ from app.config import settings
 
 class OddsApiService:
     def __init__(self):
-        self.api_key = settings.odds_api_key
-        logger.info(f"OddsApiService initialized with key: {self.api_key[:5]}...")
-        self.base_url = "https://api.the-odds-api.com/v4"
+        self.api_keys = settings.odds_api_keys
+        if self.api_keys:
+            logger.info(f"OddsApiService initialized with {len(self.api_keys)} odds API key(s).")
+        else:
+            logger.warning("OddsApiService initialized with no Odds API keys configured.")
+
+        self.base_url = getattr(settings, "odds_api_base_url", "https://api.the-odds-api.com/v4").rstrip("/")
         self.timeout = 10
         # Simple in-memory cache to prevent over-fetching from external API
         # Key: sport_key (or 'all_predictions'), Value: (timestamp, data)
         self._cache = {}
         self._cache_ttl = 300  # 5 minutes cache TTL
 
+    async def _call_odds_api(self, endpoint: str, params: Dict[str, Any]) -> Optional[Any]:
+        if not self.api_keys:
+            logger.warning("No OddsAPI keys configured. Skipping OddsAPI request to %s", endpoint)
+            return None
+
+        last_error = None
+        for index, api_key in enumerate(self.api_keys, start=1):
+            params["apiKey"] = api_key
+            url = f"{self.base_url}{endpoint}"
+            try:
+                async with httpx.AsyncClient() as client:
+                    response = await client.get(url, params=params, timeout=self.timeout)
+                    response.raise_for_status()
+                    return response.json()
+            except httpx.HTTPStatusError as e:
+                status = e.response.status_code
+                if status in (401, 403, 429, 503):
+                    logger.warning(
+                        "OddsAPI key %d/%d returned %d for %s. Trying next key.",
+                        index,
+                        len(self.api_keys),
+                        status,
+                        endpoint,
+                    )
+                    last_error = e
+                    continue
+                logger.error(
+                    "Error fetching %s from OddsAPI: HTTP %d - %s",
+                    endpoint,
+                    status,
+                    e.response.text,
+                )
+                return None
+            except httpx.TimeoutException as e:
+                logger.error("Timeout fetching %s from OddsAPI: %s", endpoint, str(e))
+                last_error = e
+                continue
+            except Exception as e:
+                logger.error(
+                    "Error fetching %s from OddsAPI: %s - %s",
+                    endpoint,
+                    type(e).__name__,
+                    str(e),
+                    exc_info=True,
+                )
+                last_error = e
+                continue
+
+        if last_error is not None:
+            logger.error(
+                "All OddsAPI keys exhausted for %s. Last error: %s",
+                endpoint,
+                str(last_error),
+            )
+        return None
+
     async def get_sports(self) -> List[Dict[str, Any]]:
         """Get list of available sports"""
-        try:
-            url = f"{self.base_url}/sports"
-            params = {"apiKey": self.api_key}
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.get(url, params=params, timeout=self.timeout)
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Error fetching sports from OddsAPI: HTTP {e.response.status_code} - {e.response.text}")
-            return []
-        except httpx.TimeoutException as e:
-            logger.error(f"Timeout fetching sports from OddsAPI: {str(e)}")
-            return []
-        except Exception as e:
-            logger.error(f"Error fetching sports from OddsAPI: {type(e).__name__} - {str(e)}", exc_info=True)
-            return []
+        data = await self._call_odds_api("/sports", {})
+        return data or []
 
     async def get_events(self, sport_key: str) -> List[Dict[str, Any]]:
         """Get events with odds for a specific sport"""
@@ -44,57 +89,34 @@ class OddsApiService:
         import time
         current_time = time.time()
         cache_key = f"events_{sport_key}"
-        
+
         if cache_key in self._cache:
             ts, data = self._cache[cache_key]
-            if current_time - ts < 300: # 5 minute cache
+            if current_time - ts < self._cache_ttl:
                 return data
 
-        try:
-            url = f"{self.base_url}/sports/{sport_key}/odds"
-            params = {
-                "apiKey": self.api_key,
-                "regions": "us",
-                "markets": "h2h,spreads,totals",
-                "oddsFormat": "american"
-            }
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.get(url, params=params, timeout=self.timeout)
-                response.raise_for_status()
-                data = response.json()
-                
-                # Update cache
-                self._cache[cache_key] = (current_time, data)
-                return data
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Error fetching events from OddsAPI for sport {sport_key}: HTTP {e.response.status_code} - {e.response.text}")
-            return []
-        except httpx.TimeoutException as e:
-            logger.error(f"Timeout fetching events from OddsAPI for sport {sport_key}: {str(e)}")
-            return []
-        except Exception as e:
-            logger.error(f"Error fetching events from OddsAPI for sport {sport_key}: {type(e).__name__} - {str(e)}", exc_info=True)
-            return []
+        params = {
+            "regions": "us",
+            "markets": "h2h,spreads,totals",
+            "oddsFormat": "american",
+        }
+        data = await self._call_odds_api(f"/sports/{sport_key}/odds", params)
+        if data:
+            self._cache[cache_key] = (current_time, data)
+            return data
+        return []
 
     async def get_event_odds(self, sport_key: str, event_id: str, markets: str) -> Optional[Dict[str, Any]]:
         """Get odds for a specific event with specified markets"""
-        try:
-            url = f"{self.base_url}/sports/{sport_key}/events/{event_id}/odds"
-            params = {
-                "apiKey": self.api_key,
-                "regions": "us",
-                "markets": markets,
-                "oddsFormat": "american"
-            }
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.get(url, params=params, timeout=self.timeout)
-                response.raise_for_status()
-                return response.json()
-        except Exception as e:
-            logger.error(f"Error fetching event odds: {e}")
-            return None
+        params = {
+            "regions": "us",
+            "markets": markets,
+            "oddsFormat": "american",
+        }
+        return await self._call_odds_api(
+            f"/sports/{sport_key}/events/{event_id}/odds",
+            params,
+        )
 
     async def get_odds_for_game(self, sport_key: str, event_id: str, home_team: Optional[str] = None, away_team: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
@@ -105,12 +127,12 @@ class OddsApiService:
         logger.info(f"get_odds_for_game called with sport_key={sport_key}, event_id={event_id}, home_team={home_team}, away_team={away_team}")
         
         if not home_team or not away_team:
-             logger.warning(f"Missing team names - falling back to ID lookup for event_id={event_id}")
-             # Fallback to direct ID lookup if names not provided
-             markets = "h2h,spreads,totals"
-             result = await self.get_event_odds(sport_key, event_id, markets)
-             logger.info(f"ID lookup result: {'Found' if result else 'Not found'}")
-             return result
+            logger.warning(f"Missing team names - falling back to ID lookup for event_id={event_id}")
+            # Fallback to direct ID lookup if names not provided
+            markets = "h2h,spreads,totals"
+            result = await self.get_event_odds(sport_key, event_id, markets)
+            logger.info(f"ID lookup result: {'Found' if result else 'Not found'}")
+            return result
         
         # Fetch all active events for the sport
         logger.info(f"Fetching events for sport_key={sport_key} to match teams")

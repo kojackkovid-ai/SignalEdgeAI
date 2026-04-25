@@ -411,14 +411,31 @@ async def startup_event():
     try:
         logger.info("[STARTUP] Initializing ML Training Scheduler...")
         scheduler = await get_training_scheduler()
-        async with AsyncSessionLocal() as session:
-            await scheduler.initialize(session)
+
+        # Add timeout to prevent hanging during initialization
+        try:
+            async with AsyncSessionLocal() as session:
+                await asyncio.wait_for(
+                    scheduler.initialize(session),
+                    timeout=30.0  # 30 second timeout
+                )
             logger.info("[STARTUP] [OK] Training jobs initialized")
-        
-        asyncio.create_task(scheduler.start())
-        logger.info("[STARTUP] [OK] ML Training Scheduler started successfully")
+        except asyncio.TimeoutError:
+            logger.warning("[STARTUP] [WARN] Training scheduler initialization timed out (continuing without scheduler)")
+            scheduler = None
+        except Exception as init_error:
+            logger.warning(f"[STARTUP] [WARN] Training scheduler initialization failed: {init_error}")
+            scheduler = None
+
+        # Start scheduler if initialization succeeded
+        if scheduler is not None:
+            asyncio.create_task(scheduler.start())
+            logger.info("[STARTUP] [OK] ML Training Scheduler started")
+        else:
+            logger.info("[STARTUP] [INFO] ML Training Scheduler not started due to initialization issues")
+
     except Exception as e:
-        logger.warning(f"[STARTUP] [WARN] ML Training Scheduler failed (continuing): {e}")
+        logger.warning(f"[STARTUP] [WARN] ML Training Scheduler setup failed (continuing): {e}")
     
     logger.info("[STARTUP] [OK] SignalEdge AI startup complete")
 
@@ -461,20 +478,48 @@ app.add_middleware(
     max_age=3600,  # Preflight cache time
 )
 
-# Trusted host middleware - ENABLED for production
-try:
+# Custom trusted host middleware that exempts health checks
+@app.middleware("http")
+async def trusted_host_middleware(request: Request, call_next):
+    """Custom trusted host middleware that allows health checks"""
+    # Allow health and readiness checks from any host
+    if request.url.path in ["/health", "/ready", "/live"]:
+        return await call_next(request)
+
+    # For other requests, check trusted hosts
     trusted_hosts = [
         "localhost",
         "127.0.0.1",
         "signaledge-ai.fly.dev",
         "yourdomain.com",
         "www.yourdomain.com",
-        # Add production domains here
     ]
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts)
-    logger.info(f"✅ Trusted host middleware enabled for: {trusted_hosts}")
-except Exception as e:
-    logger.warning(f"Trusted host middleware setup failed: {e}")
+
+    host = request.headers.get("host", "").split(":")[0]  # Remove port if present
+    if host not in trusted_hosts:
+        logger.warning(f"Rejected request from untrusted host: {host} for path: {request.url.path}")
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Bad Request", "message": "Host not allowed"}
+        )
+
+    return await call_next(request)
+
+# Trusted host middleware - DISABLED in favor of custom middleware above
+# try:
+#     trusted_hosts = [
+#         "localhost",
+#         "127.0.0.1",
+#         "signaledge-ai.fly.dev",
+#         "yourdomain.com",
+#         "www.yourdomain.com",
+#         # Add production domains here
+#         "*",  # Allow all hosts for health checks and internal requests
+#     ]
+#     app.add_middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts)
+#     logger.info(f"✅ Trusted host middleware enabled for: {trusted_hosts}")
+# except Exception as e:
+#     logger.warning(f"Trusted host middleware setup failed: {e}")
 
 # Setup enhanced rate limiting with Redis (if available)
 try:

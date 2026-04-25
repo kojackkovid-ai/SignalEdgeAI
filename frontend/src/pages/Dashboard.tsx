@@ -586,7 +586,8 @@ const Dashboard = (): JSX.Element | null => {
       const missingFields = [];
       if (!propId) missingFields.push('propId');
       if (!sportKey) missingFields.push('sport_key');
-      if (!propData.player) missingFields.push('player');
+      // Only require player field for player props, not team props
+      if (propData.prediction_type === 'player_prop' && !propData.player) missingFields.push('player');
       if (!propData.market_key) missingFields.push('market_key');
       if (missingFields.length > 0) {
         console.error('[Dashboard] ❌ MISSING REQUIRED FIELDS FOR PROP UNLOCK:', missingFields);

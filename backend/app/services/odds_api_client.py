@@ -6,11 +6,15 @@ logger = logging.getLogger(__name__)
 
 class OddsAPIClient:
     def __init__(self):
-        self.api_key = settings.odds_api_key
-        self.base_url = getattr(settings, 'odds_api_base_url', 'https://api.the-odds-api.com/v4/')
+        self.api_keys = settings.odds_api_keys
+        self.base_url = getattr(settings, 'odds_api_base_url', 'https://api.the-odds-api.com/v4/').rstrip('/')
+
+    @property
+    def api_key(self) -> str:
+        return self.api_keys[0] if self.api_keys else ""
 
     async def get_sports(self):
-        url = f"{self.base_url}sports/"
+        url = f"{self.base_url}/sports"
         params = {"apiKey": self.api_key}
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, params=params)
@@ -18,7 +22,7 @@ class OddsAPIClient:
             return resp.json()
 
     async def get_odds(self, sport_key: str, regions: str = "us", markets: str = "h2h,spreads,totals", odds_format: str = "american"):
-        url = f"{self.base_url}sports/{sport_key}/odds/"
+        url = f"{self.base_url}/sports/{sport_key}/odds"
         params = {
             "apiKey": self.api_key,
             "regions": regions,
