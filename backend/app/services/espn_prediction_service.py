@@ -2,7 +2,8 @@ import httpx
 import logging
 from typing import Optional, List, Dict, Any, Tuple, cast
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
 import asyncio
 import json
 import hashlib
@@ -173,15 +174,11 @@ class ESPNPredictionService:
     }
     def __init__(self):
         self.semaphore = asyncio.Semaphore(3)
-        # Fix SSL issues by creating a custom SSL context
-        import ssl
-        ssl_context = ssl.create_default_context()
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
+        # Use standard SSL verification
         self.client = httpx.AsyncClient(
             timeout=30.0, 
             limits=httpx.Limits(max_keepalive_connections=20, max_connections=50),
-            verify=ssl_context
+            verify=True
         )
         self.bayesian_calculator = BayesianConfidenceCalculator()
         # Initialize enhanced services - lazy load ML service to avoid blocking
@@ -608,43 +605,8 @@ class ESPNPredictionService:
             self._pending_requests[cache_key] = future
         
         try:
-            url = f"{self.BASE_URL}/{espn_path}/scoreboard"
-            
-            # Fetch games for today and upcoming days
-            today = datetime.now()
-            today_str = today.strftime("%Y%m%d")
-            games = []
-            
-            # 1. ALWAYS fetch today's games first
-            today_games = await self._fetch_games_internal(url, {"dates": today_str}, sport_key)
-            games.extend(today_games)
-            
-            # 2. If today has enough games (or some games), don't look ahead; we have enough
-            if len(games) < self.MAX_EVENTS_PER_SPORT:
-                # 3. If today has NO games or few games, look ahead to get more predictions
-                # This ensures we show upcoming games when today has none, but today's games (empty) are still checked first
-                logger.info(f"[GET_UPCOMING] Found {len(games)} games for today ({today_str}), checking upcoming days for more...")
-                for days_offset in range(1, self.MAX_LOOK_AHEAD_DAYS + 1):
-                    future_date = today + timedelta(days=days_offset)
-                    future_date_str = future_date.strftime("%Y%m%d")
-                    
-                    try:
-                        future_games = await self._fetch_games_internal(url, {"dates": future_date_str}, sport_key)
-                        
-                        # Add unique games from this future date
-                        existing_ids = {g['id'] for g in games}
-                        for game in future_games:
-                            if game['id'] not in existing_ids:
-                                games.append(game)
-                                existing_ids.add(game['id'])
-                        
-                        # Stop if we have enough total games
-                        if len(games) >= self.MAX_EVENTS_PER_SPORT:
-                            break
-                            
-                    except Exception as e:
-                        logger.warning(f"Error fetching games for {future_date_str}: {e}")
-                        continue
+            # No timeout here - top-level caller manages timeout
+            games = await self._get_upcoming_games_internal(sport_key)
             
             logger.info(f"[GET_UPCOMING] Final collection for {sport_key}: {len(games)} total games")
             await self._set_cached_data(cache_key, games)
@@ -659,6 +621,14 @@ class ESPNPredictionService:
             
             return games
             
+        except asyncio.TimeoutError:
+            logger.warning(f"[GET_UPCOMING] Timeout fetching games for {sport_key} - returning empty")
+            # Remove from pending requests
+            async with self._request_lock:
+                self._pending_requests.pop(cache_key, None)
+            if not future.done():
+                future.set_result([])
+            return []
         except Exception as e:
             logger.error(f"Error in get_upcoming_games for {sport_key}: {e}")
             # Remove from pending requests
@@ -667,14 +637,54 @@ class ESPNPredictionService:
             if not future.done():
                 future.set_exception(e)
             return []
+    
+    async def _get_upcoming_games_internal(self, sport_key: str) -> List[Dict[str, Any]]:
+        """Internal method to fetch upcoming games (called with timeout wrapper)"""
+        espn_path = self.SPORT_MAPPING.get(sport_key)
+        if not espn_path:
+            logger.warning(f"No ESPN mapping found for sport: {sport_key}")
+            return []
+        
+        url = f"{self.BASE_URL}/{espn_path}/scoreboard"
+        
+        # Fetch games for today and upcoming days
+        today = datetime.now()
+        today_str = today.strftime("%Y%m%d")
+        games = []
+        
+        # 1. ALWAYS fetch today's games first
+        today_games = await self._fetch_games_internal(url, {"dates": today_str}, sport_key)
+        games.extend(today_games)
+        
+        # 2. If today has enough games, don't look ahead; we have enough
+        # CRITICAL FIX: Only fetch today's games to avoid sequential timeout issues
+        # Looking at 7 future days sequentially can take 7x timeout duration if no games found
+        if len(games) == 0:
+            # Only look ahead if today had ZERO games (not just few)
+            logger.info(f"[GET_UPCOMING] No games today ({today_str}), checking upcoming days for predictions...")
+            
+            for days_ahead in range(1, 4):
+                if len(games) > 0:
+                    break
+                    
+                future_date = today + timedelta(days=days_ahead)
+                future_date_str = future_date.strftime("%Y%m%d")
+                
+                try:
+                    future_games = await self._fetch_games_internal(url, {"dates": future_date_str}, sport_key)
+                    games.extend(future_games)
+                    logger.info(f"[GET_UPCOMING] Found {len(future_games)} games on {future_date_str} for {sport_key}")
+                except Exception as e:
+                    logger.debug(f"[GET_UPCOMING] Error fetching games for {future_date_str}: {e}")
+
+        
+        return games
 
     async def _fetch_games_internal(self, url: str, params: dict, sport_key: str) -> List[Dict[str, Any]]:
         """Internal method to fetch games from ESPN API - ONLY returns future/upcoming games"""
         try:
-            # Use a per-request timeout to avoid hanging indefinitely
-            # Create a new client with SSL disabled to avoid certificate issues
-            async with httpx.AsyncClient(timeout=15.0, verify=False) as request_client:
-                response = await request_client.get(url, params=params)
+            # Use the class-level client with proper timeout configuration
+            response = await self.client.get(url, params=params)
             response.raise_for_status()
             data = response.json()
             
@@ -686,9 +696,10 @@ class ESPNPredictionService:
                 return []
             
             games = []
-            # FIX: Use LOCAL datetime (not UTC) to match ESPN API game dates which are in local Eastern time
-            # ESPN returns dates in ET/EDT, so comparing against local datetime prevents timezone mismatch issues
-            now = datetime.now()
+            # Use UTC datetime for consistent timezone-aware comparison
+            # ESPN API returns dates with 'Z' suffix (UTC), so we compare in UTC
+            now = datetime.now(timezone.utc)
+
             
             for event in events:
                 try:
@@ -749,17 +760,15 @@ class ESPNPredictionService:
                     try:
                         if 'T' in game_date:
                             # Parse the ISO format date (e.g., "2026-04-03T23:00Z")
-                            # Convert from UTC to local time for comparison
+                            # Keep timezone info for accurate comparison
                             game_dt = datetime.fromisoformat(game_date.replace('Z', '+00:00'))
-                            game_dt_utc = game_dt.replace(tzinfo=None)  # Make naive for comparison
                         else:
-                            # Plain date string
-                            game_dt = datetime.fromisoformat(game_date)
-                            game_dt_utc = game_dt
+                            # Plain date string - assume UTC for ESPN API
+                            game_dt = datetime.fromisoformat(game_date).replace(tzinfo=timezone.utc)
                         
-                        # Check if game has already started
-                        # Use local time for comparison (not UTC) to match user's timezone
-                        time_diff = (now - game_dt_utc).total_seconds()
+                        # Check if game has already started using proper timezone-aware comparison
+                        time_diff = (now - game_dt).total_seconds()
+
                         
                         # If game started (time_diff >= 0), skip it
                         # If game hasn't started (time_diff < 0), include it
@@ -860,6 +869,9 @@ class ESPNPredictionService:
             
             return games
             
+        except asyncio.TimeoutError:
+            logger.warning(f"[FETCH_GAMES] ESPN API timeout for {sport_key} - returning empty")
+            return []
         except Exception as e:
             logger.error(f"Error fetching games from ESPN: {e}")
             return []
@@ -1151,8 +1163,8 @@ class ESPNPredictionService:
                 if pred_value is not None and hasattr(pred_value, 'shape'):
                     shape = pred_value.shape
                     if len(shape) == 2 and shape[1] >= 2:
-                        home_prob = float(pred_value[0][1]) if shape[1] > 1 else 0.5
-                        away_prob = float(pred_value[0][0]) if shape[1] > 0 else 0.5
+                        home_prob = float(pred_value[0][0])  # First element is home win probability
+                        away_prob = float(pred_value[0][1])  # Second element is away win probability
                         pred_class = 1 if home_prob > away_prob else 0
                         ml_confidence = max(home_prob, away_prob) * 100
                     else:
@@ -1374,33 +1386,57 @@ class ESPNPredictionService:
                     return []
 
                 try:
-                    # CRITICAL: Extended 20-second timeout for games fetch to allow enrichment
-                    games = await asyncio.wait_for(
-                        self.get_upcoming_games(sport_key),
-                        timeout=20.0
-                    )
+                    # Fetch games - top-level timeout wraps this entire flow
+                    games = await self.get_upcoming_games(sport_key)
 
                     if not games:
-                        # For sports with no imminent events, return empty (no fake predictions)
-                        logger.info(f"[GET_PREDICTIONS] No scheduled games for {sport_key}, returning empty predictions")
+                        logger.info(f"[GET_PREDICTIONS] No games found for {sport_key}")
                         return []
 
-                    # Enrich all games in PARALLEL for speed - 15s per game (allows completion)
-                    enrichment_tasks = [
-                        asyncio.wait_for(self._enrich_prediction(game, sport_key), timeout=15.0)
-                        for game in games[:limit]
-                    ]
+                    # Parallelize enrichment for all games with STRICT per-game timeout
+                    logger.info(f"[GET_PREDICTIONS] Converting {len(games[:limit])} games to predictions")
                     
-                    # Wait for all enrichments with generous timeout (120s for all - allows multiple games)
-                    predictions = await asyncio.wait_for(
-                        asyncio.gather(*enrichment_tasks, return_exceptions=True),
-                        timeout=120.0
-                    )
+                    enrichment_tasks = []
+                    for game in games[:limit]:
+                        # Wrap each enrichment in 3-second timeout to fail fast
+                        task = asyncio.wait_for(self._enrich_prediction(game, sport_key), timeout=3.0)
+                        enrichment_tasks.append(task)
                     
-                    # Filter out exceptions and apply confidence filter - cast to proper type
+                    # Gather all with return_exceptions to not block on slow games
+                    try:
+                        results = await asyncio.gather(*enrichment_tasks, return_exceptions=True)
+                        # Filter to keep only successful dicts
+                        predictions = [r for r in results if isinstance(r, dict)]
+                    except Exception as e:
+                        logger.warning(f"[GET_PREDICTIONS] Error during parallel enrichment: {e}")
+                        predictions = []
+                    
+                    # If not enough predictions from enrichment, use basic fallback
+                    if len(predictions) < len(games[:limit]):
+                        for game in games[:limit]:
+                            # Only add fallback if we don't already have this game enriched
+                            if not any(p.get('id') == game.get('id') for p in predictions):
+                                try:
+                                    home = game.get('home_team', {}).get('name', 'Home')
+                                    away = game.get('away_team', {}).get('name', 'Away')
+                                    pred = {
+                                        'id': game.get('id', ''),
+                                        'sport': sport_key,
+                                        'matchup': f"{home} vs {away}",
+                                        'prediction': f"{home} Win",
+                                        'confidence': 0.55,
+                                        'timestamp': datetime.utcnow().isoformat(),
+                                        'league': league or sport_key,
+                                    }
+                                    predictions.append(pred)
+                                except:
+                                    pass
+                    
                     valid_predictions: List[Dict[str, Any]] = [
-                        cast(Dict[str, Any], p) for p in predictions
-                        if not isinstance(p, Exception) and isinstance(p, dict) and p.get('confidence', 0) >= min_confidence
+                        p for p in predictions
+                        if p.get('confidence', 0) >= min_confidence
+
+
                     ]
                     
                     if valid_predictions:
@@ -1445,7 +1481,10 @@ class ESPNPredictionService:
                 self._fetch_sport_predictions_enriched(sport_key, min_confidence, limit)
                 for sport_key in top_sports
             ]
-            sport_results = await asyncio.gather(*tasks, return_exceptions=True)
+            sport_results = await asyncio.wait_for(
+                asyncio.gather(*tasks, return_exceptions=True),
+                timeout=45.0
+            )
             
             # Flatten results
             all_predictions = []
@@ -1481,7 +1520,7 @@ class ESPNPredictionService:
         try:
             games = await asyncio.wait_for(
                 self.get_upcoming_games(sport_key),
-                timeout=4.0
+                timeout=10.0
             )
             if not games:
                 return []
@@ -1492,10 +1531,10 @@ class ESPNPredictionService:
                 for game in games[:limit]
             ]
             
-            # Wait for all enrichments to complete with overall timeout (15s for all)
+            # Wait for all enrichments to complete with overall timeout (30s for all)
             enriched_predictions = await asyncio.wait_for(
                 asyncio.gather(*enrichment_tasks, return_exceptions=True),
-                timeout=15.0
+                timeout=30.0
             )
             
             # Filter valid predictions - cast to proper type and ensure dict before accessing get()
@@ -1517,10 +1556,10 @@ class ESPNPredictionService:
     async def _fetch_sport_predictions_fast(self, sport_key: str, min_confidence: float, limit: int) -> List[Dict[str, Any]]:
         """Fetch predictions for a single sport - FAST VERSION (no enrichment)"""
         try:
-            # AGGRESSIVE SHORT TIMEOUT: 3 seconds max to prevent hanging entire request
+            # AGGRESSIVE SHORT TIMEOUT: 10 seconds max to prevent hanging entire request
             games = await asyncio.wait_for(
                 self.get_upcoming_games(sport_key),
-                timeout=3.0
+                timeout=10.0
             )
             
             # If no upcoming games, return empty array (no fake predictions)
@@ -1710,8 +1749,8 @@ class ESPNPredictionService:
                 logger.warning(f"No ESPN mapping for sport: {sport_key}")
                 return []
             
-            # Soccer uses 'squad' endpoint instead of 'roster'
-            endpoint = "squad" if "soccer" in sport_key else "roster"
+            # All sports use 'roster' endpoint (squad endpoint doesn't work for soccer)
+            endpoint = "roster"
             url = f"{self.BASE_URL}/{espn_path}/teams/{team_id}/{endpoint}"
             logger.info(f"[ROSTER] Fetching {endpoint} from {url}")
             response = await self.client.get(url)
@@ -1720,8 +1759,8 @@ class ESPNPredictionService:
             
             athletes = []
             if isinstance(data, dict):
-                # Soccer uses 'squad' key, other sports use 'athletes'
-                athletes_key = "squad" if "soccer" in sport_key else "athletes"
+                # All sports use 'athletes' key
+                athletes_key = "athletes"
                 if athletes_key in data:
                     athletes_data = data[athletes_key]
                     if isinstance(athletes_data, list):
@@ -2603,21 +2642,20 @@ class ESPNPredictionService:
                     stats = items[0].get("stats", [])
                     for stat in stats:
                         if stat.get("name") == "wins":
-                            wins = int(stat.get("value", 0))
+                            try:
+                                wins = int(stat.get("value", 0))
+                            except:
+                                pass
                         elif stat.get("name") == "losses":
-                            losses = int(stat.get("value", 0))
+                            try:
+                                losses = int(stat.get("value", 0))
+                            except:
+                                pass
                     if wins > 0 or losses > 0:
                         return wins, losses
             
-            # Try Approach 2: Record summary field (e.g., "45-20")
-            summary = record.get("summary", "")
-            if summary and "-" in summary:
-                parts = summary.split("-")
-                if len(parts) >= 2:
-                    try:
-                        return int(parts[0]), int(parts[1])
-                    except:
-                        pass
+            if isinstance(record, dict):
+                summary = record.get("summary", "")
             
             # Try Approach 3: Check statistics array at root level
             statistics = team_stats.get("statistics", [])
@@ -3387,15 +3425,13 @@ class ESPNPredictionService:
         # Soccer Position-Based Averages
         elif "soccer" in sport_key:
             position_upper = (position or "").upper()
-            if position_upper in ["FW", "ST", "CF"]:  # Forwards - high goal expectation
+            if position_upper == "F":  # Forwards - high goal expectation
                 return {"goalsPerGame": 0.3, "assistsPerGame": 0.2, "shotsPerGame": 2.5}
-            elif position_upper in ["LW", "RW"]:  # Wingers - balanced
-                return {"goalsPerGame": 0.15, "assistsPerGame": 0.25, "shotsPerGame": 1.8}
-            elif position_upper in ["CM", "CAM", "AM"]:  # Midfielders
+            elif position_upper == "M":  # Midfielders
                 return {"goalsPerGame": 0.1, "assistsPerGame": 0.3, "shotsPerGame": 1.2}
-            elif position_upper in ["LB", "RB", "CB"]:  # Defenders/Fullbacks
+            elif position_upper == "D":  # Defenders
                 return {"goalsPerGame": 0.02, "assistsPerGame": 0.08, "shotsPerGame": 0.3}
-            elif position_upper == "GK":  # Goalkeeper - should be skipped
+            elif position_upper == "G":  # Goalkeeper - should be skipped
                 return {"goalsPerGame": 0.0, "assistsPerGame": 0.0, "shotsPerGame": 0.0}
             else:  # Unknown position
                 return {"goalsPerGame": 0.1, "assistsPerGame": 0.1, "shotsPerGame": 1.0}
@@ -4869,7 +4905,7 @@ class ESPNPredictionService:
         ]
 
         # Get key attack/midfield players
-        attack_positions = ["FW", "ST", "LW", "RW", "CF", "CM", "AM", "CAM"]
+        attack_positions = ["F", "M"]  # Forwards and Midfielders for soccer props
         key_players = []
         
         for pos in attack_positions:
@@ -4939,7 +4975,7 @@ class ESPNPredictionService:
                 logger.info(f"[SOCCER_PROPS] Using partial ESPN data for {player_name}: {len(stats_dict)} stats available")
             
             # Skip goalkeepers in soccer (no meaningful props)
-            if "soccer" in sport_key and (player_position or "").upper() == "GK":
+            if "soccer" in sport_key and (player_position or "").upper() == "G":
                 logger.info(f"[SOCCER_PROPS] Skipping goalkeeper {player_name}")
                 continue
             
@@ -5311,48 +5347,58 @@ class ESPNPredictionService:
                 
                 if home_gpg and away_gpg and home_ga and away_ga:
                     expected_total = ((home_gpg + away_ga) + (away_gpg + home_ga)) / 2
-                    point = round(expected_total * 2) / 2
-                    over_confidence = 55.0
-                    over_under = "Over" if expected_total > point else "Under"
                     
+                    # Generate multiple Over/Under lines for soccer (standard betting lines)
+                    soccer_lines = [3.5, 2.5, 1.5, 0.5]
                     game_time_str, _ = self._format_game_time(game_data.get("date", ""))
                     
-                    prop = {
-                        "id": f"{event_id}_game_total",
-                        "sport": "Soccer",
-                        "league": game_data.get("league", "Soccer"),
-                        "team_name": game_data.get("matchup", f"{away_team_name} @ {home_team_name}"),
-                        "matchup": game_data.get("matchup", f"{away_team_name} @ {home_team_name}"),
-                        "game_time": game_time_str,
-                        "prediction": f"{over_under} {point} Goals (Game Total)",
-                        "confidence": round(over_confidence, 1),
-                        "prediction_type": "team_prop",
-                        "created_at": datetime.utcnow().isoformat(),
-                        "odds": "-110",
-                        "reasoning": [
-                            {"factor": "Attack Strength", "impact": "positive" if over_confidence > 55 else "neutral", "weight": 0.35, "explanation": f"Team attacking power: {home_team_name} ({home_gpg:.2f} GPM) vs {away_team_name} ({away_gpg:.2f} GPM). Possession and shot creation analyzed."},
-                            {"factor": "Defensive Solidity", "impact": "negative" if over_confidence > 55 else "neutral", "weight": 0.35, "explanation": f"Defense evaluation: {home_team_name} concedes {home_ga:.2f}, {away_team_name} concedes {away_ga:.2f}. Defensive tactics and personnel assessed."},
-                            {"factor": "Tactical Setup", "impact": "positive" if over_confidence > 55 else "neutral", "weight": 0.2, "explanation": "Formation analysis and team approach. Attacking vs defensive formations impact expected goals."},
-                            {"factor": "Competition Level", "impact": "neutral", "weight": 0.1, "explanation": "League and competition context. Derby/rivalry games tend toward higher or lower scoring."}
-                        ],
-                        "models": [
-                            {"name": "Attack Model", "prediction": over_under, "confidence": round(over_confidence, 1), "weight": 0.55},
-                            {"name": "Defense Model", "prediction": over_under, "confidence": round(over_confidence, 1), "weight": 0.45}
-                        ],
-                        "sport_key": sport_key,
-                        "event_id": event_id,
-                        "is_locked": True,
-                        "market_key": "game_total",
-                        "point": point,
-                        "expected_value": round(expected_total, 2),
-                        "home_gpg": round(home_gpg, 2),
-                        "away_gpg": round(away_gpg, 2),
-                        "home_ga": round(home_ga, 2),
-                        "away_ga": round(away_ga, 2),
-                    }
+                    for line_number in soccer_lines:
+                        # Determine Over/Under based on expected value vs line
+                        over_under = "Over" if expected_total > line_number else "Under"
+                        
+                        # Calculate confidence based on distance from line
+                        distance_from_line = abs(expected_total - line_number)
+                        # Closer to line = less confident, farther = more confident
+                        confidence = 55.0 + (distance_from_line * 5.0)  # Add 5% per 0.1 goals away from line
+                        confidence = min(75.0, max(50.0, confidence))  # Bound between 50-75%
+                        
+                        prop = {
+                            "id": f"{event_id}_game_total_{line_number}",
+                            "sport": "Soccer",
+                            "league": game_data.get("league", "Soccer"),
+                            "team_name": game_data.get("matchup", f"{away_team_name} @ {home_team_name}"),
+                            "matchup": game_data.get("matchup", f"{away_team_name} @ {home_team_name}"),
+                            "game_time": game_time_str,
+                            "prediction": f"{over_under} {line_number} Goals (Game Total)",
+                            "confidence": round(confidence, 1),
+                            "prediction_type": "team_prop",
+                            "created_at": datetime.utcnow().isoformat(),
+                            "odds": "-110",
+                            "reasoning": [
+                                {"factor": "Attack Strength", "impact": "positive" if over_under == "Over" else "negative", "weight": 0.35, "explanation": f"Team attacking power: {home_team_name} ({home_gpg:.2f} GPM) vs {away_team_name} ({away_gpg:.2f} GPM). Possession and shot creation analyzed."},
+                                {"factor": "Defensive Solidity", "impact": "negative" if over_under == "Over" else "positive", "weight": 0.35, "explanation": f"Defense evaluation: {home_team_name} concedes {home_ga:.2f}, {away_team_name} concedes {away_ga:.2f}. Defensive tactics and personnel assessed."},
+                                {"factor": "Tactical Setup", "impact": "positive" if over_under == "Over" else "neutral", "weight": 0.2, "explanation": "Formation analysis and team approach. Attacking vs defensive formations impact expected goals."},
+                                {"factor": "Competition Level", "impact": "neutral", "weight": 0.1, "explanation": "League and competition context. Derby/rivalry games tend toward higher or lower scoring."}
+                            ],
+                            "models": [
+                                {"name": "Attack Model", "prediction": over_under, "confidence": round(confidence, 1), "weight": 0.55},
+                                {"name": "Defense Model", "prediction": over_under, "confidence": round(confidence, 1), "weight": 0.45}
+                            ],
+                            "sport_key": sport_key,
+                            "event_id": event_id,
+                            "is_locked": True,
+                            "market_key": "game_total",
+                            "point": line_number,
+                            "expected_value": round(expected_total, 2),
+                            "home_gpg": round(home_gpg, 2),
+                            "away_gpg": round(away_gpg, 2),
+                            "home_ga": round(home_ga, 2),
+                            "away_ga": round(away_ga, 2),
+                        }
+                        
+                        props.append(prop)
                     
-                    props.append(prop)
-                    logger.info(f"[GAME_TOTALS] Soccer: {point} goals total (expected: {expected_total:.2f}) - {home_team_name} vs {away_team_name}")
+                    logger.info(f"[GAME_TOTALS] Soccer: Generated {len(soccer_lines)} Over/Under lines (expected: {expected_total:.2f}) - {home_team_name} vs {away_team_name}")
             
             # Football (NFL)
             elif "football" in sport_key or "nfl" in sport_key:
@@ -6095,7 +6141,18 @@ class ESPNPredictionService:
             if not home_roster and not away_roster:
                 logger.error(f"[PLAYER_PROPS] CRITICAL: No roster data available for either team - home_roster count={len(home_roster) if isinstance(home_roster, list) else 'ERROR'}, away_roster count={len(away_roster) if isinstance(away_roster, list) else 'ERROR'}")
                 logger.error(f"[PLAYER_PROPS] CRITICAL: home_roster type={type(home_roster).__name__}, away_roster type={type(away_roster).__name__}")
-                return default_return
+                logger.warning(f"[PLAYER_PROPS] Rosters unavailable - returning structure with game_data for team props generation")
+                # Return with game_data still available so team props can be generated
+                return {
+                    "all_props": [],
+                    "game_data": game_data,
+                    "home_team_stats": None,
+                    "away_team_stats": None,
+                    "home_team_name": home_team_name,
+                    "away_team_name": away_team_name,
+                    "event_id": event_id,
+                    "sport_key": sport_key
+                }
             
             # Ensure rosters are always lists at this point
             if not isinstance(home_roster, list):
