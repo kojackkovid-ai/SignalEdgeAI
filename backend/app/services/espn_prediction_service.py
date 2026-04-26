@@ -4982,16 +4982,12 @@ class ESPNPredictionService:
             # DATA QUALITY: If we have ANY real stats (ESPN or LinesMate), proceed
             # Only skip if we have absolutely nothing and couldn't fetch anything
             if not stats_dict:
-                # Check if player fetch completely failed
-                if not player_stats:
-                    logger.warning(f"[SOCCER_PROPS] NO STATS FETCHED for {player_name} - SKIPPING to ensure data quality")
-                    continue
-                else:
-                    # We have player_stats but empty stats_dict - use position-based fallback defaults
-                    position_stats = self._get_position_based_stats(player_position, sport_key)
-                    stats_dict = position_stats
-                    stats_source = "Position-Based"
-                    logger.info(f"[SOCCER_PROPS] Using position-based fallback for {player_name} ({player_position})")
+                # ALWAYS use position-based fallback when no stats available
+                # This ensures we generate props even when ESPN API completely fails
+                position_stats = self._get_position_based_stats(player_position, sport_key)
+                stats_dict = position_stats
+                stats_source = "Position-Based"
+                logger.info(f"[SOCCER_PROPS] Using position-based fallback for {player_name} ({player_position}) - ESPN unavailable")
 
             
             # Get game time once for all props of this player
