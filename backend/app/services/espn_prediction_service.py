@@ -1749,8 +1749,8 @@ class ESPNPredictionService:
                 logger.warning(f"No ESPN mapping for sport: {sport_key}")
                 return []
             
-            # All sports use 'roster' endpoint (squad endpoint doesn't work for soccer)
-            endpoint = "roster"
+            # Soccer uses 'squad' endpoint, other sports use 'roster'
+            endpoint = "squad" if "soccer" in sport_key else "roster"
             url = f"{self.BASE_URL}/{espn_path}/teams/{team_id}/{endpoint}"
             logger.info(f"[ROSTER] Fetching {endpoint} from {url}")
             response = await self.client.get(url)
@@ -4916,19 +4916,6 @@ class ESPNPredictionService:
         
         logger.info(f"[SOCCER_PROPS_GEN] Found {len(key_players)} key attacking players for {team_name}")
         
-        # CRITICAL FIX: If no athletes available (ESPN roster API failed), create mock players
-        # This ensures soccer props are always generated using position-based fallback
-        if not athletes or len(key_players) < 2:
-            logger.warning(f"[SOCCER_PROPS_GEN] No athletes available for {team_name}, creating mock players for position-based props")
-            mock_players = [
-                {"id": "mock_f1", "name": f"{team_name} Forward 1", "position": "F"},
-                {"id": "mock_f2", "name": f"{team_name} Forward 2", "position": "F"},
-                {"id": "mock_m1", "name": f"{team_name} Midfielder 1", "position": "M"},
-                {"id": "mock_m2", "name": f"{team_name} Midfielder 2", "position": "M"},
-            ]
-            key_players = mock_players
-            athletes = mock_players  # Also set athletes so the rest of the code works
-        
         if len(key_players) < 4:
             key_players = athletes[:5]
         
@@ -6274,22 +6261,21 @@ class ESPNPredictionService:
                     
             elif "soccer" in sport_key:
                 logger.info(f"[PLAYER_PROPS] Generating Soccer player props - home_roster={len(home_roster) if isinstance(home_roster, list) else 0}, away_roster={len(away_roster) if isinstance(away_roster, list) else 0}")
+                if home_roster:
+                    home_props = await self._generate_soccer_player_props(
+                        home_roster, home_team_stats, home_team_name,
+                        sport_key, event_id, game_data
+                    )
+                    logger.info(f"[PLAYER_PROPS] Home Soccer props generated: {len(home_props)} props")
+                    all_props.extend(home_props)
                 
-                # For soccer, always attempt to generate props even if rosters are empty
-                # The method will create mock players as fallback
-                home_props = await self._generate_soccer_player_props(
-                    home_roster or [], home_team_stats, home_team_name,
-                    sport_key, event_id, game_data
-                )
-                logger.info(f"[PLAYER_PROPS] Home Soccer props generated: {len(home_props)} props")
-                all_props.extend(home_props)
-                
-                away_props = await self._generate_soccer_player_props(
-                    away_roster or [], away_team_stats, away_team_name,
-                    sport_key, event_id, game_data
-                )
-                logger.info(f"[PLAYER_PROPS] Away Soccer props generated: {len(away_props)} props")
-                all_props.extend(away_props)
+                if away_roster:
+                    away_props = await self._generate_soccer_player_props(
+                        away_roster, away_team_stats, away_team_name,
+                        sport_key, event_id, game_data
+                    )
+                    logger.info(f"[PLAYER_PROPS] Away Soccer props generated: {len(away_props)} props")
+                    all_props.extend(away_props)
                 
                 logger.info(f"[PLAYER_PROPS] Total Soccer props after extend: {len(all_props)}")
 
