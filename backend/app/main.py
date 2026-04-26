@@ -830,6 +830,15 @@ async def shutdown_event():
 
 # === SPA FALLBACK ROUTE ===
 # Serve index.html for all non-API routes (SPA routing)
+@app.get("/", include_in_schema=False)
+async def serve_spa_root():
+    """Serve SPA index.html for root path"""
+    static_dir = os.path.join(os.path.dirname(__file__), "..", "static")
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="Frontend not found")
+
 @app.get("/{full_path:path}", include_in_schema=False)
 async def serve_spa(full_path: str):
     """Serve SPA index.html for frontend routing"""
