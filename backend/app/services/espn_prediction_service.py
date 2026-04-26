@@ -1752,7 +1752,7 @@ class ESPNPredictionService:
             # All sports including soccer use 'roster' endpoint
             endpoint = "roster"
             url = f"{self.BASE_URL}/{espn_path}/teams/{team_id}/{endpoint}"
-            logger.info(f"[ROSTER] Fetching {endpoint} from {url}")
+            logger.info(f"[ROSTER] Fetching {endpoint} from {url} (FORCE_REBUILD_v2)")
             response = await self.client.get(url)
             response.raise_for_status()
             data = response.json()
