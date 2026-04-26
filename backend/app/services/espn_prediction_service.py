@@ -1749,8 +1749,8 @@ class ESPNPredictionService:
                 logger.warning(f"No ESPN mapping for sport: {sport_key}")
                 return []
             
-            # Soccer uses 'squad' endpoint, other sports use 'roster'
-            endpoint = "squad" if "soccer" in sport_key else "roster"
+            # All sports including soccer use 'roster' endpoint
+            endpoint = "roster"
             url = f"{self.BASE_URL}/{espn_path}/teams/{team_id}/{endpoint}"
             logger.info(f"[ROSTER] Fetching {endpoint} from {url}")
             response = await self.client.get(url)
