@@ -1779,6 +1779,44 @@ async def debug_espn():
     
     return result
 
+@router.get("/test/soccer-roster")
+async def test_soccer_roster():
+    """Test soccer roster fetching directly"""
+    sport_key = "soccer_ita.1"
+    home_team_id = "239"
+    away_team_id = "140"
+    
+    try:
+        service = get_espn_service()
+        
+        # Try to fetch rosters
+        home_roster_result, away_roster_result = await asyncio.gather(
+            service._get_team_roster(sport_key, home_team_id),
+            service._get_team_roster(sport_key, away_team_id),
+            return_exceptions=True
+        )
+        
+        home_roster = home_roster_result if not isinstance(home_roster_result, Exception) else None
+        away_roster = away_roster_result if not isinstance(away_roster_result, Exception) else None
+        
+        return {
+            "status": "success",
+            "home_roster_count": len(home_roster) if isinstance(home_roster, list) else 0,
+            "away_roster_count": len(away_roster) if isinstance(away_roster, list) else 0,
+            "home_error": str(home_roster_result) if isinstance(home_roster_result, Exception) else None,
+            "away_error": str(away_roster_result) if isinstance(away_roster_result, Exception) else None,
+            "home_sample": home_roster[0] if isinstance(home_roster, list) and home_roster else None,
+            "away_sample": away_roster[0] if isinstance(away_roster, list) and away_roster else None
+        }
+    
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "error_type": type(e).__name__
+        }
+
+
 @router.get("/test/debug-upcoming-games/{sport}")
 async def debug_upcoming_games(sport: str):
     """Direct test of get_upcoming_games for debugging"""
