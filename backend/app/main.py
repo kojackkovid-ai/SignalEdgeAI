@@ -120,6 +120,12 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["Permissions-Policy"] = "payment=(self 'https://js.stripe.com')"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     
+    # Cache control for static assets
+    if request.url.path.startswith("/assets/"):
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    else:
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    
     return response
 
 # Request validation middleware
