@@ -287,7 +287,7 @@ def setup_default_health_checks(db_session_factory=None, redis_client=None):
     health_registry.register(HealthCheck(
         name="disk_space",
         check_func=check_disk_space,
-        critical=True
+        critical=False  # Made non-critical for fly.io
     ))
     
     health_registry.register(HealthCheck(

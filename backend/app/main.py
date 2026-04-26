@@ -867,7 +867,8 @@ async def serve_spa(full_path: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    port = int(os.environ.get('PORT', 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
 # Reload trigger 02/14/2026 08:59:10
 

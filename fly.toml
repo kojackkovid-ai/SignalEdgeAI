@@ -17,6 +17,7 @@ primary_region = 'ams'
   API_PORT = '8080'
   PYTHONUNBUFFERED = 'true'
   USE_SQLITE = 'true'
+  PORT = '8080'
 
 [http_service]
   internal_port = 8080
