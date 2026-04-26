@@ -194,7 +194,7 @@ class TokenManager {
       expiresAt: expirationTime ? new Date(expirationTime) : null,
       expiresIn,
       isValid: this.isTokenValid(),
-      isExpiringSoon: this.isTokenExpiringson(),
+      isExpiringSoon: this.isTokenExpiringsoon(),
     };
   }
 
