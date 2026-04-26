@@ -357,12 +357,18 @@ async def get_event_props(
                 detail=f"Failed to fetch player props from ESPN: {str(e)}"
             )
         
-        if props:
+        # Handle both dict and list returns from get_player_props
+        if isinstance(props, dict):
+            props_list = props.get("all_props", [])
+        else:
+            props_list = props if props else []
+        
+        if props_list:
             # Validate each prop before returning
             validated_props = []
             validation_issues = 0
             
-            for prop in props:
+            for prop in props_list:
                 try:
                     # Validate game data structure
                     is_valid, errors = validator.validate_game_data(prop, sport_key)
@@ -416,7 +422,7 @@ async def get_event_props(
                 if 'league' not in prop or not prop['league']:
                     prop['league'] = sport_key.split('_')[-1].upper() if '_' in sport_key else sport_key.upper()
             
-            logger.info(f"[{request_id}] Successfully validated {len(validated_props)}/{len(props)} props (issues: {validation_issues})")
+            logger.info(f"[{request_id}] Successfully validated {len(validated_props)}/{len(props_list)} props (issues: {validation_issues})")
             return validated_props
             
         # If no props from ESPN, return empty list
@@ -552,10 +558,15 @@ async def get_game_full_props(
         fetch_timeout = 180.0 if is_soccer else 120.0
         
         try:
-            all_props = await asyncio.wait_for(
+            props_result = await asyncio.wait_for(
                 get_espn_service().get_player_props(sport_key, event_id),
                 timeout=fetch_timeout
             )
+            # Handle both dict and list returns from get_player_props
+            if isinstance(props_result, dict):
+                all_props = props_result.get("all_props", [])
+            else:
+                all_props = props_result if props_result else []
         except asyncio.TimeoutError:
             logger.warning(f"[{request_id}] Props fetch timed out after {fetch_timeout}s for {sport_key}, using empty list")
             all_props = []
@@ -757,7 +768,12 @@ async def get_player_props_query(
         espn_error = None
         
         try:
-            props = await get_espn_service().get_player_props(sport_key, event_id)
+            props_result = await get_espn_service().get_player_props(sport_key, event_id)
+            # Handle both dict and list returns from get_player_props
+            if isinstance(props_result, dict):
+                props = props_result.get("all_props", [])
+            else:
+                props = props_result if props_result else []
             logger.info(f"[{request_id}] ESPN service returned {len(props)} props")
         except asyncio.TimeoutError as e:
             logger.warning(f"[{request_id}] Timeout calling ESPN service: {e}")
@@ -1798,10 +1814,16 @@ async def test_player_props(
         # Try ESPN service
         props = None
         try:
-            props = await get_espn_service().get_player_props(sport_key, event_id)
+            props_result = await get_espn_service().get_player_props(sport_key, event_id)
+            # Handle both dict and list returns from get_player_props
+            if isinstance(props_result, dict):
+                props = props_result.get("all_props", [])
+            else:
+                props = props_result if props_result else []
             logger.info(f"[TEST_PROPS] ESPN returned {len(props)} props")
         except Exception as e:
             logger.warning(f"[TEST_PROPS] ESPN failed: {e}. Using fallback...")
+            props = []
         
         # NO MOCK DATA - if ESPN unavailable, return empty
         if not props:

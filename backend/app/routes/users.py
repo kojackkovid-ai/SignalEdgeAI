@@ -295,7 +295,24 @@ async def get_user_tier(
         # Get user
         user = await get_auth_service().get_user_by_id(db, current_user_id)
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            # User not found - return default starter tier instead of 404
+            # This can happen after payment upgrades if there's a transaction delay
+            logger.warning(f"[TIER] User {current_user_id} not found in database, using default starter tier")
+            return {
+                "tier": "starter",
+                "daily_limit": 1,
+                "picks_used_today": 0,
+                "picks_remaining": 1,
+                "features": {
+                    "show_odds": False,
+                    "show_reasoning": False,
+                    "show_models": False,
+                    "show_line": False,
+                    "ai_breakdown": False,
+                    "unlimited_picks": False
+                },
+                "is_unlimited": False
+            }
         
         # DEBUG: Log the raw tier value from database
         raw_tier = user.subscription_tier
