@@ -6274,21 +6274,22 @@ class ESPNPredictionService:
                     
             elif "soccer" in sport_key:
                 logger.info(f"[PLAYER_PROPS] Generating Soccer player props - home_roster={len(home_roster) if isinstance(home_roster, list) else 0}, away_roster={len(away_roster) if isinstance(away_roster, list) else 0}")
-                if home_roster:
-                    home_props = await self._generate_soccer_player_props(
-                        home_roster, home_team_stats, home_team_name,
-                        sport_key, event_id, game_data
-                    )
-                    logger.info(f"[PLAYER_PROPS] Home Soccer props generated: {len(home_props)} props")
-                    all_props.extend(home_props)
                 
-                if away_roster:
-                    away_props = await self._generate_soccer_player_props(
-                        away_roster, away_team_stats, away_team_name,
-                        sport_key, event_id, game_data
-                    )
-                    logger.info(f"[PLAYER_PROPS] Away Soccer props generated: {len(away_props)} props")
-                    all_props.extend(away_props)
+                # For soccer, always attempt to generate props even if rosters are empty
+                # The method will create mock players as fallback
+                home_props = await self._generate_soccer_player_props(
+                    home_roster or [], home_team_stats, home_team_name,
+                    sport_key, event_id, game_data
+                )
+                logger.info(f"[PLAYER_PROPS] Home Soccer props generated: {len(home_props)} props")
+                all_props.extend(home_props)
+                
+                away_props = await self._generate_soccer_player_props(
+                    away_roster or [], away_team_stats, away_team_name,
+                    sport_key, event_id, game_data
+                )
+                logger.info(f"[PLAYER_PROPS] Away Soccer props generated: {len(away_props)} props")
+                all_props.extend(away_props)
                 
                 logger.info(f"[PLAYER_PROPS] Total Soccer props after extend: {len(all_props)}")
 
