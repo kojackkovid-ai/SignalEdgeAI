@@ -1808,10 +1808,13 @@ class ESPNPredictionService:
                     })
             
             logger.info(f"[ROSTER] Fetched {len(roster)} players for team {team_id}")
+            logger.info(f"[ROSTER] DEBUG - athletes list count: {len(athletes)}, roster count: {len(roster)}")
+            if roster:
+                logger.info(f"[ROSTER] Sample player: {roster[0]}")
             return roster
             
         except Exception as e:
-            logger.error(f"[ROSTER] Error fetching roster for team {team_id}: {e}")
+            logger.error(f"[ROSTER] Error fetching roster for team {team_id}: {type(e).__name__}: {e}", exc_info=True)
             return []
 
     async def _fetch_athlete_stats(self, athlete_id: str, sport_key: str) -> Optional[Dict[str, Any]]:
@@ -6261,21 +6264,28 @@ class ESPNPredictionService:
                     
             elif "soccer" in sport_key:
                 logger.info(f"[PLAYER_PROPS] Generating Soccer player props - home_roster={len(home_roster) if isinstance(home_roster, list) else 0}, away_roster={len(away_roster) if isinstance(away_roster, list) else 0}")
+                logger.info(f"[PLAYER_PROPS] DEBUG: home_roster type={type(home_roster).__name__}, away_roster type={type(away_roster).__name__}")
                 if home_roster:
+                    logger.info(f"[PLAYER_PROPS] HOME ROSTER EXISTS - calling _generate_soccer_player_props with {len(home_roster)} players")
                     home_props = await self._generate_soccer_player_props(
                         home_roster, home_team_stats, home_team_name,
                         sport_key, event_id, game_data
                     )
                     logger.info(f"[PLAYER_PROPS] Home Soccer props generated: {len(home_props)} props")
                     all_props.extend(home_props)
+                else:
+                    logger.warning(f"[PLAYER_PROPS] HOME ROSTER IS EMPTY OR FALSE - skipping home props generation")
                 
                 if away_roster:
+                    logger.info(f"[PLAYER_PROPS] AWAY ROSTER EXISTS - calling _generate_soccer_player_props with {len(away_roster)} players")
                     away_props = await self._generate_soccer_player_props(
                         away_roster, away_team_stats, away_team_name,
                         sport_key, event_id, game_data
                     )
                     logger.info(f"[PLAYER_PROPS] Away Soccer props generated: {len(away_props)} props")
                     all_props.extend(away_props)
+                else:
+                    logger.warning(f"[PLAYER_PROPS] AWAY ROSTER IS EMPTY OR FALSE - skipping away props generation")
                 
                 logger.info(f"[PLAYER_PROPS] Total Soccer props after extend: {len(all_props)}")
 
