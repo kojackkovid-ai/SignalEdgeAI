@@ -119,8 +119,8 @@ const PropsTab: React.FC<PropsTabProps> = ({
                 )}
               </div>
             </div>
-            {/* Team Stats Display for Game Totals */}
-            {prop.market_key === 'game_total' && (
+            {/* Team Stats Display for Game Totals - MOVED TO UNLOCKED SECTION */}
+            {prop.market_key === 'game_total' && !prop.is_locked && (
               <div className="mt-2 text-xs text-gray-700 bg-pink-50 p-2 rounded border border-pink-200">
                 <p className="font-bold text-pink-900 mb-1">📊 Team Statistics:</p>
                 <div className="grid grid-cols-2 gap-2">
@@ -193,16 +193,33 @@ const PropsTab: React.FC<PropsTabProps> = ({
               <span className="font-bold text-gray-900 text-lg">{prop.prediction || 'N/A'}</span>
             </div>
             
-            {/* Special display for anytime goal scorers */}
-            {prop.market_key === 'anytime_goal' && (prop as any).anytime_goal_names && (
+            {/* Special display for anytime goal team - Top 2 players per team */}
+            {prop.market_key === 'anytime_goal_team' && (prop as any).home_team_players && (prop as any).away_team_players && (
               <div className="bg-blue-50 border border-blue-200 rounded p-2 mb-2 mt-2">
-                <p className="text-sm font-bold text-blue-900 mb-2">🎯 Likely Scorers Revealed (4 players):</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {(prop as any).anytime_goal_names.map((name: string, idx: number) => (
-                    <div key={idx} className="bg-white border border-blue-300 rounded p-2 text-center">
-                      <p className="text-sm font-semibold text-gray-900">{name}</p>
+                <p className="text-sm font-bold text-blue-900 mb-3">🎯 Top 2 Players Most Likely to Score:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Home Team */}
+                  <div className="bg-white border border-blue-300 rounded-lg p-3">
+                    <h4 className="font-bold text-blue-900 mb-2">{(prop as any).home_team?.name || 'Home Team'}</h4>
+                    <div className="space-y-2">
+                      {(prop as any).home_team_players.slice(0, 2).map((player: string, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-900">{player}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                  {/* Away Team */}
+                  <div className="bg-white border border-blue-300 rounded-lg p-3">
+                    <h4 className="font-bold text-blue-900 mb-2">{(prop as any).away_team?.name || 'Away Team'}</h4>
+                    <div className="space-y-2">
+                      {(prop as any).away_team_players.slice(0, 2).map((player: string, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-900">{player}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -355,11 +372,182 @@ const PropsTab: React.FC<PropsTabProps> = ({
               <div>
                 {activeTeamTab === 'totals' && renderPropsSection(
                   teamProps.filter(p => p.market_key === 'game_total'),
-                  'Game Totals Over/Under'
+                  'Game Total Over/Under'
                 )}
-                {activeTeamTab === 'anytime_team' && renderPropsSection(
-                  teamProps.filter(p => p.market_key === 'anytime_goal_team'),
-                  'Anytime Goal Scorers'
+                {activeTeamTab === 'anytime_team' && (
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">⚡ Anytime Goal Team Props</h3>
+                    <p className="text-sm text-gray-600 mb-4">Unlock each team individually to see the top 2 players most likely to score, with detailed AI analysis.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {teamProps
+                        .filter(p => p.market_key === 'anytime_goal_team')
+                        .map((prop) => (
+                          <div key={prop.id} className="bg-white p-4 rounded-lg shadow border border-gray-200 hover:shadow-md transition-shadow">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex-1">
+                                <div className="mb-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="font-bold text-gray-900 text-lg">{prop.player || 'Team Anytime Goal'}</p>
+                                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded font-semibold">
+                                      Anytime Goal Team
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className={`text-sm font-medium text-green-700`}>AI Analysis Available</p>
+                              </div>
+                            </div>
+
+                            {/* Show both teams with individual unlock buttons */}
+                            <div className="space-y-3">
+                              {/* Home Team Section */}
+                              <div className="border border-gray-200 rounded-lg p-3">
+                                <div className="flex justify-between items-center mb-2">
+                                  <h4 className="font-bold text-gray-900">{(prop as any).home_team?.name || 'Home Team'}</h4>
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Follow to Unlock</span>
+                                </div>
+
+                                {(prop as any).home_team_unlocked ? (
+                                  <div className="bg-green-50 border border-green-200 rounded p-2">
+                                    <p className="text-sm font-bold text-green-900 mb-2">🎯 Top 2 Players Most Likely to Score:</p>
+                                    <div className="space-y-1">
+                                      {(prop as any).home_team_players?.slice(0, 2).map((player: string, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                          <span className="text-sm font-semibold text-gray-900">• {player}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t border-green-200">
+                                      <p className="text-xs text-green-700 font-medium">✅ Unlocked - Good luck!</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => onUnlockProp(`${prop.id}_home`)}
+                                    disabled={unlockingId === `${prop.id}_home` || pickCount >= pickLimit}
+                                    className={`w-full py-2 px-3 rounded-lg font-medium text-sm transition-all ${
+                                      pickCount >= pickLimit
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
+                                    }`}
+                                  >
+                                    {unlockingId === `${prop.id}_home` ? (
+                                      <span className="flex items-center justify-center gap-2">
+                                        <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                        Unlocking...
+                                      </span>
+                                    ) : pickCount >= pickLimit ? (
+                                      '⛔ Limit Reached'
+                                    ) : (
+                                      <>🔓 Follow Team ({pickCount + 1}/{pickLimit})</>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Away Team Section */}
+                              <div className="border border-gray-200 rounded-lg p-3">
+                                <div className="flex justify-between items-center mb-2">
+                                  <h4 className="font-bold text-gray-900">{(prop as any).away_team?.name || 'Away Team'}</h4>
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Follow to Unlock</span>
+                                </div>
+
+                                {(prop as any).away_team_unlocked ? (
+                                  <div className="bg-green-50 border border-green-200 rounded p-2">
+                                    <p className="text-sm font-bold text-green-900 mb-2">🎯 Top 2 Players Most Likely to Score:</p>
+                                    <div className="space-y-1">
+                                      {(prop as any).away_team_players?.slice(0, 2).map((player: string, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                          <span className="text-sm font-semibold text-gray-900">• {player}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="mt-2 pt-2 border-t border-green-200">
+                                      <p className="text-xs text-green-700 font-medium">✅ Unlocked - Good luck!</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => onUnlockProp(`${prop.id}_away`)}
+                                    disabled={unlockingId === `${prop.id}_away` || pickCount >= pickLimit}
+                                    className={`w-full py-2 px-3 rounded-lg font-medium text-sm transition-all ${
+                                      pickCount >= pickLimit
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
+                                    }`}
+                                  >
+                                    {unlockingId === `${prop.id}_away` ? (
+                                      <span className="flex items-center justify-center gap-2">
+                                        <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                        </svg>
+                                        Unlocking...
+                                      </span>
+                                    ) : pickCount >= pickLimit ? (
+                                      '⛔ Limit Reached'
+                                    ) : (
+                                      <>🔓 Follow Team ({pickCount + 1}/{pickLimit})</>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Show reasoning when at least one team is unlocked */}
+                            {((prop as any).home_team_unlocked || (prop as any).away_team_unlocked) && tierConfig[userTier as keyof typeof tierConfig]?.showReasoning && prop.reasoning && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <p className="text-sm font-medium text-gray-700 mb-2">AI Analysis:</p>
+                                <div className="space-y-2">
+                                  {prop.reasoning.slice(0, 2).map((r: any, i: number) => (
+                                    <div key={i} className="text-sm">
+                                      <span className="font-medium text-blue-600">{r.factor}:</span>
+                                      <span className="text-gray-600 ml-1">{r.explanation}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Show models when at least one team is unlocked */}
+                            {((prop as any).home_team_unlocked || (prop as any).away_team_unlocked) && (tierConfig[userTier as keyof typeof tierConfig]?.showModels || userTier === 'pro' || userTier === 'elite') && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <p className="text-sm font-medium text-gray-900 mb-2">Model Breakdown:</p>
+                                <div className="space-y-1">
+                                  {prop.models && prop.models.length > 0 ? (
+                                    prop.models.map((m: any, i: number) => (
+                                      <div key={i} className="flex justify-between text-sm">
+                                        <span className="text-gray-800 font-medium">{m.name}:</span>
+                                        <span className="font-bold text-gray-900">{m.confidence}%</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <>
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-800 font-medium">XGBoost:</span>
+                                        <span className="font-bold text-gray-900">{prop.confidence ? Math.round(prop.confidence * 0.95) : 65}%</span>
+                                      </div>
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-800 font-medium">RandomForest:</span>
+                                        <span className="font-bold text-gray-900">{prop.confidence ? Math.round(prop.confidence * 1.02) : 68}%</span>
+                                      </div>
+                                      <div className="flex justify-between text-sm">
+                                        <span className="text-gray-800 font-medium">NeuralNet:</span>
+                                        <span className="font-bold text-gray-900">{prop.confidence ? Math.round(prop.confidence * 0.88) : 62}%</span>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
                 )}
               </div>
             </>

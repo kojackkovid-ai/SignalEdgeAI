@@ -536,16 +536,24 @@ const Dashboard = (): JSX.Element | null => {
       return;
     }
 
+    // Handle team-specific unlocks for anytime_goal_team
+    const isHomeTeamUnlock = propId.endsWith('_home');
+    const isAwayTeamUnlock = propId.endsWith('_away');
+    const isTeamSpecificUnlock = isHomeTeamUnlock || isAwayTeamUnlock;
+
+    // Extract the base prop ID
+    const basePropId = isTeamSpecificUnlock ? propId.replace(/_home|_away$/, '') : propId;
+
     // Find the full prop data from gameProps
-    const propData = gameProps.find((p: any) => p.id === propId);
+    const propData = gameProps.find((p: any) => p.id === basePropId);
     if (!propData) {
-      console.error('[Dashboard] Prop not found:', propId);
+      console.error('[Dashboard] Prop not found:', basePropId);
       console.error('[Dashboard] Available props:', gameProps.map((p: any) => p?.id));
       alert('Error: Prop data not found. Please refresh and try again.');
       return;
     }
 
-    console.log('[Dashboard] Starting unlock for prop:', propId, propData);
+    console.log('[Dashboard] Starting unlock for prop:', propId, 'base:', basePropId, propData);
     setUnlockingId(propId);
     
     try {
@@ -611,10 +619,10 @@ const Dashboard = (): JSX.Element | null => {
         
         // Create the updated prop object
         const createUpdatedProp = (p: any) => {
-          const updatedProp = { 
-            ...p, 
+          const updatedProp = {
+            ...p,
             // Force unlock state - these are critical!
-            is_locked: false, 
+            is_locked: false,
             unlocked: true,
             // Use response data to update prediction, confidence, etc.
             prediction: response.prediction || p.prediction,
@@ -623,62 +631,75 @@ const Dashboard = (): JSX.Element | null => {
             reasoning: response.reasoning || p.reasoning,
             models: response.models || p.models,
           };
-          
+
+          // Handle team-specific unlocks for anytime_goal_team
+          if (p.market_key === 'anytime_goal_team') {
+            if (isHomeTeamUnlock) {
+              updatedProp.home_team_unlocked = true;
+            } else if (isAwayTeamUnlock) {
+              updatedProp.away_team_unlocked = true;
+            } else {
+              // Full unlock for backward compatibility
+              updatedProp.home_team_unlocked = true;
+              updatedProp.away_team_unlocked = true;
+            }
+          }
+
           // Spread any additional response fields
           Object.keys(response).forEach(key => {
-            if (!['id', 'prediction', 'confidence', 'odds', 'reasoning', 'models', 'is_locked', 'unlocked'].includes(key)) {
+            if (!['id', 'prediction', 'confidence', 'odds', 'reasoning', 'models', 'is_locked', 'unlocked', 'home_team_unlocked', 'away_team_unlocked'].includes(key)) {
               updatedProp[key] = response[key];
             }
           });
-          
+
           return updatedProp;
         };
         
         // Update ALL the separated arrays that PropsTab uses
-        console.log('[Dashboard] Updating all prop arrays for ID:', propId);
-        
+        console.log('[Dashboard] Updating all prop arrays for ID:', basePropId, 'team unlock:', isTeamSpecificUnlock ? (isHomeTeamUnlock ? 'home' : 'away') : 'full');
+
         setGoalsProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === propId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === propId && !p.is_locked)) {
+          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
+          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
             console.log('[Dashboard] ✅ Updated goalsProps - prop now unlocked');
           }
           return updated;
         });
         
         setAssistsProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === propId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === propId && !p.is_locked)) {
+          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
+          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
             console.log('[Dashboard] ✅ Updated assistsProps - prop now unlocked');
           }
           return updated;
         });
-        
+
         setAnytimeGoalProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === propId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === propId && !p.is_locked)) {
+          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
+          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
             console.log('[Dashboard] ✅ Updated anytimeGoalProps - prop now unlocked');
           }
           return updated;
         });
         
         setTeamProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === propId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === propId && !p.is_locked)) {
+          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
+          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
             console.log('[Dashboard] ✅ Updated teamProps - prop now unlocked');
           }
           return updated;
         });
-        
+
         setOtherProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === propId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === propId && !p.is_locked)) {
+          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
+          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
             console.log('[Dashboard] ✅ Updated otherProps - prop now unlocked');
           }
           return updated;
         });
-        
+
         setGameProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === propId ? createUpdatedProp(p) : p);
+          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
           console.log('[Dashboard] ✅ Updated gameProps - total props:', updated.length);
           return updated;
         });
