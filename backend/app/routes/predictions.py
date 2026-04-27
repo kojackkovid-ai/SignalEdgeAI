@@ -1783,8 +1783,8 @@ async def debug_espn():
 async def test_soccer_roster():
     """Test soccer roster fetching directly"""
     sport_key = "soccer_ita.1"
-    home_team_id = "239"
-    away_team_id = "140"
+    home_team_id = "239"  # Torino
+    away_team_id = "110"  # Internazionale (corrected from 140)
     
     try:
         service = get_espn_service()
@@ -1801,6 +1801,8 @@ async def test_soccer_roster():
         
         return {
             "status": "success",
+            "home_team": "Torino",
+            "away_team": "Internazionale",
             "home_roster_count": len(home_roster) if isinstance(home_roster, list) else 0,
             "away_roster_count": len(away_roster) if isinstance(away_roster, list) else 0,
             "home_error": str(home_roster_result) if isinstance(home_roster_result, Exception) else None,

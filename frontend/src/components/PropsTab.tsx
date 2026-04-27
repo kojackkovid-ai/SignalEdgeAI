@@ -292,98 +292,17 @@ const PropsTab: React.FC<PropsTabProps> = ({
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 PLAYER PROP STATS</h2>
         
-        {/* Hockey/Soccer specific tabs */}
-        {isHockeyOrSoccer && (goalsProps.length > 0 || assistsProps.length > 0 || anytimeGoalProps.length > 0) ? (
+        {/* Hockey/Soccer specific: ANYTIME GOAL ONLY */}
+        {isHockeyOrSoccer && anytimeGoalProps.length > 0 ? (
           <>
-            {/* Player Props Tabs */}
-            <div className="flex space-x-2 mb-6 border-b border-blue-200 flex-wrap">
-              <button
-                onClick={() => setActiveTab('goals')}
-                className={`px-4 py-3 font-medium border-b-2 transition-colors ${
-                  activeTab === 'goals'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                ⚽ Goals O/U ({goalsProps.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('assists')}
-                className={`px-4 py-3 font-medium border-b-2 transition-colors ${
-                  activeTab === 'assists'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                🎯 Assists O/U ({assistsProps.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('anytime')}
-                className={`px-4 py-3 font-medium border-b-2 transition-colors ${
-                  activeTab === 'anytime'
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                🏆 Anytime Goal ({anytimeGoalProps.length})
-              </button>
+            <div className="mb-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">🎯 Anytime Goal Scorer Props (Individually Locked)</h3>
+              <p className="text-sm text-gray-600 mb-4">Each player prop is individually locked. Unlock to see detailed AI analysis, model breakdowns, and scoring predictions.</p>
             </div>
 
-            {/* Player Props Tab Content */}
+            {/* Player Props Tab Content - Anytime Goal Only */}
             <div>
-              {activeTab === 'goals' && renderPropsSection(goalsProps, 'Goals Over/Under')}
-              {activeTab === 'assists' && renderPropsSection(assistsProps, 'Assists Over/Under')}
-              {activeTab === 'anytime' && (
-                anytimeGoalScorers ? (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">⚽ Top Scorers - Each Team</h3>
-                    
-                    {/* Home Team Scorers */}
-                    {anytimeGoalScorers?.home_team && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <h4 className="font-bold text-blue-900 mb-3">{anytimeGoalScorers.home_team.name || 'Home Team'}</h4>
-                        <div className="space-y-2">
-                          {anytimeGoalScorers.home_team.top_scorers?.map((scorer: any, idx: number) => (
-                            <div key={idx} className="bg-white border border-blue-300 rounded p-3">
-                              <div className="font-semibold text-gray-900">{scorer.player}</div>
-                              <div className="text-sm text-gray-600">Confidence: {Math.round(scorer.confidence)}%</div>
-                              {scorer.season_avg && (
-                                <div className="text-sm text-gray-600">Season Avg: {scorer.season_avg.toFixed(2)} goals/game</div>
-                              )}
-                              {scorer.reasoning && (
-                                <div className="text-sm text-gray-700 mt-1 italic">{scorer.reasoning}</div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Away Team Scorers */}
-                    {anytimeGoalScorers?.away_team && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                        <h4 className="font-bold text-amber-900 mb-3">{anytimeGoalScorers.away_team.name || 'Away Team'}</h4>
-                        <div className="space-y-2">
-                          {anytimeGoalScorers.away_team.top_scorers?.map((scorer: any, idx: number) => (
-                            <div key={idx} className="bg-white border border-amber-300 rounded p-3">
-                              <div className="font-semibold text-gray-900">{scorer.player}</div>
-                              <div className="text-sm text-gray-600">Confidence: {Math.round(scorer.confidence)}%</div>
-                              {scorer.season_avg && (
-                                <div className="text-sm text-gray-600">Season Avg: {scorer.season_avg.toFixed(2)} goals/game</div>
-                              )}
-                              {scorer.reasoning && (
-                                <div className="text-sm text-gray-700 mt-1 italic">{scorer.reasoning}</div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  renderPropsSection(anytimeGoalProps, 'Anytime Goal Scorer')
-                )
-              )}
+              {renderPropsSection(anytimeGoalProps, 'Anytime Goal Scorer Props')}
             </div>
           </>
         ) : playerPropsNBA.length > 0 ? (
