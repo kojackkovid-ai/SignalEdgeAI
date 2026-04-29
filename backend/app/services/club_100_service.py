@@ -377,11 +377,11 @@ class Club100Service:
 
                 candidate_key = f"{sport}:{athlete_id}:{stat_type}"
                 candidates[candidate_key] = {
-                    "player_id": f"{sport}_{athlete_id}",
+                    "player_id": f"{sport}_{athlete_id}_{stat_type}",
                     "name": player_name,
                     "team": team_abbrev,
                     "sport": sport,
-                    "position": athlete.get("position") or athlete.get("position", {}).get("abbreviation") or "Unknown",
+                    "position": self._normalize_position(athlete.get("position")),
                     "prop_line": f"Over {prop_line} {stat_type.replace('_', ' ').title()}",
                     "stat_type": stat_type,
                     "line": prop_line,
@@ -412,6 +412,16 @@ class Club100Service:
             return None
         normalized = category.strip().lower().replace(" ", "").replace("-", "").replace("_", "")
         return self.CATEGORY_ALIAS_MAP.get(normalized, normalized)
+
+    def _normalize_position(self, position: Any) -> str:
+        """Normalize ESPN athlete position into a string."""
+        if not position:
+            return "Unknown"
+        if isinstance(position, str):
+            return position
+        if isinstance(position, dict):
+            return position.get("abbreviation") or position.get("name") or "Unknown"
+        return str(position)
 
     async def _find_player_record(
         self,
