@@ -37,6 +37,9 @@ RUN adduser \
 # Copy backend directory with all models and code
 COPY backend/ ./backend/
 
+# Copy the SQLite database if present so the deployed app can use the same data file.
+COPY sports_predictions.db ./backend/
+
 # Verify ML models are present and accessible
 RUN if [ -d ./backend/ml-models/trained ]; then echo "✓ ML models found at ./backend/ml-models/trained" && ls -lah ./backend/ml-models/trained/ | head -5; else echo "⚠ ML models not found"; fi
 

@@ -138,16 +138,13 @@ class PredictionHistoryService:
     
     async def get_user_stats_by_sport(self, user_id: str) -> Dict[str, Dict]:
         """Get accuracy broken down by sport"""
-        # First get totals for all predictions by sport (including pending) - EXCLUDE club_100_access
+        # First get totals for all predictions by sport (including pending)
         total_by_sport_result = await self.db.execute(
             select(
                 PredictionRecord.sport_key,
                 func.count().label('total')
             ).where(
-                and_(
-                    PredictionRecord.user_id == user_id,
-                    PredictionRecord.sport_key != 'club_100_access'
-                )
+                PredictionRecord.user_id == user_id
             ).group_by(PredictionRecord.sport_key)
         )
         
@@ -155,7 +152,7 @@ class PredictionHistoryService:
         for row in total_by_sport_result:
             totals_by_sport[row.sport_key] = row.total
         
-        # Get resolved stats (hit/miss only) - EXCLUDE club_100_access
+        # Get resolved stats (hit/miss only)
         result = await self.db.execute(
             select(
                 PredictionRecord.sport_key,
@@ -174,22 +171,18 @@ class PredictionHistoryService:
             ).where(
                 and_(
                     PredictionRecord.user_id == user_id,
-                    PredictionRecord.outcome.in_(['hit', 'miss']),
-                    PredictionRecord.sport_key != 'club_100_access'
+                    PredictionRecord.outcome.in_(['hit', 'miss'])
                 )
             ).group_by(PredictionRecord.sport_key)
         )
         
-        # Get average confidence from ALL predictions per sport - EXCLUDE club_100_access
+        # Get average confidence from ALL predictions per sport
         avg_conf_result = await self.db.execute(
             select(
                 PredictionRecord.sport_key,
                 func.avg(PredictionRecord.confidence).label('avg_conf')
             ).where(
-                and_(
-                    PredictionRecord.user_id == user_id,
-                    PredictionRecord.sport_key != 'club_100_access'
-                )
+                PredictionRecord.user_id == user_id
             ).group_by(PredictionRecord.sport_key)
         )
         
@@ -264,19 +257,16 @@ class PredictionHistoryService:
         return resolved_count
     
     async def _calculate_user_stats_from_records(self, user_id: str) -> Dict:
-        """Calculate accuracy stats from all prediction records (EXCLUDE Club 100 access picks)"""
-        # Count ALL predictions (including pending) for total - EXCLUDE club_100_access
+        """Calculate accuracy stats from all prediction records"""
+        # Count ALL predictions (including pending) for total
         total_result = await self.db.execute(
             select(func.count()).select_from(PredictionRecord).where(
-                and_(
-                    PredictionRecord.user_id == user_id,
-                    PredictionRecord.sport_key != 'club_100_access'
-                )
+                PredictionRecord.user_id == user_id
             )
         )
         total = total_result.scalar() or 0
         
-        # Count only resolved predictions (hit/miss) for accuracy - EXCLUDE club_100_access
+        # Count only resolved predictions (hit/miss) for accuracy
         result = await self.db.execute(
             select(
                 func.sum(
@@ -295,8 +285,7 @@ class PredictionHistoryService:
             ).where(
                 and_(
                     PredictionRecord.user_id == user_id,
-                    PredictionRecord.outcome.in_(['hit', 'miss']),
-                    PredictionRecord.sport_key != 'club_100_access'
+                    PredictionRecord.outcome.in_(['hit', 'miss'])
                 )
             )
         )

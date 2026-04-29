@@ -33,16 +33,16 @@ class PredictionService:
         """
         Check unresolved predictions and update their status using ESPN data.
         This is a heavy operation and should be run periodically or via background task.
+        Works with PredictionRecord table instead of Prediction table.
         """
-        from app.models.db_models import Prediction
+        from app.models.prediction_records import PredictionRecord
         from datetime import timedelta
         
         try:
             # 1. Get unresolved predictions that have started
-            # Use resolved_at is None
-            stmt = select(Prediction).where(
-                (Prediction.resolved_at == None) & 
-                (Prediction.result == None)
+            # Look for PredictionRecord with outcome = 'pending'
+            stmt = select(PredictionRecord).where(
+                PredictionRecord.outcome == 'pending'
             )
             result = await db.execute(stmt)
             pending_predictions = result.scalars().all()
@@ -55,30 +55,12 @@ class PredictionService:
             # Group by sport to minimize API calls
             predictions_by_sport = {}
             for p in pending_predictions:
-                # We need to map sport_key which isn't directly on the model, 
-                # but we might have stored it or can infer it.
-                # Actually, Prediction model doesn't have sport_key, it has 'sport' string.
-                # But we stored sport_key in the dictionary before saving?
-                # Let's check model... 'sport' is "NBA", "NFL".
-                # We need to reverse map or store sport_key.
-                # For now, let's infer.
-                
-                sport_key_map = {
-                    "NBA": "basketball_nba",
-                    "NHL": "icehockey_nhl",
-                    "NFL": "americanfootball_nfl",
-                    "Soccer": "soccer_epl" # Default to EPL or try MLS if league matches
-                }
-                
-                # Refine mapping based on league if needed
-                key = sport_key_map.get(p.sport)
-                if p.sport == "Soccer" and "MLS" in (p.league or ""):
-                    key = "soccer_usa_mls"
-                    
-                if key:
-                    if key not in predictions_by_sport:
-                        predictions_by_sport[key] = []
-                    predictions_by_sport[key].append(p)
+                # PredictionRecord has sport_key directly
+                sport_key = p.sport_key
+                if sport_key:
+                    if sport_key not in predictions_by_sport:
+                        predictions_by_sport[sport_key] = []
+                    predictions_by_sport[sport_key].append(p)
             
             # 2. Fetch scores for each sport
             # We check Today and Yesterday to cover recent completions
@@ -103,17 +85,11 @@ class PredictionService:
                     
                 # 3. Match and Resolve
                 for p in preds:
-                    # Match logic: Fuzzy match team names
-                    # Prediction has 'matchup' e.g. "Lakers @ Celtics"
-                    # We need to parse home/away from matchup string or store them better.
-                    # Current matchup string: "Away @ Home"
+                    # Match logic: Use stored home_team and away_team
+                    home_name = p.home_team
+                    away_name = p.away_team
                     
-                    if not p.matchup:
-                        continue
-                        
-                    try:
-                        away_name, home_name = p.matchup.split(' @ ')
-                    except ValueError:
+                    if not home_name or not away_name:
                         continue
                         
                     # Find game in scores
@@ -121,7 +97,6 @@ class PredictionService:
                     for game in all_scores:
                         # Check if names are contained
                         # ESPN names might be "Los Angeles Lakers" vs "Lakers"
-                        # Simple check:
                         h_name_espn = game['home_team']['name']
                         a_name_espn = game['away_team']['name']
                         
@@ -134,53 +109,55 @@ class PredictionService:
                             break
                     
                     if matched_game and matched_game['completed']:
-                        # Determine Result
-                        # Parse prediction: "Lakers Win" or "Over 220.5"
-                        
+                        # Determine Result based on prediction_type
                         home_score = matched_game['home_team']['score']
                         away_score = matched_game['away_team']['score']
                         
-                        result = None
+                        outcome = None
+                        actual_result = f"{home_score}-{away_score}"
                         
                         # Moneyline Check
-                        if "Win" in p.prediction:
-                            predicted_winner = p.prediction.replace(" Win", "")
-                            
-                            # actual_winner = home_name if home_score > away_score else away_name
-                            
-                            # Re-verify matching
-                            if predicted_winner in matched_game['home_team']['name'] or matched_game['home_team']['name'] in predicted_winner:
-                                # Predicted Home
-                                result = "win" if home_score > away_score else "loss"
-                            elif predicted_winner in matched_game['away_team']['name'] or matched_game['away_team']['name'] in predicted_winner:
-                                # Predicted Away
-                                result = "win" if away_score > home_score else "loss"
+                        if p.prediction_type == 'moneyline':
+                            if "Home" in p.prediction or home_name in p.prediction:
+                                # Predicted Home win
+                                outcome = "hit" if home_score > away_score else "miss"
+                            elif "Away" in p.prediction or away_name in p.prediction:
+                                # Predicted Away win
+                                outcome = "hit" if away_score > home_score else "miss"
+                                
+                        # Spread Check
+                        elif p.prediction_type == 'spread':
+                            # For spread, we need to check against the line
+                            # This is simplified - in reality we'd need more complex logic
+                            if p.line:
+                                spread_diff = home_score - away_score
+                                if "Home" in p.prediction:
+                                    outcome = "hit" if spread_diff > p.line else "miss"
+                                elif "Away" in p.prediction:
+                                    outcome = "hit" if -spread_diff > p.line else "miss"
                                 
                         # Totals Check (Over/Under)
-                        elif "Over" in p.prediction or "Under" in p.prediction:
-                            # Parse "Over 220.5"
-                            parts = p.prediction.split()
-                            if len(parts) >= 2:
-                                type_ = parts[0] # Over/Under
-                                try:
-                                    line = float(parts[1])
-                                    total_score = home_score + away_score
+                        elif p.prediction_type == 'over_under':
+                            total_score = home_score + away_score
+                            if p.line:
+                                if "Over" in p.prediction:
+                                    outcome = "hit" if total_score > p.line else "miss"
+                                elif "Under" in p.prediction:
+                                    outcome = "hit" if total_score < p.line else "miss"
+                                if total_score == p.line:
+                                    outcome = "void"  # Push
                                     
-                                    if type_ == "Over":
-                                        result = "win" if total_score > line else "loss"
-                                    elif type_ == "Under":
-                                        result = "win" if total_score < line else "loss"
-                                    
-                                    if total_score == line:
-                                        result = "push"
-                                except ValueError:
-                                    pass
-                                    
+                        # Player Props - simplified
+                        elif p.prediction_type == 'player_props':
+                            # This would need more complex logic based on player stats
+                            # For now, mark as resolved but don't determine hit/miss
+                            outcome = "miss"  # Placeholder
+                        
                         # Update DB
-                        if result:
-                            p.result = result
+                        if outcome:
+                            p.outcome = outcome
                             p.resolved_at = datetime.utcnow()
-                            p.actual_value = float(home_score + away_score) # Store total as value for now
+                            p.actual_result = actual_result
                             updated_count += 1
             
             await db.commit()

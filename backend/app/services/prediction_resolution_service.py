@@ -39,20 +39,15 @@ class PredictionResolutionService:
             resolved_count = await self.prediction_service.resolve_predictions(db)
             await self._update_user_stats(db)
             
-            # CRITICAL: Also sync resolved outcomes to PredictionRecord table (for accuracy dashboard)
-            synced_count = await self._sync_predictions_to_history(db)
-            logger.info(f"📊 Synced {synced_count} resolved predictions to PredictionRecord")
-            
             self.stats['total_resolved'] += resolved_count
             self.stats['last_run'] = start_time
             
             duration = (datetime.utcnow() - start_time).total_seconds()
-            logger.info(f"✅ Resolved {resolved_count} predictions & synced {synced_count} records in {duration:.2f}s")
+            logger.info(f"✅ Resolved {resolved_count} predictions in {duration:.2f}s")
             
             return {
                 'success': True,
                 'resolved_count': resolved_count,
-                'synced_count': synced_count,
                 'duration_seconds': duration,
                 'timestamp': start_time.isoformat()
             }
@@ -66,83 +61,6 @@ class PredictionResolutionService:
                 'error': str(e),
                 'timestamp': start_time.isoformat()
             }
-    
-    async def _sync_predictions_to_history(self, db: AsyncSession) -> int:
-        """
-        Sync resolved Predictions to PredictionRecord table for accuracy dashboard.
-        This is CRITICAL for the accuracy dashboard to work!
-        Maps: win → hit, loss → miss, push → void
-        """
-        try:
-            from app.models.db_models import Prediction
-            from app.models.prediction_records import PredictionRecord
-            from sqlalchemy import and_
-            
-            logger.info("🔄 Starting sync of resolved Predictions to PredictionRecord...")
-            
-            # Get all recently resolved Predictions that haven't been synced yet
-            # We look for predictions that have result set but corresponding PredictionRecord still has outcome='pending'
-            result = await db.execute(
-                select(Prediction).where(
-                    and_(
-                        Prediction.result != None,
-                        Prediction.resolved_at != None,
-                        Prediction.event_id != None
-                    )
-                )
-            )
-            resolved_predictions = result.scalars().all()
-            logger.info(f"Found {len(resolved_predictions)} resolved Predictions to sync")
-            
-            synced_count = 0
-            
-            for pred in resolved_predictions:
-                try:
-                    # Find matching PredictionRecord(s) by event_id
-                    records_result = await db.execute(
-                        select(PredictionRecord).where(
-                            and_(
-                                PredictionRecord.event_id == pred.event_id,
-                                PredictionRecord.outcome == 'pending'
-                            )
-                        )
-                    )
-                    records = records_result.scalars().all()
-                    
-                    # Map Prediction result to PredictionRecord outcome
-                    outcome_map = {
-                        'win': 'hit',
-                        'loss': 'miss',
-                        'push': 'void'
-                    }
-                    
-                    # Get the actual result value (win/loss/push)
-                    pred_result = getattr(pred, 'result', None)
-                    new_outcome = outcome_map.get(pred_result, 'void') if pred_result else 'void'
-                    
-                    logger.info(f"📝 Syncing Prediction {pred.id}: result='{pred_result}' → PredictionRecord outcome='{new_outcome}' (found {len(records)} records)")
-                    
-                    # Update all pending records for this event
-                    for record in records:
-                        record.outcome = new_outcome  # type: ignore
-                        record.resolved_at = getattr(pred, 'resolved_at', datetime.utcnow())  # type: ignore
-                        actual_val = getattr(pred, 'actual_value', None)
-                        record.actual_result = str(actual_val) if actual_val is not None else None  # type: ignore
-                        synced_count += 1
-                        logger.info(f"✅ Synced prediction {pred.id} (event {pred.event_id}) → outcome: {new_outcome}")
-                
-                except Exception as e:
-                    logger.warning(f"⚠️ Failed to sync prediction {pred.id}: {e}", exc_info=True)
-            
-            if synced_count > 0:
-                await db.commit()
-                logger.info(f"📝 Successfully synced {synced_count} predictions to PredictionRecord")
-            
-            return synced_count
-            
-        except Exception as e:
-            logger.error(f"Error syncing predictions to history: {e}")
-            return 0
     
     async def _update_user_stats(self, db: AsyncSession):
         """Update user win_rate, roi, and total_predictions based on resolved predictions"""

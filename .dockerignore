@@ -29,6 +29,8 @@ backend/**/*.log
 backend/**/*.pyc
 backend/.env
 backend/.env.local
+!sports_predictions.db
+!backend/sports_predictions.db
 
 # Ignore common junk
 .git
