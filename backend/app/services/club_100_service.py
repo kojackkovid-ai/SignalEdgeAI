@@ -141,7 +141,55 @@ class Club100Service:
                 
                 return result_by_sport
             else:
-                logger.warning("[CLUB100] No Club 100 data available in database")
+                logger.warning("[CLUB100] No Club 100 data available in database - attempting to generate fresh data")
+                # No data exists - try to generate fresh data
+                fresh_data = await self.get_fresh_club_100_data(db)
+                if fresh_data and any(len(players) for players in fresh_data.values()):
+                    refresh_success = await self.update_club_100_data_db(db, fresh_data)
+                    if refresh_success:
+                        # Re-fetch from database after successful update
+                        result = await db.execute(stmt)
+                        db_records = result.scalars().all()
+                        logger.info("[CLUB100] Club 100 database populated with fresh data")
+                        
+                        # Group the newly fetched data
+                        result_by_sport = {
+                            "nba": [],
+                            "nfl": [],
+                            "mlb": [],
+                            "nhl": [],
+                            "soccer": []
+                        }
+                        
+                        for record in db_records:
+                            player_dict = {
+                                "player_id": record.player_id,
+                                "name": record.name,
+                                "team": record.team,
+                                "sport": record.sport,
+                                "position": record.position,
+                                "prop_line": record.prop_line,
+                                "consecutive_games": record.consecutive_games,
+                                "last_4_games": record.last_4_games,
+                                "last_5_games": record.last_5_games,
+                            }
+                            
+                            if record.sport in result_by_sport:
+                                result_by_sport[record.sport].append(player_dict)
+                        
+                        self._cache["club100_data"] = result_by_sport
+                        self._cache["club100_timestamp"] = current_time
+                        
+                        logger.info(f"[CLUB100] Generated fresh data: NBA={len(result_by_sport['nba'])}, NFL={len(result_by_sport['nfl'])}, "
+                                   f"MLB={len(result_by_sport['mlb'])}, NHL={len(result_by_sport['nhl'])}, "
+                                   f"Soccer={len(result_by_sport['soccer'])}")
+                        
+                        return result_by_sport
+                    else:
+                        logger.error("[CLUB100] Failed to save fresh Club 100 data to database")
+                else:
+                    logger.warning("[CLUB100] No fresh Club 100 data could be generated")
+                
                 empty_data = {"nba": [], "nfl": [], "mlb": [], "nhl": [], "soccer": []}
                 self._cache["club100_data"] = empty_data
                 self._cache["club100_timestamp"] = current_time
