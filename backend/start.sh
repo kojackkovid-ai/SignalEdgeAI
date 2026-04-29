@@ -21,4 +21,4 @@ python check_startup.py || echo "⚠️  Startup verification had issues (will r
 
 echo ""
 echo "Starting API server on $API_HOST:${API_PORT:-8000}..."
-exec python -m uvicorn app.main:app --host "$API_HOST" --port "${API_PORT:-8000}" --reload
+exec python -m uvicorn app.main:app --host "$API_HOST" --port "${API_PORT:-8000}"

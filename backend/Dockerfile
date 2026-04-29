@@ -25,6 +25,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     postgresql-client \
+    libpq-dev \
     curl \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
@@ -68,7 +69,7 @@ RUN mkdir -p ./ml-models/trained
 USER appuser
 
 # Expose the port that the application listens on.
-EXPOSE 8000
+EXPOSE 8080
 
 # Run the application.
 CMD ["/app/start.sh"]

@@ -1,6 +1,7 @@
 import os
 import warnings
 import logging
+from sqlalchemy.engine import make_url, URL
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import text
@@ -32,14 +33,49 @@ def create_database_engine():
     
     # PostgreSQL for production/Docker
     print(f"[DATABASE] Configuring PostgreSQL connection pool (pool_size=20, max_overflow=40)")
-    engine = create_async_engine(
-        DATABASE_URL,
-        echo=False,
-        future=True,
-        pool_pre_ping=True,
-        pool_size=20,
-        max_overflow=40
-    )
+    connect_args = {}
+    try:
+        parsed_url = make_url(DATABASE_URL)
+        drivername = str(parsed_url.drivername)
+        if drivername in ("postgres", "postgresql"):
+            drivername = "postgresql+asyncpg"
+
+        query_params = dict(parsed_url.query) if parsed_url.query else {}
+        sslmode = query_params.pop("sslmode", None)
+        if sslmode is not None:
+            connect_args["ssl"] = False if sslmode.lower() == "disable" else True
+            print(f"[DATABASE] Converted sslmode={sslmode} -> ssl={connect_args['ssl']}")
+
+        parsed_url = URL.create(
+            drivername=drivername,
+            username=parsed_url.username,
+            password=parsed_url.password,
+            host=parsed_url.host,
+            port=parsed_url.port,
+            database=parsed_url.database,
+            query=query_params or None
+        )
+        DATABASE_URL = str(parsed_url)
+    except Exception as e:
+        logger.warning(f"[DATABASE] Could not normalize database URL driver: {e}")
+
+    safe_db_url = DATABASE_URL
+    if "@" in DATABASE_URL:
+        safe_db_url = DATABASE_URL.replace(DATABASE_URL.split('@')[-1], '***')
+
+    print(f"[DATABASE] Using DATABASE_URL: {safe_db_url}")
+    connect_args = connect_args or {}
+    engine_kwargs = {
+        "echo": False,
+        "future": True,
+        "pool_pre_ping": True,
+        "pool_size": 20,
+        "max_overflow": 40,
+        "connect_args": connect_args,
+    }
+    print(f"[DATABASE] connect_args: {connect_args}")
+
+    engine = create_async_engine(DATABASE_URL, **engine_kwargs)
     
     print(f"[DATABASE] [OK] PostgreSQL engine created successfully")
     return engine

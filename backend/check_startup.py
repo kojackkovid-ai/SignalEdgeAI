@@ -7,8 +7,8 @@ import os
 import sys
 import asyncio
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import create_async_engine
 from app.config import settings
+from app.database import create_database_engine
 
 def is_running_in_docker():
     """Check if this script is running inside a Docker container"""
@@ -29,12 +29,7 @@ async def check_database_connection():
         print(f"[STARTUP] Using host port mapping for database connection")
     
     try:
-        engine = create_async_engine(
-            db_url,
-            echo=False,
-            future=True,
-            pool_pre_ping=True
-        )
+        engine = create_database_engine()
         
         async with engine.begin() as conn:
             result = await conn.execute(text("SELECT 1"))
