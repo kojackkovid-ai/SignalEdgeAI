@@ -57,8 +57,9 @@ RUN chmod +x /app/start.sh
 COPY backend/app ./app
 # Copy backend check script
 COPY backend/check_startup.py ./check_startup.py
-# Copy ml-models for model serving
-COPY ml-models ./ml-models
+
+# Create ml-models directory structure even if not populated
+RUN mkdir -p ./ml-models/trained
 
 # Switch to the non-privileged user to run the application.
 USER appuser
