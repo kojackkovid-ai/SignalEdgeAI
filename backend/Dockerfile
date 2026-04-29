@@ -58,6 +58,9 @@ COPY backend/app ./app
 # Copy backend check script
 COPY backend/check_startup.py ./check_startup.py
 
+# Copy frontend build output to static directory
+COPY frontend/dist ./static
+
 # Create ml-models directory structure even if not populated
 RUN mkdir -p ./ml-models/trained
 
