@@ -293,3 +293,37 @@ class SubscriptionPlan(Base):
     support_level = Column(String)
     
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Club100Data(Base):
+    """Store Club 100 elite athletes data for daily refresh"""
+    __tablename__ = "club_100_data"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    
+    # Sport
+    sport = Column(String, index=True)  # nba, nfl, mlb, nhl, soccer
+    
+    # Player info
+    player_id = Column(String, unique=True, index=True)
+    name = Column(String)
+    team = Column(String)
+    position = Column(String)
+    
+    # Prop details
+    prop_line = Column(String)  # e.g., "Over 24.5 Points"
+    
+    # Performance data
+    consecutive_games = Column(Integer)  # Number of consecutive games hitting the line
+    
+    # Recent form (last 4 and 5 games)
+    last_4_games = Column(JSON)  # {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}
+    last_5_games = Column(JSON)  # {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}
+    
+    # Update tracking
+    data_date = Column(DateTime, index=True)  # Date this data was added/updated
+    source = Column(String, default="linemate.io")  # Data source
+    
+    # Metadata
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

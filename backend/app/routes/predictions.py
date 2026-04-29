@@ -925,7 +925,7 @@ async def get_predictions(
         for pred in predictions:
             # ===== CLUB 100 ACCESS CHECK =====
             is_club_100_pick = pred.get('is_club_100_pick', False)
-            if is_club_100_pick and not user.club_100_unlocked:
+            if is_club_100_pick and not bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn.club_100_unlocked:
                 # User doesn't have Club 100 access - filter out this prediction
                 logger.info(f"[GET_PREDICTIONS] Filtering Club 100 prediction {pred['id']} - user not unlocked")
                 continue
@@ -1749,85 +1749,49 @@ async def get_club_100_platform_metrics(
 
 @router.post("/club-100/update-data")
 async def update_club_100_data(
-    request: Dict[str, Any],
+    db: AsyncSession = Depends(get_db),
     current_user: str = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """
-    Admin endpoint to manually update Club 100 data
-    Requires authentication, but allows refreshing the cached data
+    Admin endpoint to manually update Club 100 data in database
+    Fetches fresh data and saves to database for daily refresh
     """
     try:
         logger.info(f"[CLUB100] User {current_user} requesting data update")
         
-        # Get the service
-        service = get_prediction_service().club_100_service
+        # Generate fresh Club 100 data (with rotation based on day)
+        from app.services.club_100_service import Club100Service
+        club_100_service = Club100Service()
+        fresh_data = await club_100_service.get_fresh_club_100_data(db)
         
-        # Generate fresh data (this simulates scraping)
-        fresh_data = _generate_fresh_club100_data()
-        
-        # Update the cache
-        success = await service.update_club_100_data(fresh_data)
+        # Save to database
+        success = await club_100_service.update_club_100_data_db(db, fresh_data)
         
         if success:
-            logger.info("[CLUB100] Data update successful")
+            logger.info("[CLUB100] ✅ Data update successful - saved to database")
             return {
                 "success": True,
-                "message": "Club 100 data updated successfully",
+                "message": "Club 100 data updated successfully and saved to database",
                 "updated_at": datetime.utcnow().isoformat(),
                 "sports_updated": list(fresh_data.keys()),
-                "total_players": sum(len(players) for players in fresh_data.values())
+                "total_players": sum(len(players) for players in fresh_data.values()),
+                "data_summary": {sport: len(players) for sport, players in fresh_data.items()}
             }
         else:
-            logger.error("[CLUB100] Data update failed")
-            return {
-                "success": False,
-                "message": "Failed to update Club 100 data"
-            }
+            logger.error("[CLUB100] ❌ Data update failed")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update Club 100 data in database"
+            )
             
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"[CLUB100] Error updating data: {str(e)}", exc_info=True)
-        return {
-            "success": False,
-            "message": f"Error updating data: {str(e)}"
-        }
-
-
-def _generate_fresh_club100_data() -> Dict[str, List[Dict[str, Any]]]:
-    """
-    Generate fresh Club 100 data
-    This is a placeholder that rotates data based on current date
-    In production, this would scrape from Linemate.io
-    """
-    from datetime import datetime
-    
-    current_date = datetime.utcnow().date()
-    day_of_month = current_date.day
-    
-    # Import here to avoid circular imports
-    from app.services.club_100_service import Club100Service
-    
-    # Create a temporary service instance to get fallback data
-    temp_service = Club100Service()
-    
-    # Get the rotated data based on day
-    nba_players = temp_service._get_linemate_nba_data()
-    nfl_players = temp_service._get_linemate_nfl_data()
-    mlb_players = temp_service._get_linemate_mlb_data()
-    nhl_players = temp_service._get_linemate_nhl_data()
-    soccer_players = temp_service._get_linemate_soccer_data()
-    
-    # Rotate the order based on day to simulate fresh data
-    if day_of_month % 2 == 0:
-        nba_players = nba_players[::-1]  # Reverse order
-        nfl_players = nfl_players[::-1]
-    
-    return {
-        "nba": nba_players[:2],  # Limit to 2 players per sport for demo
-        "nfl": nfl_players[:2],
-        "mlb": mlb_players[:2],
-        "nhl": nhl_players[:2],
-        "soccer": soccer_players[:2]
-    }
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating data: {str(e)}"
+        )
 
 
 # ====== TEST ENDPOINT (No Auth Required) ======

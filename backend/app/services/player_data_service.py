@@ -247,8 +247,8 @@ class PlayerDataService:
                         stats=player_stat.get("stats", {}),
                         opponent=player_stat.get("opponent"),
                         home_away=player_stat.get("home_away"),
-                        team_score=game_data.get("team_score"),
-                        opponent_score=game_data.get("opponent_score"),
+                        team_score=player_stat.get("team_score") if player_stat.get("team_score") is not None else game_data.get("team_score"),
+                        opponent_score=player_stat.get("opponent_score") if player_stat.get("opponent_score") is not None else game_data.get("opponent_score"),
                     )
                     
                     if log_created:
@@ -300,38 +300,40 @@ class PlayerDataService:
             home_score = int(home_team.get("score", 0))
             away_score = int(away_team.get("score", 0))
             
-            # Extract player stats
+            # Extract player stats from each team
             player_stats = []
-            
-            # Process home team players
+
             player_stats.extend(
                 self._extract_player_stats_from_team(
                     home_team,
                     sport,
                     home_team_name,
                     away_team_name,
-                    "home"
+                    "home",
+                    home_score,
+                    away_score,
                 )
             )
-            
-            # Process away team players
+
             player_stats.extend(
                 self._extract_player_stats_from_team(
                     away_team,
                     sport,
                     away_team_name,
                     home_team_name,
-                    "away"
+                    "away",
+                    away_score,
+                    home_score,
                 )
             )
-            
+
             return {
                 "event_id": event_id,
                 "date": date,
                 "sport_key": self.SPORT_MAPPING[sport]["api_path"],
                 "player_stats": player_stats,
-                "team_score": home_score,
-                "opponent_score": away_score,
+                "team_score": None,
+                "opponent_score": None,
             }
             
         except Exception as e:
@@ -344,80 +346,76 @@ class PlayerDataService:
         sport: str,
         team_name: str,
         opponent_name: str,
-        home_away: str
+        home_away: str,
+        team_score: Optional[int] = None,
+        opponent_score: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """Extract player statistics from a team's competition data"""
-        players = []
+        players_by_id = {}
         
-        # ESPN provides different player stat structures per sport
-        # Leaders is an array of top performers per category
-        leaders = team.get("leaders", [])
+        # ESPN provides a list of leader categories, each with its own leaders array
+        leader_categories = team.get("leaders", [])
         
-        # Get athletes data if available
-        athletes = team.get("athletes", [])
-        
-        # Try to get stats from leaders
-        for leader in leaders:
-            try:
-                athlete = leader.get("displayName", "")
-                player_id = leader.get("id")
-                
-                # Get stats object
-                stats = {}
-                if "statisticalCategories" in leader:
-                    for stat_cat in leader.get("statisticalCategories", []):
-                        stat_name = stat_cat.get("name", "").lower().replace(" ", "_")
-                        stat_value = stat_cat.get("displayValue", 0)
-                        try:
-                            stats[stat_name] = float(stat_value)
-                        except (ValueError, TypeError):
-                            stats[stat_name] = stat_value
-                
-                if athlete and stats:
-                    players.append({
-                        "name": athlete,
+        for category in leader_categories:
+            category_name = category.get("name") or category.get("displayName")
+            if not category_name:
+                continue
+            stat_key = category_name.lower().replace(" ", "_")
+            for leader in category.get("leaders", []):
+                athlete = leader.get("athlete") or {}
+                if not athlete:
+                    continue
+                player_id = athlete.get("id")
+                player_name = athlete.get("fullName") or athlete.get("displayName")
+                if not player_name:
+                    continue
+                stat_value = leader.get("value", leader.get("displayValue"))
+                try:
+                    stat_value = float(stat_value)
+                except (ValueError, TypeError):
+                    pass
+                key = player_id or player_name
+                if key not in players_by_id:
+                    players_by_id[key] = {
+                        "name": player_name,
                         "player_id": player_id,
                         "team": team_name,
                         "opponent": opponent_name,
                         "home_away": home_away,
-                        "stats": stats,
-                    })
-                    
-            except Exception as e:
-                logger.debug(f"Error extracting leader stats: {e}")
-                continue
+                        "team_score": team_score,
+                        "opponent_score": opponent_score,
+                        "stats": {},
+                    }
+                players_by_id[key]["stats"][stat_key] = stat_value
         
-        # Fallback: try getting stats from athletes if available
-        if not players and athletes:
+        # If there are no leader categories, try direct athlete stats fallback
+        if not players_by_id:
+            athletes = team.get("athletes", [])
             for athlete in athletes:
-                try:
-                    name = athlete.get("displayName", "")
-                    player_id = athlete.get("id")
-                    
-                    stats = {}
-                    for stat in athlete.get("stats", []):
-                        stat_type = stat.get("name", "").lower().replace(" ", "_")
-                        stat_value = stat.get("displayValue", stat.get("value", 0))
-                        try:
-                            stats[stat_type] = float(stat_value)
-                        except (ValueError, TypeError):
-                            stats[stat_type] = stat_value
-                    
-                    if name:
-                        players.append({
-                            "name": name,
-                            "player_id": player_id,
-                            "team": team_name,
-                            "opponent": opponent_name,
-                            "home_away": home_away,
-                            "stats": stats if stats else {"games_played": 1},
-                        })
-                        
-                except Exception as e:
-                    logger.debug(f"Error extracting athlete stats: {e}")
+                name = athlete.get("fullName") or athlete.get("displayName")
+                player_id = athlete.get("id")
+                if not name:
                     continue
+                stats = {}
+                for stat in athlete.get("stats", []):
+                    stat_type = stat.get("name", "").lower().replace(" ", "_")
+                    stat_value = stat.get("displayValue", stat.get("value", 0))
+                    try:
+                        stats[stat_type] = float(stat_value)
+                    except (ValueError, TypeError):
+                        stats[stat_type] = stat_value
+                players_by_id[player_id or name] = {
+                    "name": name,
+                    "player_id": player_id,
+                    "team": team_name,
+                    "opponent": opponent_name,
+                    "home_away": home_away,
+                    "team_score": team_score,
+                    "opponent_score": opponent_score,
+                    "stats": stats if stats else {"games_played": 1},
+                }
         
-        return players
+        return list(players_by_id.values())
     
     async def _get_or_create_player(
         self,
@@ -456,7 +454,6 @@ class PlayerDataService:
                 team_key=team,
                 sport_key=sport_key,
                 position=None,  # Extract from data if available
-                active=True,
             )
             
             # Set external IDs based on sport
