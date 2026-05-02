@@ -464,24 +464,15 @@ except Exception as e:
 
 # CORS configuration - MUST come before routes
 # Restrict to specific origins for security (update for production)
-allowed_origins = [
-    "http://localhost:3000",      # Local development
-    "http://localhost",            # Local
-    "https://localhost",           # Local HTTPS
-    "http://127.0.0.1:3000",      # Loopback
-    "https://127.0.0.1:3000",     # Loopback HTTPS
-    # Production origins
-    "https://signaledge-ai.fly.dev",
-    "http://signaledge-ai.fly.dev",
-]
+allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,  # Restrict to these origins only
-    allow_credentials=True,
+    allow_origins=allowed_origins,
+    allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept"],
-    max_age=3600,  # Preflight cache time
+    max_age=3600,
 )
 
 # Custom trusted host middleware that exempts health checks
@@ -491,23 +482,6 @@ async def trusted_host_middleware(request: Request, call_next):
     # Allow health and readiness checks from any host
     if request.url.path in ["/health", "/ready", "/live"]:
         return await call_next(request)
-
-    # For other requests, check trusted hosts
-    trusted_hosts = [
-        "localhost",
-        "127.0.0.1",
-        "signaledge-ai.fly.dev",
-        "yourdomain.com",
-        "www.yourdomain.com",
-    ]
-
-    host = request.headers.get("host", "").split(":")[0]  # Remove port if present
-    if host not in trusted_hosts:
-        logger.warning(f"Rejected request from untrusted host: {host} for path: {request.url.path}")
-        return JSONResponse(
-            status_code=400,
-            content={"error": "Bad Request", "message": "Host not allowed"}
-        )
 
     return await call_next(request)
 
