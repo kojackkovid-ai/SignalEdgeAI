@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuthStore } from '../utils/store';
 import { analyticsTracker } from '../utils/analytics';
@@ -12,6 +12,7 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   const [warning, setWarning] = useState('');
+  const [searchParams] = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,16 +25,11 @@ const Login: React.FC = () => {
       if (password.length > 72) setWarning('Password truncated to 72 characters before submission');
 
       const response = await api.login(email, truncatedPassword);
-      console.log('[Login] Response:', response);
       
       // Store auth token in localStorage FIRST
       localStorage.setItem('access_token', response.access_token);
       
-      // Verify it was saved
-      const savedToken = localStorage.getItem('access_token');
-      console.log('[Login] Token saved to localStorage:', savedToken ? `${savedToken.substring(0, 20)}...` : 'FAILED');
-      
-      // Then update store with token and user info
+      // Update store with token and user info
       const { setToken, setUser } = useAuthStore.getState();
       setToken(response.access_token);
       setUser({
@@ -47,12 +43,12 @@ const Login: React.FC = () => {
         roi: 0,  
       });
       
-      console.log('[Login] Token in store:', localStorage.getItem('access_token') ? '✓' : '✗');
-      
       // Track login event
       analyticsTracker.trackLogin(response.user_id).catch(() => {});
       
-      navigate('/dashboard');
+      // Redirect back to where the user came from, or dashboard
+      const redirectTo = searchParams.get('redirect') || '/dashboard';
+      navigate(redirectTo);
     } catch (err: any) {
       console.error('[Login] Error:', err);
       // Handle Pydantic validation errors (array of error objects)

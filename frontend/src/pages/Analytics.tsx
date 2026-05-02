@@ -57,6 +57,7 @@ const AnalyticsDashboard: React.FC = () => {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [sportFilter, setSportFilter] = useState<string>('');
 
   useEffect(() => {
@@ -65,6 +66,7 @@ const AnalyticsDashboard: React.FC = () => {
 
   const fetchAnalytics = async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = { days: parseInt(timeRange) };
       if (sportFilter) Object.assign(params, { sport_key: sportFilter });
@@ -81,15 +83,41 @@ const AnalyticsDashboard: React.FC = () => {
       setPerfectCalibration(calibrationRes.data.perfect_calibration);
       setPredictions(predictionsRes.data.predictions);
       setSummary(summaryRes.data);
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
+    } catch (err: any) {
+      console.error('Error fetching analytics:', err);
+      setError('Failed to load analytics data. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading analytics...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mb-4"></div>
+          <p className="text-slate-400 text-lg">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="text-5xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-white mb-2">Analytics Unavailable</h2>
+          <p className="text-slate-400 mb-6">{error}</p>
+          <button
+            onClick={fetchAnalytics}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const sportData = metrics?.by_sport ? Object.entries(metrics.by_sport).map(([sport, data]) => ({

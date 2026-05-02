@@ -230,7 +230,10 @@ async def admin_unlock_club100(
     (For testing or support purposes)
     """
     # Verify admin token
-    admin_secret = os.getenv("ADMIN_SECRET_KEY", "dev-admin-key")
+    admin_secret = os.getenv("ADMIN_SECRET_KEY")
+    if not admin_secret:
+        logger.error("ADMIN_SECRET_KEY environment variable is not set — admin endpoints disabled")
+        raise HTTPException(status_code=503, detail="Admin endpoints are not configured on this server")
     if admin_token != admin_secret:
         raise HTTPException(status_code=401, detail="Invalid admin token")
     

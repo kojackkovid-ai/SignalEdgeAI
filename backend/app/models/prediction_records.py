@@ -47,7 +47,7 @@ class PredictionRecord(Base):
     hit_amount = Column(Float, default=0.0)  # ROI if applicable
     
     # Relationships
-    # user = relationship("User", backref="prediction_records")
+    user = relationship("User", backref="prediction_records")
     
     # Indexes for fast queries
     __table_args__ = (

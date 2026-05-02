@@ -199,7 +199,7 @@ async def send_verification_email(
     <h2>Verify Your Email</h2>
     <p>Hi {user_name},</p>
     <p>Click the link below to verify your email address:</p>
-    <p><a href="http://localhost:5173/verify-email?token={token}" 
+    <p><a href="{get_settings().frontend_url}/verify-email?token={token}" 
            style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
            Verify Email
            </a></p>
@@ -370,7 +370,7 @@ async def send_test_email(
             'result': 'hit',
             'result_label': 'HIT ✓',
             'confidence': 75,
-            'dashboard_url': 'http://localhost:5173/dashboard',
+            'dashboard_url': f'{get_settings().frontend_url}/dashboard',
             'date': datetime.utcnow().strftime('%B %d, %Y'),
         }
         

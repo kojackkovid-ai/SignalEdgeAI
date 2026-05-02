@@ -27,9 +27,13 @@ const App: React.FC = () => {
   useEffect(() => {
     // Start monitoring token expiration
     tokenManager.startMonitoring(
-      // On token expired
+      // On token expired — preserve current location so user returns after re-login
       () => {
-        window.location.href = '/login';
+        const current = window.location.pathname + window.location.search;
+        const shouldPreserve = current !== '/' && current !== '/login' && current !== '/register';
+        window.location.href = shouldPreserve
+          ? `/login?redirect=${encodeURIComponent(current)}`
+          : '/login';
       },
       // On token refreshed
       (_newToken) => {}

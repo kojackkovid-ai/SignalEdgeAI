@@ -4,7 +4,7 @@ Database Models
 SQLAlchemy ORM models for the platform
 """
 
-from sqlalchemy import Column, String, Float, Integer, DateTime, Boolean, JSON, ForeignKey, Table
+from sqlalchemy import Column, String, Float, Integer, DateTime, Boolean, JSON, ForeignKey, Table, Index
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
@@ -114,6 +114,10 @@ class Prediction(Base):
         "User",
         secondary=user_predictions,
         back_populates="predictions"
+    )
+
+    __table_args__ = (
+        Index('idx_prediction_sport_event', 'sport_key', 'event_id'),
     )
 
 class ModelPerformance(Base):

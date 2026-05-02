@@ -403,6 +403,14 @@ async def get_event_props(
             # Validate each prop before returning
             validated_props = []
             validation_issues = 0
+
+            # Batch-fetch all followed prediction IDs in a single query (avoids N+1)
+            all_prop_ids = [p.get('id', '') for p in props_list if p.get('id')]
+            try:
+                followed_ids = await get_prediction_service().get_user_followed_ids(db, current_user_id, all_prop_ids)
+            except Exception as e:
+                logger.warning(f"[{request_id}] Error batch-fetching followed IDs: {e}")
+                followed_ids = set()
             
             for prop in props_list:
                 try:
@@ -418,15 +426,10 @@ async def get_event_props(
                     prop['daily_picks_used'] = daily_picks_used
                     prop['daily_picks_limit'] = daily_limit
                     
-                    # Check if user is already following this prediction
+                    # Check if user is already following this prediction (in-memory, no DB call)
                     prop_id = prop.get('id', '')
                     if prop_id:
-                        try:
-                            is_following = await get_prediction_service().is_following_prediction(db, current_user_id, prop_id)
-                            prop['is_locked'] = not is_following
-                        except Exception as e:
-                            logger.warning(f"[{request_id}] Error checking follow status for {prop_id}: {e}")
-                            prop['is_locked'] = True
+                        prop['is_locked'] = prop_id not in followed_ids
                     
                     # For Pro/Pro Plus/Elite users, always show models
                     # For lower tiers, only show models if already following (unlocked)

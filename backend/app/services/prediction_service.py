@@ -727,6 +727,21 @@ class PredictionService:
             logger.error(f"Error getting daily picks count: {e}", exc_info=True)
             return 0
 
+    async def get_user_followed_ids(self, db, user_id: str, prediction_ids: list) -> set:
+        """Batch check which of the given prediction IDs the user is following (single DB query)"""
+        try:
+            if not prediction_ids:
+                return set()
+            stmt = select(user_predictions.c.prediction_id).where(
+                (user_predictions.c.user_id == user_id) &
+                (user_predictions.c.prediction_id.in_(prediction_ids))
+            )
+            result = await db.execute(stmt)
+            return {row[0] for row in result.fetchall()}
+        except Exception as e:
+            logger.error(f"Error batch-checking followed predictions: {e}", exc_info=True)
+            return set()
+
     async def is_following_prediction(self, db, user_id: str, prediction_id: str) -> bool:
         """Check if user is already following a prediction"""
         try:

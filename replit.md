@@ -80,11 +80,22 @@ AI-powered sports prediction platform with ML ensemble models (XGBoost, LightGBM
 1. **Auth `/refresh` and `/logout` endpoints** - Fixed broken `Depends(lambda: ...)` pattern; now uses `Depends(get_auth_service().get_current_user)` — returns proper 401 for invalid tokens instead of 500.
 2. **Database migration startup error** - Fixed `InFailedSQLTransactionError` by detecting SQLite from the URL string instead of executing `SELECT sqlite_version()` which was aborting PostgreSQL transactions.
 3. **libgomp for XGBoost/LightGBM** - Backend workflow sets `LD_LIBRARY_PATH` to the 64-bit gcc-10 lib path; EnhancedMLService loads correctly.
-4. **Verbose console logging removed** - `api.ts` no longer logs every request/token; `Dashboard.tsx` removed all debug `console.log` statements; `tokenManager.ts` removed all monitoring noise; `App.tsx` removed startup debug logs.
-5. **Analytics retry storm fixed** - Retry interceptor now excludes `/analytics/event` URL via `excludeUrls` config; analytics failures are silently dropped as intended.
-6. **Retry stats logging removed** - Removed `logRetryStats` from `retry.ts` (was logging to console every minute).
-7. **React Router future flags** - Added `v7_startTransition` and `v7_relativeSplatPath` flags to `BrowserRouter` to silence upgrade warnings.
+4. **Verbose console logging removed** - `api.ts`, `Dashboard.tsx`, `tokenManager.ts`, `App.tsx`, `Payment.tsx`, `Login.tsx` — all debug `console.log` calls removed.
+5. **Analytics retry storm fixed** - Retry interceptor now excludes `/analytics/event` URL; analytics failures are silently dropped.
+6. **Retry stats logging removed** - Removed `logRetryStats` from `retry.ts`.
+7. **React Router future flags** - Added `v7_startTransition` and `v7_relativeSplatPath` flags to `BrowserRouter`.
 8. **Secret key** - Backend `.env` updated with a real cryptographic hex key.
+
+## Platform Review Improvements (Pass 2)
+9. **Security: Free tier upgrade endpoint disabled** - `POST /api/users/upgrade` had no payment verification (`# TODO: Verify payment with Stripe`). Any authenticated user could promote themselves to Elite for free. Now returns 403 directing to the proper payment flow.
+10. **Security: Admin secret hardened** - `club100_addon.py` was using `"dev-admin-key"` as a fallback default for `ADMIN_SECRET_KEY`. Now refuses to serve the admin endpoint (503) if the env var is not set.
+11. **Security: Hardcoded localhost URLs in emails fixed** - `email_tasks.py`, `email_integration_service.py`, `email.py` all had hardcoded `http://localhost:5173` links in email templates (verify email, dashboard links). Now all use `settings.frontend_url` (configurable via `FRONTEND_URL` env var).
+12. **Performance: N+1 query eliminated** - `GET /api/predictions/props/{sport}/{event_id}` was calling `is_following_prediction()` in a per-prop loop (one DB round-trip per prop, up to 50+ queries per request). Replaced with `get_user_followed_ids()` batch method — single query fetches all followed IDs, loop uses in-memory set membership.
+13. **Performance: Missing DB index added** - Added composite `Index('idx_prediction_sport_event', 'sport_key', 'event_id')` to `Prediction` model — most prop lookups filter by both fields.
+14. **Data integrity: PredictionRecord.user relationship restored** - The `user = relationship("User", backref="prediction_records")` was commented out, forcing manual joins everywhere. Now uncommented.
+15. **UX: Payment page debug block removed** - The checkout page was showing a developer "Debug Info" panel (`Auth ✅ / Stripe Promise ✅ / Client Secret ✅ / Loading`) to all users. Removed.
+16. **UX: Analytics error state added** - Analytics page would get stuck showing "Loading analytics..." indefinitely on API failure. Now shows a proper error message with a "Try Again" button.
+17. **UX: Login redirect URL preserved** - When the token monitor redirects an expired session to `/login`, it now appends `?redirect=/original/path`. The login page reads this param and navigates back after success so users don't lose their place.
 
 ## Optional Integrations (not required for basic functionality)
 - **OddsAPI** - Real-time sports odds (ODDS_API_KEY env var)

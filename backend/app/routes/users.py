@@ -166,37 +166,12 @@ async def upgrade_subscription(
     current_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Upgrade user subscription tier after payment"""
-    try:
-        # Validate tier
-        valid_tiers = ['basic', 'pro', 'elite']
-        if request.new_tier not in valid_tiers:
-            raise HTTPException(status_code=400, detail="Invalid tier")
-        
-        # Get user
-        user = await get_auth_service().get_user_by_id(db, current_user_id)
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        
-        # TODO: Verify payment with Stripe/payment processor
-        # payment_verified = verify_payment(request.amount, ...)
-        
-        # Update user tier
-        user.subscription_tier = request.new_tier
-        await db.commit()
-        await db.refresh(user)
-        
-        logger.info(f"User {current_user_id} upgraded to {request.new_tier}")
-        
-        return {
-            "message": "Subscription upgraded successfully",
-            "new_tier": user.subscription_tier
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error upgrading subscription: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Subscription upgrades must be processed through the payment system."""
+    raise HTTPException(
+        status_code=403,
+        detail="Subscription upgrades must be processed through the payment system. "
+               "Please use /api/payment/create-payment-intent."
+    )
 
 @router.get("/stats")
 async def get_user_stats(

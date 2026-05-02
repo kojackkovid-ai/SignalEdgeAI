@@ -167,7 +167,7 @@ class EmailIntegrationService:
             
             context = {
                 'user_name': user.username,
-                'verification_url': f'http://localhost:5173/verify-email?token={verification_token}',
+                'verification_url': f'{self.settings.frontend_url}/verify-email?token={verification_token}',
             }
             
             result = await self.mailgun_service.send_templated_email(

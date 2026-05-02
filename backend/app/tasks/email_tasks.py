@@ -89,7 +89,7 @@ async def send_daily_digest(db: AsyncSession):
                         }
                         for p in picks
                     ],
-                    'dashboard_url': 'http://localhost:5173/dashboard'
+                    'dashboard_url': f'{settings.frontend_url}/dashboard'
                 }
                 
                 # Send email
@@ -208,7 +208,7 @@ async def send_weekly_digest(db: AsyncSession):
                     'win_rate': f"{win_rate:.1f}",
                     'avg_confidence': f"{avg_confidence:.1f}",
                     'top_sports': top_sports,
-                    'dashboard_url': 'http://localhost:5173/dashboard'
+                    'dashboard_url': f'{settings.frontend_url}/dashboard'
                 }
                 
                 # Send email
@@ -297,7 +297,7 @@ async def send_accuracy_milestone_emails(db: AsyncSession):
                             'hits': hits,
                             'misses': total - hits,
                             'avg_confidence': f"{avg_confidence:.1f}",
-                            'dashboard_url': 'http://localhost:5173/dashboard'
+                            'dashboard_url': f'{settings.frontend_url}/dashboard'
                         }
                         
                         send_result = await mailgun_service.send_templated_email(
