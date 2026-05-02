@@ -1,0 +1,41 @@
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |   File "/usr/local/lib/python3.12/site-packages/sqlalchemy/dialects/postgresql/asyncpg.py", line 936, in connect
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |     await_only(creator_fn(*arg, **kw)),
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |   File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 125, in await_only
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |     return current.driver.switch(awaitable)  # type: ignore[no-any-return]
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |   File "/usr/local/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py", line 185, in greenlet_spawn
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |     value = await result
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |             ^^^^^^^^^^^^
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |   File "/usr/local/lib/python3.12/site-packages/asyncpg/connection.py", line 2329, in connect
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |     return await connect_utils._connect(
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |   File "/usr/local/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 991, in _connect
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |     conn = await _connect_addr(
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |            ^^^^^^^^^^^^^^^^^^^^
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |   File "/usr/local/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 824, in _connect_addr
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |     return await __connect_addr(params, False, *args)
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |   File "/usr/local/lib/python3.12/site-packages/asyncpg/connect_utils.py", line 876, in __connect_addr
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    |     await connected
+> [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    | asyncpg.exceptions.ConnectionDoesNotExistError: connection was closed in the middle of operation
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    +------------------------------------
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]During handling of the above exception, another exception occurred:
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]Traceback (most recent call last):
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]  File "/usr/local/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 408, in run_asgi
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    result = await app(  # type: ignore[func-returns-value]
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]  File "/usr/local/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    return await self.app(scope, receive, send)
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]  File "/usr/local/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    await super().__call__(scope, receive, send)
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]  File "/usr/local/lib/python3.12/site-packages/starlette/applications.py", line 116, in __call__
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    await self.middleware_stack(scope, receive, send)
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    raise exc
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    await self.app(scope, receive, _send)
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]  File "/usr/local/lib/python3.12/site-packages/starlette/middleware/base.py", line 189, in __call__
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]    with collapse_excgroups():
+  [2m2026-04-30T12:25:14Z[0m app[843e40f2294d58] [32mdfw[0m [[34minfo[0m]         ^^^^^^^^^^^^^^^^^^^^

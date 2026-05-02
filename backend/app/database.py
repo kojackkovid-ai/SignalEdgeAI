@@ -42,6 +42,15 @@ def create_database_engine():
 
         query_params = dict(parsed_url.query) if parsed_url.query else {}
         sslmode = query_params.pop("sslmode", None)
+        if sslmode is None:
+            sslmode = settings.db_sslmode or os.getenv("PGSSLMODE")
+            if sslmode:
+                print(f"[DATABASE] Using SSL mode from environment: {sslmode}")
+
+        if sslmode is None and parsed_url.host and str(parsed_url.host).endswith(".flycast"):
+            sslmode = "disable"
+            print(f"[DATABASE] Detected Fly internal host {parsed_url.host}, defaulting sslmode=disable")
+
         if sslmode is not None:
             connect_args["ssl"] = False if sslmode.lower() == "disable" else True
             print(f"[DATABASE] Converted sslmode={sslmode} -> ssl={connect_args['ssl']}")
@@ -55,13 +64,17 @@ def create_database_engine():
             database=parsed_url.database,
             query=query_params or None
         )
-        DATABASE_URL = str(parsed_url)
+        DATABASE_URL = parsed_url
+        safe_db_url = parsed_url.render_as_string(hide_password=True)
     except Exception as e:
         logger.warning(f"[DATABASE] Could not normalize database URL driver: {e}")
+        safe_db_url = DATABASE_URL if isinstance(DATABASE_URL, str) else DATABASE_URL.render_as_string(hide_password=True)
 
-    safe_db_url = DATABASE_URL
-    if "@" in DATABASE_URL:
-        safe_db_url = DATABASE_URL.replace(DATABASE_URL.split('@')[-1], '***')
+    if isinstance(DATABASE_URL, str):
+        if "@" in DATABASE_URL:
+            safe_db_url = DATABASE_URL.replace(DATABASE_URL.split('@')[-1], '***')
+    else:
+        safe_db_url = DATABASE_URL.render_as_string(hide_password=True)
 
     print(f"[DATABASE] Using DATABASE_URL: {safe_db_url}")
     connect_args = connect_args or {}
@@ -200,7 +213,13 @@ async def init_db():
 async def get_db():
     """Get database session"""
     async with AsyncSessionLocal() as session:
-        yield session
+        try:
+            yield session
+        finally:
+            try:
+                await session.rollback()
+            except Exception as rollback_err:
+                logger.debug(f"[DATABASE] Session rollback failed during cleanup: {rollback_err}")
 
 async def get_async_session():
     """Get async database session"""

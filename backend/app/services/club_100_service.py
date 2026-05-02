@@ -4,8 +4,10 @@ Handles logic for the Club 100 feature - showcasing REAL athletes who cleared th
 Uses database storage for daily refresh instead of broken external scraping
 """
 
+import asyncio
 import logging
-from typing import List, Dict, Any, Optional
+import time
+from typing import Any, Dict, List, Optional, cast
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, func, desc
@@ -56,9 +58,9 @@ class Club100Service:
     }
     
     def __init__(self):
-        # Cache still useful for reducing DB hits
+        # Short cache to reduce ESPN API hits (NOT for storing stale data)
         self._cache = {}
-        self._cache_ttl = 24 * 60 * 60  # 24 hours cache
+        self._cache_ttl = 5 * 60  # 5 minute cache only - data changes daily
         self._last_update = {}
     
     async def is_club_100_accessible(self, db: AsyncSession, user_id: str) -> tuple[bool, str]:
@@ -67,8 +69,13 @@ class Club100Service:
     
     async def get_club_100_data(self, db: AsyncSession) -> Dict[str, List[Dict[str, Any]]]:
         """
-        Get REAL athletes who cleared their prop lines from database
-        Database is updated daily via scheduled task or API endpoint
+        Get REAL athletes who cleared their prop lines - ALWAYS FRESH DATA
+        
+        Data flow:
+        1. Check 5-minute cache (to reduce ESPN API hits)
+        2. ALWAYS attempt to fetch FRESH data from ESPN today's games
+        3. Use database only as fallback if ESPN fails
+        4. NEVER serve stale data - sports betting requires current info
         
         Returns:
         {
@@ -79,35 +86,65 @@ class Club100Service:
             "soccer": [...players...]
         }
         """
-        import time
         current_time = time.time()
-        
-        # Check if we have cached data
+
+        # 1. Check SHORT cache (5 minutes only)
         if "club100_data" in self._cache and \
            current_time - self._cache.get("club100_timestamp", 0) < self._cache_ttl:
-            logger.info("[CLUB100] Using cached Club 100 data")
+            logger.info("[CLUB100] ✅ Using cached Club 100 data (fresh within 5 min)")
             return self._cache["club100_data"]
-        
-        logger.info("[CLUB100] Fetching Club 100 data from database")
+
+        logger.info("[CLUB100] 🔄 Cache expired - fetching FRESH data from ESPN")
+
         try:
-            # Fetch data from database grouped by sport
-            stmt = select(Club100Data).order_by(desc(Club100Data.data_date))
+            # 2. Always try to fetch fresh data - use SIMPLE method first (no historical data needed)
+            try:
+                fresh_data = await asyncio.wait_for(self.get_simple_fresh_club_100_data(db), timeout=12.0)
+            except asyncio.TimeoutError:
+                logger.warning("[CLUB100] Simple fresh data fetch timed out after 12 seconds")
+                fresh_data = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+
+            if fresh_data and any(len(players) for players in fresh_data.values()):
+                logger.info(f"[CLUB100] ✅ Fresh ESPN data obtained: {sum(len(v) for v in fresh_data.values())} players")
+                self._cache["club100_data"] = fresh_data
+                self._cache["club100_timestamp"] = current_time
+                return fresh_data
+
+            # If simple method returned nothing, try complex method with history
+            logger.info("[CLUB100] Simple method returned no data - trying historical analysis...")
+            try:
+                fresh_data = await asyncio.wait_for(self.get_fresh_club_100_data(db), timeout=14.0)
+            except asyncio.TimeoutError:
+                logger.warning("[CLUB100] Historical fresh data fetch timed out after 14 seconds")
+                fresh_data = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+
+            if fresh_data and any(len(players) for players in fresh_data.values()):
+                logger.info(f"[CLUB100] ✅ Historical ESPN data obtained: {sum(len(v) for v in fresh_data.values())} players")
+                self._cache["club100_data"] = fresh_data
+                self._cache["club100_timestamp"] = current_time
+                return fresh_data
+
+            # If no current data available, look ahead to future games
+            logger.info("[CLUB100] No current data available - looking ahead to future games...")
+            try:
+                lookahead_data = await asyncio.wait_for(self.get_lookahead_club_100_data(db), timeout=15.0)
+            except asyncio.TimeoutError:
+                logger.warning("[CLUB100] Lookahead data fetch timed out after 15 seconds")
+                lookahead_data = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+
+            if lookahead_data and any(len(players) for players in lookahead_data.values()):
+                logger.info(f"[CLUB100] ✅ Lookahead data obtained: {sum(len(v) for v in lookahead_data.values())} players")
+                self._cache["club100_data"] = lookahead_data
+                self._cache["club100_timestamp"] = current_time
+                return lookahead_data
+
+            # 3. If fresh data generation failed, try database as FALLBACK ONLY
+            logger.warning("[CLUB100] No fresh ESPN data available - using database fallback")
+            stmt = select(Club100Data).order_by(desc(Club100Data.data_date)).limit(100)
             result = await db.execute(stmt)
             db_records = result.scalars().all()
-            
+
             if db_records:
-                latest_record = db_records[0]
-                latest_date = latest_record.data_date
-                if latest_date is None or latest_date.date() < datetime.utcnow().date():
-                        logger.info("[CLUB100] Database Club 100 data is stale or older than today. Attempting refresh.")
-                        fresh_data = await self.get_fresh_club_100_data(db)
-                        if fresh_data and any(len(players) for players in fresh_data.values()):
-                            refresh_success = await self.update_club_100_data_db(db, fresh_data)
-                            if refresh_success:
-                                result = await db.execute(stmt)
-                                db_records = result.scalars().all()
-                                logger.info("[CLUB100] Club 100 database refreshed and reloaded after stale detection")
-                # Group by sport
                 result_by_sport = {
                     "nba": [],
                     "nfl": [],
@@ -115,89 +152,104 @@ class Club100Service:
                     "nhl": [],
                     "soccer": []
                 }
-                
+
                 for record in db_records:
+                    sport_key = getattr(record, "sport", None)
                     player_dict = {
                         "player_id": record.player_id,
                         "name": record.name,
                         "team": record.team,
-                        "sport": record.sport,
+                        "sport": sport_key,
                         "position": record.position,
                         "prop_line": record.prop_line,
                         "consecutive_games": record.consecutive_games,
                         "last_4_games": record.last_4_games,
                         "last_5_games": record.last_5_games,
                     }
-                    
-                    if record.sport in result_by_sport:
-                        result_by_sport[record.sport].append(player_dict)
-                
+                    if sport_key in result_by_sport:
+                        result_by_sport[sport_key].append(player_dict)
+
                 self._cache["club100_data"] = result_by_sport
                 self._cache["club100_timestamp"] = current_time
-                
-                logger.info(f"[CLUB100] Fetched from DB: NBA={len(result_by_sport['nba'])}, NFL={len(result_by_sport['nfl'])}, "
-                           f"MLB={len(result_by_sport['mlb'])}, NHL={len(result_by_sport['nhl'])}, "
-                           f"Soccer={len(result_by_sport['soccer'])}")
-                
+                logger.warning(f"[CLUB100] ⚠️ Using stale database data: NBA={len(result_by_sport['nba'])}, NFL={len(result_by_sport['nfl'])}, "
+                              f"MLB={len(result_by_sport['mlb'])}, NHL={len(result_by_sport['nhl'])}, "
+                              f"Soccer={len(result_by_sport['soccer'])}")
                 return result_by_sport
-            else:
-                logger.warning("[CLUB100] No Club 100 data available in database - attempting to generate fresh data")
-                # No data exists - try to generate fresh data
-                fresh_data = await self.get_fresh_club_100_data(db)
-                if fresh_data and any(len(players) for players in fresh_data.values()):
-                    refresh_success = await self.update_club_100_data_db(db, fresh_data)
-                    if refresh_success:
-                        # Re-fetch from database after successful update
-                        result = await db.execute(stmt)
-                        db_records = result.scalars().all()
-                        logger.info("[CLUB100] Club 100 database populated with fresh data")
-                        
-                        # Group the newly fetched data
-                        result_by_sport = {
-                            "nba": [],
-                            "nfl": [],
-                            "mlb": [],
-                            "nhl": [],
-                            "soccer": []
-                        }
-                        
-                        for record in db_records:
-                            player_dict = {
-                                "player_id": record.player_id,
-                                "name": record.name,
-                                "team": record.team,
-                                "sport": record.sport,
-                                "position": record.position,
-                                "prop_line": record.prop_line,
-                                "consecutive_games": record.consecutive_games,
-                                "last_4_games": record.last_4_games,
-                                "last_5_games": record.last_5_games,
-                            }
-                            
-                            if record.sport in result_by_sport:
-                                result_by_sport[record.sport].append(player_dict)
-                        
-                        self._cache["club100_data"] = result_by_sport
-                        self._cache["club100_timestamp"] = current_time
-                        
-                        logger.info(f"[CLUB100] Generated fresh data: NBA={len(result_by_sport['nba'])}, NFL={len(result_by_sport['nfl'])}, "
-                                   f"MLB={len(result_by_sport['mlb'])}, NHL={len(result_by_sport['nhl'])}, "
-                                   f"Soccer={len(result_by_sport['soccer'])}")
-                        
-                        return result_by_sport
-                    else:
-                        logger.error("[CLUB100] Failed to save fresh Club 100 data to database")
-                else:
-                    logger.warning("[CLUB100] No fresh Club 100 data could be generated")
-                
-                empty_data = {"nba": [], "nfl": [], "mlb": [], "nhl": [], "soccer": []}
-                self._cache["club100_data"] = empty_data
-                self._cache["club100_timestamp"] = current_time
-                return empty_data
-                
+
+            logger.warning("[CLUB100] ⚠️ No real Club 100 data found in DB fallback; returning empty result")
+            empty_result = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+            self._cache["club100_data"] = empty_result
+            self._cache["club100_timestamp"] = current_time
+            return empty_result
+
         except Exception as e:
-            logger.error(f"[CLUB100] Error fetching data: {str(e)}", exc_info=True)
-            raise
+            logger.error(f"[CLUB100] ❌ Error fetching data: {str(e)}", exc_info=True)
+            logger.warning("[CLUB100] Returning empty real-data result after fetch error")
+            empty_result = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+            self._cache["club100_data"] = empty_result
+            self._cache["club100_timestamp"] = current_time
+            return empty_result
+
+    async def get_club_100_data_from_db(self, db: AsyncSession) -> Dict[str, List[Dict[str, Any]]]:
+        """Read stored Club 100 data from the database as a fast fallback."""
+        try:
+            stmt = select(Club100Data).order_by(desc(Club100Data.data_date)).limit(100)
+            result = await db.execute(stmt)
+            db_records = result.scalars().all()
+
+            result_by_sport = {
+                "nba": [],
+                "nfl": [],
+                "mlb": [],
+                "nhl": [],
+                "soccer": []
+            }
+
+            for record in db_records:
+                sport_key = cast(Optional[str], record.sport)
+                player_dict = {
+                    "player_id": cast(str, record.player_id),
+                    "name": cast(str, record.name),
+                    "team": cast(str, record.team),
+                    "sport": sport_key,
+                    "position": cast(str, record.position),
+                    "prop_line": cast(float, record.prop_line),
+                    "consecutive_games": cast(int, record.consecutive_games),
+                    "last_4_games": cast(str, record.last_4_games),
+                    "last_5_games": cast(str, record.last_5_games),
+                }
+                if sport_key in result_by_sport:
+                    result_by_sport[sport_key].append(player_dict)
+
+            if any(len(players) for players in result_by_sport.values()):
+                self._cache["club100_data"] = result_by_sport
+                self._cache["club100_timestamp"] = time.time()
+                logger.warning("[CLUB100] Using DB fallback data due to timeout or fresh fetch failure")
+                return result_by_sport
+
+            logger.warning("[CLUB100] ⚠️ No DB Club 100 fallback data found; returning empty real-data result")
+            empty_result = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+            self._cache["club100_data"] = empty_result
+            self._cache["club100_timestamp"] = time.time()
+            return empty_result
+        except Exception as e:
+            # Handle PendingRollbackError by rolling back the transaction
+            from sqlalchemy.exc import PendingRollbackError
+            if isinstance(e, PendingRollbackError):
+                logger.warning("[CLUB100] Database transaction in invalid state, rolling back...")
+                try:
+                    await db.rollback()
+                    logger.info("[CLUB100] Transaction rolled back, returning empty result")
+                except Exception as rollback_error:
+                    logger.error(f"[CLUB100] Failed to rollback transaction: {rollback_error}")
+            else:
+                logger.error(f"[CLUB100] Error reading DB fallback data: {str(e)}", exc_info=True)
+            
+            logger.warning("[CLUB100] Returning empty real-data result after DB read failure")
+            empty_result = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+            self._cache["club100_data"] = empty_result
+            self._cache["club100_timestamp"] = time.time()
+            return empty_result
     
     async def update_club_100_data_db(self, db: AsyncSession, new_data: Dict[str, List[Dict[str, Any]]]) -> bool:
         """
@@ -269,6 +321,130 @@ class Club100Service:
         except Exception as e:
             logger.error(f"[CLUB100] Error updating cache: {str(e)}")
             return False
+    
+    async def get_simple_fresh_club_100_data(self, db: AsyncSession) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        CLUB 100 APPROACH: Get TOP PERFORMERS from TODAY's ESPN games
+        Shows elite athletes who CLEARED their prop lines today
+        No streak requirements - focuses on today's elite performance
+
+        Returns REAL fresh data showing today's top performers
+        """
+        fresh_data = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+
+        try:
+            logger.info("[CLUB100] 🔄 Fetching REAL data from TODAY's ESPN games - TOP PERFORMERS who cleared lines")
+            player_stats_service = get_player_stats_service()
+
+            # Fetch all sport scoreboards in parallel
+            fetch_tasks = [player_stats_service.get_today_games_player_stats(sport) for sport in self.SUPPORTED_ESPN_SPORTS]
+            fetch_results = await asyncio.gather(*fetch_tasks, return_exceptions=True)
+            sport_games = {}
+            for sport, result in zip(self.SUPPORTED_ESPN_SPORTS, fetch_results):
+                if isinstance(result, Exception):
+                    logger.warning(f"[CLUB100] Error fetching {sport} games: {result}")
+                    sport_games[sport] = []
+                else:
+                    sport_games[sport] = result or []
+
+            for sport in self.SUPPORTED_ESPN_SPORTS:
+                try:
+                    today_games = sport_games.get(sport, [])
+                    if not today_games:
+                        logger.info(f"[CLUB100] {sport.upper()}: No games today")
+                        continue
+
+                    # Extract all top performers from today's games who cleared their lines
+                    performers = []
+
+                    for game in today_games:
+                        leaders = game.get("leaders", [])
+                        for leader in leaders:
+                            athlete = leader.get("athlete", {})
+                            if not athlete or not athlete.get("id"):
+                                continue
+
+                            athlete_id = str(athlete.get("id"))
+                            player_name = athlete.get("fullName") or athlete.get("displayName") or "Unknown"
+                            team_name = leader.get("team_name") or leader.get("team_abbrev") or "Unknown"
+                            team_abbrev = leader.get("team_abbrev") or team_name
+                            category = leader.get("category") or leader.get("display_name") or "stat"
+                            stat_type = self._normalize_category_key(category)
+
+                            if not stat_type:
+                                continue
+
+                            value = leader.get("value") or 0
+                            if value is None or value <= 0:
+                                continue
+
+                            # Calculate prop line for this performance
+                            prop_line = self._compute_prop_line_from_category(stat_type, float(value))
+                            if prop_line <= 0:
+                                continue
+
+                            # For Club 100, we want players who SIGNIFICANTLY exceeded their line
+                            # Use a multiplier to ensure they really cleared it
+                            clearance_multiplier = 1.2  # Must exceed line by 20%
+                            if float(value) < (prop_line * clearance_multiplier):
+                                continue
+
+                            # Try to find player record for additional data, but don't require it
+                            player_record = await self._find_player_record(db, sport, athlete_id, player_name, team_name, team_abbrev)
+
+                            # Get recent performance if available
+                            recent_performance = "N/A"
+                            if player_record:
+                                try:
+                                    player_record_id = getattr(player_record, "id", None)
+                                    if player_record_id:
+                                        recent_games = await self._get_player_recent_game_logs(db, str(player_record_id), 5)
+                                        if recent_games:
+                                            recent_stats = [game["stats"].get(stat_type, 0) for game in recent_games]
+                                            recent_avg = sum(recent_stats) / len(recent_stats) if recent_stats else 0
+                                            recent_performance = f"{recent_avg:.1f}"
+                                except Exception:
+                                    pass
+
+                            performer = {
+                                "player_id": f"{sport}_{athlete_id}_{stat_type}",
+                                "name": player_name,
+                                "team": team_abbrev,
+                                "sport": sport,
+                                "position": self._normalize_position(athlete.get("position")),
+                                "prop_line": f"Over {prop_line} {stat_type.replace('_', ' ').title()}",
+                                "actual_performance": f"{value:.1f}",
+                                "clearance_percent": f"+{((float(value) - prop_line) / prop_line * 100):.1f}%",
+                                "recent_avg": recent_performance,
+                                "game_info": game.get("game", {}).get("name", "Today's Game")
+                            }
+                            performers.append(performer)
+
+                    # Sort by clearance percentage (how much they beat the line) and take top 10
+                    sorted_performers = sorted(
+                        performers,
+                        key=lambda p: float(p["clearance_percent"].rstrip('%')),
+                        reverse=True
+                    )[:10]
+
+                    fresh_data[sport] = sorted_performers
+                    logger.info(f"[CLUB100] {sport.upper()}: {len(sorted_performers)} elite performers who cleared their lines today")
+
+                except Exception as sport_err:
+                    logger.error(f"[CLUB100] Error processing {sport}: {sport_err}")
+                    continue
+
+            total = sum(len(v) for v in fresh_data.values())
+            if total > 0:
+                logger.info(f"[CLUB100] ✅ Got {total} REAL athletes who cleared their lines today from ESPN")
+            else:
+                logger.warning(f"[CLUB100] ⚠️ No athletes cleared their lines today")
+
+            return fresh_data
+
+        except Exception as e:
+            logger.error(f"[CLUB100] Error in fresh data fetch: {e}", exc_info=True)
+            return {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
     
     async def get_fresh_club_100_data(self, db: AsyncSession) -> Dict[str, List[Dict[str, Any]]]:
         """
@@ -343,7 +519,8 @@ class Club100Service:
                 if not player_record:
                     continue
 
-                recent_games = await self._get_player_recent_game_logs(db, player_record.id, 6)
+                player_record_id = cast(str, player_record.id)  # type: ignore[arg-type]
+                recent_games = await self._get_player_recent_game_logs(db, player_record_id, 6)
                 if len(recent_games) < 4:
                     logger.debug(f"[CLUB100] Skipping {player_name} ({sport}) - not enough historical games")
                     continue
@@ -527,6 +704,181 @@ class Club100Service:
             return max(2, int(value * 0.7))
         return max(1, int(value * 0.7))
 
+    async def get_lookahead_club_100_data(self, db: AsyncSession) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Get Club 100 data by looking ahead to future games and finding players with streaks.
+        This ensures Club 100 always has data even when today's games are complete.
+        """
+        logger.info("[CLUB100] Looking ahead to future games for players with streaks")
+        
+        lookahead_data = {sport: [] for sport in self.ALL_CLUB_100_SPORTS}
+        player_stats_service = get_player_stats_service()
+        
+        # Look ahead 1-2 days
+        for days_ahead in range(1, 3):
+            target_date = datetime.now() + timedelta(days=days_ahead)
+            date_str = target_date.strftime("%Y%m%d")
+            
+            logger.info(f"[CLUB100] Checking games for {date_str} ({days_ahead} days ahead)")
+            
+            for sport in self.SUPPORTED_ESPN_SPORTS:
+                try:
+                    # Get scheduled games for this date
+                    games = await player_stats_service.get_games_for_date(sport, date_str)
+                    
+                    if not games:
+                        continue
+                        
+                    logger.info(f"[CLUB100] Found {len(games)} {sport.upper()} games on {date_str}")
+                    
+                    # For each game, get rosters and find players with streaks
+                    sport_players = await self._get_streak_players_from_upcoming_games(db, player_stats_service, sport, games)
+                    lookahead_data[sport].extend(sport_players)
+                    
+                    # Limit to top 10 per sport
+                    lookahead_data[sport] = lookahead_data[sport][:10]
+                    
+                except Exception as e:
+                    logger.error(f"[CLUB100] Error processing {sport} games for {date_str}: {e}")
+                    continue
+            
+            # If we have data for any sport, return it
+            if any(len(players) for players in lookahead_data.values()):
+                total_players = sum(len(players) for players in lookahead_data.values())
+                logger.info(f"[CLUB100] Found {total_players} players with streaks in upcoming games")
+                return lookahead_data
+        
+        logger.warning("[CLUB100] No players with streaks found in upcoming games")
+        return lookahead_data
+
+    async def _get_streak_players_from_upcoming_games(
+        self,
+        db: AsyncSession,
+        player_stats_service: Any,
+        sport: str,
+        games: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """
+        For upcoming games, get team rosters and find players with active streaks.
+        """
+        players_with_streaks = []
+        
+        for game in games:
+            home_team = game.get('home_team', {})
+            away_team = game.get('away_team', {})
+            
+            team_ids = []
+            if home_team.get('id'):
+                team_ids.append(str(home_team['id']))
+            if away_team.get('id'):
+                team_ids.append(str(away_team['id']))
+            
+            for team_id in team_ids:
+                try:
+                    # Get team roster
+                    roster = await player_stats_service.get_team_roster(sport, team_id)
+                    
+                    if not roster:
+                        continue
+                    
+                    # Check each player for streaks
+                    for player in roster:
+                        player_id = player.get('id')
+                        if not player_id:
+                            continue
+                            
+                        # Find player record in our database
+                        player_record = await self._find_player_record(db, sport, player_id, player.get('name'), "", "")
+                        
+                        if not player_record:
+                            continue
+                            
+                        # Get recent game logs to check for streaks
+                        recent_logs = await self._get_player_recent_game_logs(db, player_record.id, limit=6)
+                        
+                        if not recent_logs:
+                            continue
+                            
+                        # Check for active streaks in different stat categories
+                        streak_info = await self._analyze_player_streaks_for_lookahead(recent_logs, sport)
+                        
+                        if streak_info:
+                            player_data = {
+                                "player_id": f"{sport}_{player_id}_{streak_info['stat_type']}",
+                                "name": player.get('name') or player_record.name,
+                                "team": home_team.get('abbreviation') if team_id == str(home_team.get('id')) else away_team.get('abbreviation'),
+                                "sport": sport,
+                                "position": player.get('position') or player_record.position,
+                                "prop_line": f"Over {streak_info['prop_line']} {streak_info['stat_type'].replace('_', ' ').title()}",
+                                "consecutive_games": streak_info['consecutive_games'],
+                                "last_4_games": streak_info.get('last_4_games', {}),
+                                "last_5_games": streak_info.get('last_5_games', {}),
+                                "game_info": f"vs {away_team.get('abbreviation') if team_id == str(home_team.get('id')) else home_team.get('abbreviation')} ({game.get('game', {}).get('date', 'Upcoming')})",
+                                "source": "upcoming_game_streak"
+                            }
+                            players_with_streaks.append(player_data)
+                            
+                except Exception as e:
+                    logger.error(f"[CLUB100] Error processing roster for team {team_id}: {e}")
+                    continue
+        
+        # Sort by streak length and return top players
+        players_with_streaks.sort(key=lambda p: p['consecutive_games'], reverse=True)
+        return players_with_streaks[:10]
+
+    async def _analyze_player_streaks_for_lookahead(
+        self,
+        recent_logs: List[Dict[str, Any]],
+        sport: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Analyze recent game logs to find active streaks for lookahead data.
+        """
+        if len(recent_logs) < 3:
+            return None
+            
+        # Check different stat categories for streaks
+        stat_categories = self.LEADER_CATEGORIES.get(sport.lower(), [])
+        
+        for stat_type in stat_categories:
+            consecutive_count = 0
+            max_consecutive = 0
+            
+            # Check recent games for streak
+            for log in recent_logs[:6]:  # Check last 6 games
+                stat_value = self._get_stat_value(log.get('stats', {}), stat_type)
+                
+                if stat_value and stat_value > 0:
+                    consecutive_count += 1
+                    max_consecutive = max(max_consecutive, consecutive_count)
+                else:
+                    consecutive_count = 0
+            
+            if max_consecutive >= 3:  # Require at least 3-game streak
+                # Calculate prop line based on recent performance
+                recent_values = []
+                for log in recent_logs[:4]:  # Last 4 games
+                    val = self._get_stat_value(log.get('stats', {}), stat_type)
+                    if val is not None:
+                        recent_values.append(val)
+                
+                if recent_values:
+                    avg_performance = sum(recent_values) / len(recent_values)
+                    prop_line = self._compute_prop_line_from_category(stat_type, avg_performance)
+                    
+                    return {
+                        'stat_type': stat_type,
+                        'consecutive_games': max_consecutive,
+                        'prop_line': prop_line,
+                        'last_4_games': {
+                            'games_analyzed': len(recent_values),
+                            'coverage_count': len([v for v in recent_values if v > prop_line]),
+                            'coverage_percent': (len([v for v in recent_values if v > prop_line]) / len(recent_values)) * 100
+                        }
+                    }
+        
+        return None
+
     def _get_stat_value(self, stats: Dict[str, Any], stat_type: str) -> Optional[float]:
         if not stats:
             return None
@@ -554,8 +906,19 @@ class Club100Service:
             game_log_count = await db.execute(select(func.count()).select_from(PlayerGameLog))
             return record_count.scalar_one() > 0 and game_log_count.scalar_one() > 0
         except Exception as e:
-            logger.warning(f"[CLUB100] Error checking historical data presence: {e}", exc_info=True)
-            return False
+            from sqlalchemy.exc import PendingRollbackError
+            if isinstance(e, PendingRollbackError):
+                logger.warning(f"[CLUB100] Transaction in invalid state during historical data check: {e}")
+                try:
+                    await db.rollback()
+                    logger.info("[CLUB100] Rolled back invalid transaction")
+                    return False
+                except Exception as rollback_error:
+                    logger.error(f"[CLUB100] Failed to rollback transaction: {rollback_error}")
+                    return False
+            else:
+                logger.warning(f"[CLUB100] Error checking historical data presence: {e}", exc_info=True)
+                return False
 
     async def _sync_recent_player_history(self, db: AsyncSession, sports: Optional[List[str]] = None) -> None:
         """Sync recent player game logs from ESPN for the specified sports."""
@@ -710,147 +1073,12 @@ class Club100Service:
             set_index = len(soccer_player_sets) - 1
         return soccer_player_sets[set_index]
     
-    async def _get_fallback_club_100_data(self) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Fallback method returning cached/hardcoded Club 100 data
-        Used when scraping fails
-        """
-        try:
-            result_by_sport = {
-                "nba": [],
-                "nfl": [],
-                "mlb": [],
-                "nhl": [],
-                "soccer": []
-            }
-            
-            # Use hardcoded data as fallback
-            nba_players = self._get_linemate_nba_data()
-            nfl_players = self._get_linemate_nfl_data()
-            mlb_players = self._get_linemate_mlb_data()
-            nhl_players = self._get_linemate_nhl_data()
-            soccer_players = self._get_linemate_soccer_data()
-            
-            result_by_sport["nba"] = nba_players
-            result_by_sport["nfl"] = nfl_players
-            result_by_sport["mlb"] = mlb_players
-            result_by_sport["nhl"] = nhl_players
-            result_by_sport["soccer"] = soccer_players
-            
-            logger.info(f"[CLUB100] Fallback data: NBA={len(nba_players)}, NFL={len(nfl_players)}, MLB={len(mlb_players)}, NHL={len(nhl_players)}, Soccer={len(soccer_players)}")
-            
-            return result_by_sport
-            
-        except Exception as e:
-            logger.error(f"[CLUB100] Error getting fallback data: {str(e)}", exc_info=True)
-            return {
-                "nba": [],
-                "nfl": [],
-                "mlb": [],
-                "nhl": [],
-                "soccer": []
-            }
-    
-    def _get_linemate_nba_data(self) -> List[Dict[str, Any]]:
-        """Real NBA Club 100 athletes from Linemate.io (verified March 2026)"""
-        return [
-            {"player_id": "nba_LJ_1", "name": "LeBron James", "team": "LAL", "sport": "nba", "position": "Forward", "prop_line": "Over 24.5 Points", "consecutive_games": 12, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_LJ_2", "name": "LeBron James", "team": "LAL", "sport": "nba", "position": "Forward", "prop_line": "Over 7.5 Assists", "consecutive_games": 10, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_KC_1", "name": "Kevin Durant", "team": "PHX", "sport": "nba", "position": "Forward", "prop_line": "Over 27.5 Points", "consecutive_games": 11, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_JT_1", "name": "Jayson Tatum", "team": "BOS", "sport": "nba", "position": "Forward", "prop_line": "Over 26.5 Points", "consecutive_games": 9, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_BA_1", "name": "Bam Adebayo", "team": "MIA", "sport": "nba", "position": "Center", "prop_line": "Over 9.5 Rebounds", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_BA_2", "name": "Bam Adebayo", "team": "MIA", "sport": "nba", "position": "Center", "prop_line": "Over 1.5 Blocks", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_DM_1", "name": "Donovan Mitchell", "team": "CLE", "sport": "nba", "position": "Guard", "prop_line": "Over 20.5 Points", "consecutive_games": 10, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_DM_2", "name": "Donovan Mitchell", "team": "CLE", "sport": "nba", "position": "Guard", "prop_line": "Over 5.5 Assists", "consecutive_games": 9, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_JA_1", "name": "Jimmy Butler", "team": "MIA", "sport": "nba", "position": "Forward", "prop_line": "Over 17.5 Points", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_JA_2", "name": "Jimmy Butler", "team": "MIA", "sport": "nba", "position": "Forward", "prop_line": "Over 5.5 Assists", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_NJ_1", "name": "Nikola Jokic", "team": "DEN", "sport": "nba", "position": "Center", "prop_line": "Over 25.5 Points", "consecutive_games": 13, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_NJ_2", "name": "Nikola Jokic", "team": "DEN", "sport": "nba", "position": "Center", "prop_line": "Over 8.5 Rebounds", "consecutive_games": 12, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_SG_1", "name": "Stephen Curry", "team": "GSW", "sport": "nba", "position": "Guard", "prop_line": "Over 28.5 Points", "consecutive_games": 11, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_SG_2", "name": "Stephen Curry", "team": "GSW", "sport": "nba", "position": "Guard", "prop_line": "Over 5.5 Assists", "consecutive_games": 10, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_AT_1", "name": "Anthony Tatum", "team": "BOS", "sport": "nba", "position": "Guard", "prop_line": "Over 5.5 Rebounds", "consecutive_games": 9, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_JL_1", "name": "Jaylen Brown", "team": "BOS", "sport": "nba", "position": "Forward", "prop_line": "Over 22.5 Points", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_JL_2", "name": "Jaylen Brown", "team": "BOS", "sport": "nba", "position": "Forward", "prop_line": "Over 5.5 Rebounds", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_TM_1", "name": "Tyrese Maxey", "team": "PHI", "sport": "nba", "position": "Guard", "prop_line": "Over 20.5 Points", "consecutive_games": 9, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_LC_1", "name": "Luka Doncic", "team": "DAL", "sport": "nba", "position": "Guard", "prop_line": "Over 32.5 Points", "consecutive_games": 10, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nba_LC_2", "name": "Luka Doncic", "team": "DAL", "sport": "nba", "position": "Guard", "prop_line": "Over 8.5 Assists", "consecutive_games": 9, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-        ]
-    
-    def _get_linemate_nfl_data(self) -> List[Dict[str, Any]]:
-        """Real NFL Club 100 athletes from Linemate.io"""
-        return [
-            {"player_id": "nfl_PM_1", "name": "Patrick Mahomes", "team": "KC", "sport": "nfl", "position": "Quarterback", "prop_line": "Over 270.5 Passing Yards", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_PM_2", "name": "Patrick Mahomes", "team": "KC", "sport": "nfl", "position": "Quarterback", "prop_line": "Over 1.5 Touchdowns", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_JA_1", "name": "Josh Allen", "team": "BUF", "sport": "nfl", "position": "Quarterback", "prop_line": "Over 270.5 Passing Yards", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_JA_2", "name": "Josh Allen", "team": "BUF", "sport": "nfl", "position": "Quarterback", "prop_line": "Over 1.5 Touchdowns", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_SD_1", "name": "Stefon Diggs", "team": "BUF", "sport": "nfl", "position": "Wide Receiver", "prop_line": "Over 6.5 Receptions", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_SD_2", "name": "Stefon Diggs", "team": "BUF", "sport": "nfl", "position": "Wide Receiver", "prop_line": "Over 70.5 Receiving Yards", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_TK_1", "name": "Travis Kelce", "team": "KC", "sport": "nfl", "position": "Tight End", "prop_line": "Over 5.5 Receptions", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_TK_2", "name": "Travis Kelce", "team": "KC", "sport": "nfl", "position": "Tight End", "prop_line": "Over 55.5 Receiving Yards", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_CW_1", "name": "Corey Akers", "team": "LAR", "sport": "nfl", "position": "Running Back", "prop_line": "Over 55.5 Rushing Yards", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_JT_1", "name": "Jonathan Taylor", "team": "IND", "sport": "nfl", "position": "Running Back", "prop_line": "Over 75.5 Rushing Yards", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_MW_1", "name": "Mark Williams", "team": "NYG", "sport": "nfl", "position": "Wide Receiver", "prop_line": "Over 5.5 Receptions", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_JJ_1", "name": "Justin Jefferson", "team": "MIN", "sport": "nfl", "position": "Wide Receiver", "prop_line": "Over 7.5 Receptions", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nfl_JJ_2", "name": "Justin Jefferson", "team": "MIN", "sport": "nfl", "position": "Wide Receiver", "prop_line": "Over 85.5 Receiving Yards", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-        ]
-    
-    def _get_linemate_mlb_data(self) -> List[Dict[str, Any]]:
-        """Real MLB Club 100 athletes from Linemate.io"""
-        return [
-            {"player_id": "mlb_AJ_1", "name": "Aaron Judge", "team": "NYY", "sport": "mlb", "position": "Outfield", "prop_line": "Over 1.5 Home Runs", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_AJ_2", "name": "Aaron Judge", "team": "NYY", "sport": "mlb", "position": "Outfield", "prop_line": "Over 4.5 Total Bases", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_MT_1", "name": "Mike Trout", "team": "LAA", "sport": "mlb", "position": "Center Field", "prop_line": "Over 3.5 Total Bases", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_MT_2", "name": "Mike Trout", "team": "LAA", "sport": "mlb", "position": "Center Field", "prop_line": "Over 0.5 Home Runs", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_FT_1", "name": "Fernando Tatis Jr", "team": "SD", "sport": "mlb", "position": "Shortstop", "prop_line": "Over 0.5 Home Runs", "consecutive_games": 4, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_FT_2", "name": "Fernando Tatis Jr", "team": "SD", "sport": "mlb", "position": "Shortstop", "prop_line": "Over 3.5 Total Bases", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_JA_1", "name": "Juan Soto", "team": "NYY", "sport": "mlb", "position": "Outfield", "prop_line": "Over 1.5 Runs", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_JA_2", "name": "Juan Soto", "team": "NYY", "sport": "mlb", "position": "Outfield", "prop_line": "Over 0.5 Home Runs", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_MB_1", "name": "Mookie Betts", "team": "LAD", "sport": "mlb", "position": "Outfield", "prop_line": "Over 3.5 Total Bases", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_MB_2", "name": "Mookie Betts", "team": "LAD", "sport": "mlb", "position": "Outfield", "prop_line": "Over 1.5 Runs", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_CS_1", "name": "Corey Seager", "team": "TEX", "sport": "mlb", "position": "Shortstop", "prop_line": "Over 1.5 Runs", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "mlb_CS_2", "name": "Corey Seager", "team": "TEX", "sport": "mlb", "position": "Shortstop", "prop_line": "Over 3.5 Total Bases", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-        ]
-    
-    def _get_linemate_nhl_data(self) -> List[Dict[str, Any]]:
-        """Real NHL Club 100 athletes from Linemate.io"""
-        return [
-            {"player_id": "nhl_CM_1", "name": "Connor McDavid", "team": "EDM", "sport": "nhl", "position": "Center", "prop_line": "Over 0.5 Goals", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_CM_2", "name": "Connor McDavid", "team": "EDM", "sport": "nhl", "position": "Center", "prop_line": "Over 1.5 Points", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_AM_1", "name": "Auston Matthews", "team": "TOR", "sport": "nhl", "position": "Wing", "prop_line": "Over 0.5 Goals", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_AM_2", "name": "Auston Matthews", "team": "TOR", "sport": "nhl", "position": "Wing", "prop_line": "Over 3.5 Shots on Goal", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_AP_1", "name": "Artemi Panarin", "team": "NYR", "sport": "nhl", "position": "Wing", "prop_line": "Over 1.5 Points", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_AP_2", "name": "Artemi Panarin", "team": "NYR", "sport": "nhl", "position": "Wing", "prop_line": "Over 0.5 Goals", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_NK_1", "name": "Nikita Kucherov", "team": "TB", "sport": "nhl", "position": "Wing", "prop_line": "Over 1.5 Points", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_NK_2", "name": "Nikita Kucherov", "team": "TB", "sport": "nhl", "position": "Wing", "prop_line": "Over 0.5 Goals", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_DM_1", "name": "David Pastrnak", "team": "BOS", "sport": "nhl", "position": "Wing", "prop_line": "Over 0.5 Goals", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_DM_2", "name": "David Pastrnak", "team": "BOS", "sport": "nhl", "position": "Wing", "prop_line": "Over 3.5 Shots on Goal", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_SC_1", "name": "Sidney Crosby", "team": "PIT", "sport": "nhl", "position": "Center", "prop_line": "Over 1.5 Points", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "nhl_SC_2", "name": "Sidney Crosby", "team": "PIT", "sport": "nhl", "position": "Center", "prop_line": "Over 0.5 Goals", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-        ]
-    
-    def _get_linemate_soccer_data(self) -> List[Dict[str, Any]]:
-        """Real Soccer Club 100 athletes from Linemate.io"""
-        return [
-            {"player_id": "soccer_LM_1", "name": "Lionel Messi", "team": "Inter Miami", "sport": "soccer", "position": "Forward", "prop_line": "Over 0.5 Goals", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_LM_2", "name": "Lionel Messi", "team": "Inter Miami", "sport": "soccer", "position": "Forward", "prop_line": "Over 2.5 Shots on Target", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_CR_1", "name": "Cristiano Ronaldo", "team": "Al Nassr", "sport": "soccer", "position": "Forward", "prop_line": "Over 0.5 Goals", "consecutive_games": 4, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_CR_2", "name": "Cristiano Ronaldo", "team": "Al Nassr", "sport": "soccer", "position": "Forward", "prop_line": "Over 1.5 Shots on Target", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_EH_1", "name": "Erling Haaland", "team": "Manchester City", "sport": "soccer", "position": "Striker", "prop_line": "Over 1.5 Goals", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_EH_2", "name": "Erling Haaland", "team": "Manchester City", "sport": "soccer", "position": "Striker", "prop_line": "Over 3.5 Shots on Target", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_MB_1", "name": "Mohamed Salah", "team": "Liverpool", "sport": "soccer", "position": "Forward", "prop_line": "Over 0.5 Goals", "consecutive_games": 5, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_MB_2", "name": "Mohamed Salah", "team": "Liverpool", "sport": "soccer", "position": "Forward", "prop_line": "Over 2.5 Shots on Target", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_KB_1", "name": "Kylian Mbappe", "team": "PSG", "sport": "soccer", "position": "Forward", "prop_line": "Over 1.5 Goals", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_KB_2", "name": "Kylian Mbappe", "team": "PSG", "sport": "soccer", "position": "Forward", "prop_line": "Over 3.5 Shots on Target", "consecutive_games": 8, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_VJ_1", "name": "Vinícius Júnior", "team": "Real Madrid", "sport": "soccer", "position": "Forward", "prop_line": "Over 0.5 Goals", "consecutive_games": 6, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-            {"player_id": "soccer_VJ_2", "name": "Vinícius Júnior", "team": "Real Madrid", "sport": "soccer", "position": "Forward", "prop_line": "Over 2.5 Shots on Target", "consecutive_games": 7, "last_4_games": {"games_analyzed": 4, "coverage_count": 4, "coverage_percent": 100.0}, "last_5_games": {"games_analyzed": 5, "coverage_count": 5, "coverage_percent": 100.0}},
-        ]
-    
     async def check_user_club_100_status(self, db: AsyncSession, user_id: str) -> Dict[str, Any]:
         """Check user's Club 100 status"""
         try:
             result = await db.execute(select(User).where(User.id == user_id))
             user = result.scalar_one_or_none()
-            
+
             if not user:
                 raise ValueError("User not found")
             
@@ -860,7 +1088,9 @@ class Club100Service:
             try:
                 from app.models.tier_features import TierFeatures
                 tier_config = TierFeatures.get_tier_config(normalized_tier)
-                daily_limit = tier_config.get('predictions_per_day') or 999999
+                daily_limit = 999999
+                if tier_config is not None:
+                    daily_limit = tier_config.get('predictions_per_day') or 999999
             except Exception as e:
                 logger.warning(f"Could not get tier config for {normalized_tier}: {e}")
                 daily_limit = 1
@@ -919,13 +1149,14 @@ class Club100Service:
             all_data = await self.get_club_100_data(db)
             
             # Get user's unlocked picks
-            unlocked_picks = []
+            unlocked_picks: List[str] = []
             if user_id:
                 try:
                     result = await db.execute(select(User).where(User.id == user_id))
                     user = result.scalar_one_or_none()
-                    if user and user.club_100_unlocked_picks:
-                        unlocked_picks = user.club_100_unlocked_picks if isinstance(user.club_100_unlocked_picks, list) else []
+                    raw_unlocked = getattr(user, 'club_100_unlocked_picks', None)
+                    if isinstance(raw_unlocked, list):
+                        unlocked_picks = [cast(str, item) for item in raw_unlocked if isinstance(item, str)]
                 except Exception as e:
                     logger.warning(f"Could not get unlocked picks for user {user_id}: {e}")
             
@@ -980,12 +1211,17 @@ class Club100Service:
             logger.info(f"[CLUB100] User {user_id} following pick {player_id}")
             
             # Check if already unlocked
-            unlocked_picks = user.club_100_unlocked_picks if isinstance(user.club_100_unlocked_picks, list) else []
+            unlocked_picks = getattr(user, 'club_100_unlocked_picks', []) if isinstance(getattr(user, 'club_100_unlocked_picks', []), list) else []
             if player_id in unlocked_picks:
                 raise ValueError(f"Player {player_id} already unlocked")
             
             # Find the player data
-            all_data = await self.get_club_100_data(db)
+            try:
+                all_data = await self.get_club_100_data(db)
+            except Exception as e:
+                logger.warning(f"[CLUB100] Primary Club 100 data fetch failed during follow; using DB-only fallback: {e}", exc_info=True)
+                all_data = await self.get_club_100_data_from_db(db)
+
             player_data = None
             for sport_players in all_data.values():
                 for player in sport_players:
@@ -1000,7 +1236,8 @@ class Club100Service:
             
             # Add player_id to unlocked list
             unlocked_picks.append(player_id)
-            user.club_100_unlocked_picks = unlocked_picks
+            user_obj = cast(Any, user)
+            setattr(user_obj, 'club_100_unlocked_picks', unlocked_picks)
             
             # Save user changes
             db.add(user)
@@ -1081,3 +1318,7 @@ class Club100Service:
         except Exception as e:
             logger.error(f"[CLUB100] Error following Club 100 pick {player_id} for user {user_id}: {str(e)}", exc_info=True)
             raise
+
+
+# Shared Club 100 service instance used by route handlers for caching and reduced ESPN load
+club_100_service = Club100Service()

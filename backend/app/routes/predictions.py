@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Header, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, insert
+from sqlalchemy.exc import PendingRollbackError
 from app.database import get_db
 from app.services.auth_service import AuthService
 from app.services.prediction_service import PredictionService
@@ -10,7 +11,7 @@ from app.models.tier_features import TierFeatures
 from app.models.db_models import user_predictions, User
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 import asyncio
 
@@ -44,6 +45,41 @@ def get_espn_service() -> ESPNPredictionService:
     if _espn_service_instance is None:
         _espn_service_instance = ESPNPredictionService()
     return _espn_service_instance
+
+async def _club_100_db_fallback(db: AsyncSession, current_user_id: str, service: Any):
+    """Attempt to load Club 100 fallback data from the database safely."""
+    try:
+        raw_data = await service.get_club_100_data_from_db(db)
+        result = await db.execute(select(User).where(User.id == current_user_id))
+        user = result.scalar_one_or_none()
+        unlocked_picks = []
+        if user and getattr(user, 'club_100_unlocked_picks', None):
+            unlocked_picks = user.club_100_unlocked_picks if isinstance(user.club_100_unlocked_picks, list) else []
+
+        club_100_data = {}
+        for sport, players in raw_data.items():
+            filtered_players = []
+            for player in players:
+                player_copy = dict(player)
+                if player_copy.get('player_id') not in unlocked_picks:
+                    player_copy.pop('prop_line', None)
+                filtered_players.append(player_copy)
+            club_100_data[sport] = filtered_players
+        club_100_data['unlocked_picks'] = unlocked_picks
+        return club_100_data, True
+    except PendingRollbackError as fallback_error:
+        logger.warning("[CLUB100] Database transaction invalid during fallback, rolling back...", exc_info=True)
+        try:
+            await db.rollback()
+            logger.info("[CLUB100] Transaction rolled back, returning empty Club 100 data")
+        except Exception as rollback_error:
+            logger.error(f"[CLUB100] Failed to rollback transaction: {rollback_error}")
+    except Exception as fallback_error:
+        logger.error(f"[CLUB100] Error during DB fallback: {fallback_error}", exc_info=True)
+
+    empty_data = {sport: [] for sport in service.ALL_CLUB_100_SPORTS}
+    empty_data['unlocked_picks'] = []
+    return empty_data, True
 
 async def get_current_user_optional(authorization: Optional[str] = Header(None, description="Bearer token")) -> Optional[str]:
     """Extract user ID from Bearer token - optional, returns None if not provided"""
@@ -1294,8 +1330,8 @@ async def get_club_100_status(
     """Get Club 100 unlock status for current user"""
     try:
         logger.info(f"[Club100] Getting status for user: {current_user_id}")
-        from app.services.club_100_service import Club100Service
-        service = Club100Service()
+        from app.services.club_100_service import club_100_service
+        service = club_100_service
         status_info = await service.check_user_club_100_status(db, current_user_id)
         logger.info(f"[Club100] Status retrieved successfully: {status_info}")
         return status_info
@@ -1336,15 +1372,14 @@ async def can_unlock_club_100(
         
         # Count daily picks used (excluding prior Club 100 access picks)
         from app.models.db_models import user_predictions, Prediction
-        from datetime import timezone
-        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         
         daily_picks_stmt = select(func.count()).select_from(user_predictions).join(
             Prediction, user_predictions.c.prediction_id == Prediction.id
         ).where(
             and_(
                 user_predictions.c.user_id == current_user_id,
-                Prediction.created_at >= today_start,
+                user_predictions.c.created_at >= today_start,
                 Prediction.sport != 'club_100_access'
             )
         )
@@ -1419,15 +1454,14 @@ async def unlock_club_100(
         
         # Count daily picks used TODAY - EXCLUDE Club 100 access picks
         from app.models.db_models import user_predictions, Prediction
-        from datetime import timezone
-        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         
         daily_picks_stmt = select(func.count()).select_from(user_predictions).join(
             Prediction, user_predictions.c.prediction_id == Prediction.id
         ).where(
             and_(
                 user_predictions.c.user_id == current_user_id,
-                Prediction.created_at >= today_start,
+                user_predictions.c.created_at >= today_start,
                 Prediction.sport != 'club_100_access'
             )
         )
@@ -1471,98 +1505,149 @@ async def unlock_club_100(
 @router.get("/club-100/data")
 async def get_club_100_data(
     current_user_id: str = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    force_refresh: bool = Query(True, description="Force refresh Club 100 cache on each request")
 ):
-    """Get Club 100 data - real players who covered their prop lines 100% in last 4-5 games
+    """Get Club 100 data - REAL athletes with consecutive streaks on specific props
     
-    REQUIRES: User must have paid 5 daily picks to access Club 100 (locked endpoint)
-    Prop lines are hidden initially and shown only after user clicks to follow/unlock (costs 1 pick each)"""
+    Returns athletes who have cleared specific prop lines 100% of the time
+    over consecutive recent games (3, 4, 5, 6+ games).
+    
+    REQUIRES: User must have 5+ available daily picks to access Club 100.
+    All data is generated from real player game logs - ZERO hardcoded data."""
     try:
-        logger.info(f"[CLUB100] User {current_user_id} accessing Club 100 data")
-        
-        # Verify user exists and has purchased Club 100 access
-        result = await db.execute(select(User).where(User.id == current_user_id))
+        # Validate user exists
+        try:
+            result = await db.execute(select(User).where(User.id == current_user_id))
+        except PendingRollbackError as db_error:
+            logger.warning("[CLUB100] Database session invalid, rolling back and retrying...", exc_info=True)
+            try:
+                await db.rollback()
+                result = await db.execute(select(User).where(User.id == current_user_id))
+            except Exception as retry_error:
+                logger.error(f"[CLUB100] Failed to recover DB session: {retry_error}", exc_info=True)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Database session recovery failed"
+                )
         user = result.scalar_one_or_none()
-        
+
         if not user:
             logger.error(f"[CLUB100] User {current_user_id} not found")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User not found"
             )
-        
-        # CHECK: User must have 5 available picks today (no persistent flag needed)
-        # Dynamic check: do they have 5 unused picks available RIGHT NOW?
+
+        # Check daily pick availability
         normalized_tier = (user.subscription_tier or 'starter').lower().strip()
         tier_config = TierFeatures.get_tier_config(normalized_tier)
         if not tier_config:
             tier_config = TierFeatures.get_tier_config('starter')
         tier_name = tier_config.get('name', 'Starter') if tier_config else 'Starter'
         daily_limit = tier_config.get('predictions_per_day', 1) if tier_config else 1
-        
-        # Check if tier has unlimited picks
-        if normalized_tier in ['pro_plus', 'elite']:
-            logger.info(f"[CLUB100] {normalized_tier} tier has unlimited picks, allowing Club 100 access")
-        else:
-            # Count daily picks used TODAY - EXCLUDE Club 100 access picks
+
+        if normalized_tier not in ['pro_plus', 'elite']:
             from app.models.db_models import user_predictions, Prediction
             today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-            
+
             daily_picks_stmt = select(func.count()).select_from(user_predictions).join(
                 Prediction, user_predictions.c.prediction_id == Prediction.id
             ).where(
                 and_(
                     user_predictions.c.user_id == current_user_id,
-                    Prediction.created_at >= today_start,
+                    user_predictions.c.created_at >= today_start,
                     Prediction.sport != 'club_100_access'
                 )
             )
-            
+
             daily_picks_result = await db.execute(daily_picks_stmt)
             daily_picks_used = daily_picks_result.scalar() or 0
             picks_available = daily_limit - daily_picks_used
-            
+
             logger.info(f"[CLUB100] User {current_user_id}: used {daily_picks_used}, available {picks_available}, limit {daily_limit}")
-            
-            # Club 100 requires 5 available picks
+
             CLUB_100_COST = 5
             if picks_available < CLUB_100_COST:
                 logger.warning(f"[CLUB100] User {current_user_id} denied - only {picks_available} picks available, needs {CLUB_100_COST}")
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f"🔒 **Club 100 Access Required**\n\n"
-                           f"Club 100 is an exclusive area showing elite player predictions.\n"
-                           f"Access requires **{CLUB_100_COST} available daily picks**.\n\n"
-                           f"_Your Plan:_ {tier_name}\n"
-                           f"_Daily limit:_ {daily_limit} picks\n"
-                           f"_Picks used today:_ {daily_picks_used}\n"
-                           f"_Picks available:_ {picks_available}\n\n"
-                           f"**Upgrade your plan or come back tomorrow with fresh picks!** 🚀"
+                    detail=(
+                        f"🔒 **Club 100 Access Required**\n\n"
+                        f"Club 100 shows elite athletes with consecutive streaks of 100% line clearance.\n"
+                        f"Access requires **{CLUB_100_COST} available daily picks**.\n\n"
+                        f"_Your Plan:_ {tier_name}\n"
+                        f"_Daily limit:_ {daily_limit} picks\n"
+                        f"_Picks used today:_ {daily_picks_used}\n"
+                        f"_Picks available:_ {picks_available}\n\n"
+                        f"**Upgrade your plan or come back tomorrow with fresh picks!** 🚀"
+                    )
                 )
+
+        # Get REAL Club 100 streak data using new service
+        from app.services.club_100_streak_service import get_club_100_streak_service
+        streak_service = get_club_100_streak_service()
+
+        logger.info(f"[CLUB100] Fetching real consecutive streak data for user {current_user_id}")
         
-        logger.info(f"[CLUB100] User {current_user_id} has sufficient picks for Club 100 access: {user.email}")
+        try:
+            club_100_data = await asyncio.wait_for(
+                streak_service.get_club_100_streaks(db, min_streak_length=3, force_refresh=force_refresh),
+                timeout=20.0
+            )
+            timeout_occurred = False
+        except asyncio.TimeoutError:
+            logger.warning("[CLUB100] Streak analysis timed out - returning empty (no fallback)")
+            club_100_data = {"nba": [], "nfl": [], "mlb": [], "nhl": []}
+            timeout_occurred = True
+        except Exception as service_error:
+            logger.error(f"[CLUB100] Error generating streak data: {service_error}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to analyze player streaks: {str(service_error)}"
+            )
+
+        total_players = sum(len(v) for v in club_100_data.values())
+        logger.info(f"[CLUB100] ✅ Retrieved {total_players} real athletes with consecutive streaks")
         
-        # Import Club100Service to get real player prop data
-        from app.services.club_100_service import Club100Service
-        service = Club100Service()
-        
-        # Get Club 100 data with unlocked status
-        # Prop lines are hidden for non-unlocked picks
-        club_100_data = await service.get_club_100_data_with_unlocked_status(db, current_user_id)
-        
-        logger.info(f"[CLUB100] Retrieved Club 100 data with unlocked picks")
-        
-        return {
+        debug_info = {
+            "total_players": total_players,
+            "sports_breakdown": {sport: len(players) for sport, players in club_100_data.items()},
+            "timestamp": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat(),
+            "service": "Club100StreakService",
+            "min_streak_length": 3,
+            "timeout_occurred": timeout_occurred
+        }
+
+        warning_message = None
+        if total_players == 0 and not timeout_occurred:
+            warning_message = (
+                "No Club 100 streaks were found. This typically means historical player game logs "
+                "are not yet loaded or are incomplete in the production database."
+            )
+            debug_info["warning"] = warning_message
+
+        result = {
             "success": True,
             "data": club_100_data,
-            "description": "Elite players who cleared their prop lines 100% of the time in last 4-5 games. Click 'Follow' to unlock the prop line (costs 1 pick each).",
-            "initial_access_cost": 5,
-            "follow_cost_per_pick": 1
+            "debug": debug_info,
+            "warning": warning_message,
+            "description": "Premium Club 100: Real athletes with consecutive 100% line clearance streaks (3+ games)",
+            "note": "All data computed from actual player game logs - ZERO hardcoded data",
+            "streak_types": {
+                "3_games": "100% clearance over 3 consecutive games",
+                "4_games": "100% clearance over 4 consecutive games",
+                "5_games": "100% clearance over 5 consecutive games",
+                "6_games": "100% clearance over 6+ consecutive games"
+            }
         }
+        
+        return result
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[CLUB100] Error getting Club 100 data: {str(e)}", exc_info=True)
+        logger.error(f"[CLUB100] Error getting Club 100 streak data: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve Club 100 data: {str(e)}"
@@ -1595,15 +1680,14 @@ async def follow_club_100_pick(
         # Check daily picks available
         try:
             from app.models.db_models import user_predictions, Prediction
-            from datetime import timezone
-            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
             
             daily_picks_stmt = select(func.count()).select_from(user_predictions).join(
                 Prediction, user_predictions.c.prediction_id == Prediction.id
             ).where(
                 and_(
                     user_predictions.c.user_id == current_user_id,
-                    Prediction.created_at >= today_start
+                    user_predictions.c.created_at >= today_start
                 )
             )
             
@@ -1634,8 +1718,8 @@ async def follow_club_100_pick(
             )
         
         # Use Club100Service to follow the pick
-        from app.services.club_100_service import Club100Service
-        service = Club100Service()
+        from app.services.club_100_service import club_100_service
+        service = club_100_service
         
         try:
             result = await service.follow_club_100_pick(db, current_user_id, player_id)
@@ -1760,8 +1844,7 @@ async def update_club_100_data(
         logger.info(f"[CLUB100] User {current_user} requesting data update")
         
         # Generate fresh Club 100 data (with rotation based on day)
-        from app.services.club_100_service import Club100Service
-        club_100_service = Club100Service()
+        from app.services.club_100_service import club_100_service
         fresh_data = await club_100_service.get_fresh_club_100_data(db)
         
         # Save to database
@@ -1795,6 +1878,46 @@ async def update_club_100_data(
 
 
 # ====== TEST ENDPOINT (No Auth Required) ======
+@router.get("/debug/db-check")
+async def debug_db_check(db: AsyncSession = Depends(get_db)):
+    """Debug endpoint to check database tables and data (no auth required)"""
+    try:
+        from sqlalchemy import text
+        
+        # Check if player_game_logs table exists
+        result = await db.execute(text("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'player_game_logs')"))
+        table_exists = result.scalar()
+        
+        if not table_exists:
+            return {"error": "player_game_logs table does not exist"}
+        
+        # Get table stats
+        result = await db.execute(text("SELECT COUNT(*) FROM player_game_logs"))
+        total_rows = result.scalar()
+        
+        result = await db.execute(text("SELECT sport_key, COUNT(*) as cnt FROM player_game_logs GROUP BY sport_key"))
+        sport_counts = {row[0]: row[1] for row in result.fetchall()}
+        
+        result = await db.execute(text("SELECT MIN(date), MAX(date) FROM player_game_logs"))
+        date_range = result.fetchone()
+        
+        # Check recent games (last 30 days)
+        thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).date()
+        result = await db.execute(text("SELECT COUNT(*) FROM player_game_logs WHERE date >= :date"), {"date": thirty_days_ago})
+        recent_games = result.scalar()
+        
+        return {
+            "table_exists": table_exists,
+            "total_rows": total_rows,
+            "sport_breakdown": sport_counts,
+            "date_range": {"min": str(date_range[0]), "max": str(date_range[1])} if date_range else None,
+            "recent_games_30_days": recent_games
+        }
+        
+    except Exception as e:
+        logger.error(f"Debug DB check error: {e}", exc_info=True)
+        return {"error": str(e)}
+
 @router.get("/test/debug-espn")
 async def debug_espn():
     """Direct test of ESPN API for debugging timeout issues"""

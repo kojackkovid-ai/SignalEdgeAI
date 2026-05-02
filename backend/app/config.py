@@ -53,6 +53,9 @@ class Settings(BaseSettings):
     # Redis
     redis_url: Optional[str] = os.environ.get("REDIS_URL", "redis://localhost:6379")
 
+    # Postgres SSL mode override
+    db_sslmode: Optional[str] = None
+
     # Weather API
     openweather_api_key: str = ""
     openweather_base_url: str = "https://api.openweathermap.org/data/2.5/"
@@ -128,6 +131,11 @@ class Settings(BaseSettings):
         """Get database URL"""
         
         # Check if DATABASE_URL is set (for Docker/production)
+        fly_database_url = os.getenv("FLY_DATABASE_URL")
+        if fly_database_url:
+            print(f"[CONFIG] Using FLY_DATABASE_URL from environment")
+            return fly_database_url
+
         database_url = os.getenv("DATABASE_URL")
         if database_url:
             print(f"[CONFIG] Using DATABASE_URL from environment")

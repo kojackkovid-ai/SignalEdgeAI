@@ -621,8 +621,7 @@ class PredictionService:
                 return True # Already following
                 
             # 3. Count today's picks (excluding club_100_access picks which are just for access cost)
-            from datetime import timezone
-            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
             
             count_stmt = select(func.count()).select_from(user_predictions).join(
                 Prediction, user_predictions.c.prediction_id == Prediction.id
@@ -673,11 +672,10 @@ class PredictionService:
                 pass
 
             # 6. Insert new pick
-            from datetime import timezone
             ins_stmt = insert(user_predictions).values(
                 user_id=user_id,
                 prediction_id=prediction_id,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.utcnow()
             )
             await db.execute(ins_stmt)
             logger.info(f"[FOLLOW_SERVICE] Inserted into user_predictions: user_id={user_id}, prediction_id={prediction_id}")
@@ -708,9 +706,8 @@ class PredictionService:
     async def get_daily_picks_count(self, db, user_id: str) -> int:
         """Get the number of picks the user has made today (excludes Club 100 access cost picks)"""
         try:
-            # Use timezone-aware UTC datetime to ensure proper comparison with database timestamps
-            from datetime import timezone
-            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            # Use UTC naive datetime for comparison with database timestamps
+            today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
             
             # Count picks excluding club_100_access (which are just for access cost, not actual predictions)
             count_stmt = select(func.count()).select_from(user_predictions).join(

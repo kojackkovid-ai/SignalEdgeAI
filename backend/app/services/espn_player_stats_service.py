@@ -107,6 +107,32 @@ class ESPNPlayerStatsService:
             logger.error(f"Error fetching today's games: {e}")
             return []
     
+    async def get_games_for_date(self, sport: str, date_str: str) -> List[Dict[str, Any]]:
+        """
+        Get games scheduled for a specific date.
+        Date format: YYYYMMDD
+        """
+        api_path = self.SPORT_API_PATHS.get(sport.lower())
+        if not api_path:
+            return []
+            
+        url = f"{self.base_url}/sports/{api_path}/scoreboard?dates={date_str}"
+        
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(url)
+                
+                if response.status_code != 200:
+                    logger.warning(f"Scoreboard API returned {response.status_code} for date {date_str}")
+                    return []
+                    
+                data = response.json()
+                return self._parse_scheduled_games(sport, data)
+                
+        except Exception as e:
+            logger.error(f"Error fetching games for date {date_str}: {e}")
+            return []
+    
     def _parse_scoreboard_data(self, sport: str, data: Dict) -> Dict[str, Any]:
         """Parse a single game's scoreboard data."""
         result = {
@@ -175,6 +201,7 @@ class ESPNPlayerStatsService:
                         'athlete': athlete,
                         'team_name': team_name,
                         'team_abbrev': team_abbrev,
+                        'home_away': home_away,
                         'position': athlete.get('position', {}).get('abbreviation'),
                         'jersey': athlete.get('jersey'),
                     }
@@ -207,6 +234,51 @@ class ESPNPlayerStatsService:
                 
         return games
     
+    def _parse_scheduled_games(self, sport: str, data: Dict) -> List[Dict[str, Any]]:
+        """Parse scheduled games from scoreboard (no leaders since games haven't started)."""
+        games = []
+        
+        events = data.get('events', [])
+        for event in events:
+            game_data = {
+                'game': {
+                    'id': event.get('id'),
+                    'name': event.get('name'),
+                    'status': event.get('status', {}).get('type', {}).get('name'),
+                    'date': event.get('date'),
+                },
+                'home_team': {},
+                'away_team': {},
+                'leaders': [],  # No leaders for scheduled games
+            }
+            
+            competitions = event.get('competitions', [])
+            if competitions:
+                comp = competitions[0]
+                competitors = comp.get('competitors', [])
+                
+                for team in competitors:
+                    team_info = team.get('team', {})
+                    team_name = team_info.get('displayName')
+                    team_abbrev = team_info.get('abbreviation')
+                    home_away = team.get('homeAway')
+                    
+                    team_data = {
+                        'id': team.get('id'),
+                        'name': team_name,
+                        'abbreviation': team_abbrev,
+                        'home_away': home_away,
+                    }
+                    
+                    if home_away == 'home':
+                        game_data['home_team'] = team_data
+                    else:
+                        game_data['away_team'] = team_data
+            
+            games.append(game_data)
+                
+        return games
+    
     async def get_player_season_stats(self, sport: str, player_id: str) -> Optional[Dict]:
         """Get player's season statistics."""
         cache_key = f"{sport}_{player_id}"
@@ -225,6 +297,50 @@ class ESPNPlayerStatsService:
     async def get_team_leaders(self, sport: str, team_id: str) -> List[Dict]:
         """Get top performers for a team from recent games."""
         return []
+    
+    async def get_team_roster(self, sport: str, team_id: str) -> List[Dict[str, Any]]:
+        """
+        Get the roster for a specific team.
+        Returns list of players with their IDs and basic info.
+        """
+        api_path = self.SPORT_API_PATHS.get(sport.lower())
+        if not api_path:
+            return []
+            
+        url = f"{self.base_url}/sports/{api_path}/teams/{team_id}/roster"
+        
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(url)
+                
+                if response.status_code != 200:
+                    logger.warning(f"Roster API returned {response.status_code} for team {team_id}")
+                    return []
+                    
+                data = response.json()
+                return self._parse_roster_data(data)
+                
+        except Exception as e:
+            logger.error(f"Error fetching roster for team {team_id}: {e}")
+            return []
+    
+    def _parse_roster_data(self, data: Dict) -> List[Dict[str, Any]]:
+        """Parse roster data from ESPN API."""
+        athletes = data.get('athletes', [])
+        roster = []
+        
+        for athlete in athletes:
+            player_data = {
+                'id': athlete.get('id'),
+                'name': athlete.get('displayName') or athlete.get('fullName'),
+                'position': athlete.get('position', {}).get('abbreviation'),
+                'position_name': athlete.get('position', {}).get('displayName'),
+                'jersey': athlete.get('jersey'),
+                'active': athlete.get('active', True),
+            }
+            roster.append(player_data)
+            
+        return roster
     
     def generate_player_props_from_leaders(self, game_data: Dict, sport: str) -> List[Dict]:
         """Generate player props based on game leaders data."""

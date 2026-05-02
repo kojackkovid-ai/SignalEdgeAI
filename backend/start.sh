@@ -20,5 +20,7 @@ echo "Running startup verification..."
 python check_startup.py || echo "⚠️  Startup verification had issues (will retry during API initialization)"
 
 echo ""
-echo "Starting API server on $API_HOST:${API_PORT:-8000}..."
-exec python -m uvicorn app.main:app --host "$API_HOST" --port "${API_PORT:-8000}"
+API_HOST=${API_HOST:-0.0.0.0}
+API_PORT=${API_PORT:-${PORT:-8000}}
+echo "Starting API server on $API_HOST:$API_PORT..."
+exec python -m uvicorn app.main:app --host "$API_HOST" --port "$API_PORT"

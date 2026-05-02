@@ -6,7 +6,7 @@ Fetches and populates player game logs with historical data from ESPN
 import httpx
 import logging
 from typing import Dict, List, Any, Optional, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, insert, update, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -280,6 +280,8 @@ class PlayerDataService:
             event_id = game.get("id")
             date_str = game.get("date")
             date = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+            if date.tzinfo is not None:
+                date = date.astimezone(timezone.utc).replace(tzinfo=None)
             
             competitions = game.get("competitions", [])
             if not competitions:
@@ -498,6 +500,10 @@ class PlayerDataService:
     ) -> bool:
         """Create a new game log entry"""
         try:
+            # Normalize datetime to naive UTC before storage
+            if isinstance(date, datetime) and date.tzinfo is not None:
+                date = date.astimezone(timezone.utc).replace(tzinfo=None)
+            
             # Check if this game log already exists
             stmt = select(PlayerGameLog).where(
                 and_(
@@ -541,7 +547,11 @@ class PlayerDataService:
             return True  # New creation
             
         except Exception as e:
-            logger.error(f"Error creating game log: {e}")
+            logger.error(f"Error creating game log: {e}", exc_info=True)
+            try:
+                await self.db.rollback()
+            except Exception as rollback_err:
+                logger.warning(f"Failed to rollback session after game log error: {rollback_err}")
             return False
     
     async def get_player_last_games(

@@ -20,8 +20,9 @@ interface PlayerData {
 }
 
 interface Club100Data {
-  [key: string]: PlayerData[];
+  [key: string]: PlayerData[] | string[] | string | undefined;
   unlocked_picks?: string[];
+  warning?: string;
 }
 
 interface Club100DisplayProps {
@@ -60,20 +61,22 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
       if (response.data && response.data.success) {
         const data = response.data.data;
         console.log('[Club100Display] Setting Club 100 data:', data);
-        
+
         // Extract unlocked picks list
         const unlockedList = data.unlocked_picks || [];
         setUnlockedPicks(new Set(unlockedList));
         console.log('[Club100Display] Unlocked picks:', unlockedList);
-        
+
+        if (response.data.warning) {
+          setError(response.data.warning);
+        }
+
         setClub100Data(data);
-        
+
         const availableSports = Object.keys(data).filter(
-          (sport) => sport !== 'unlocked_picks' && data[sport] && data[sport].length > 0
+          (sport) => sport !== 'unlocked_picks' && sport !== 'warning' && data[sport] && Array.isArray(data[sport]) && data[sport].length > 0
         );
-        
-        console.log('[Club100Display] Available sports:', availableSports);
-        
+
         if (availableSports.length > 0) {
           setSelectedSport(availableSports[0]);
         } else {
@@ -236,6 +239,7 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
     soccer: '⚽ Soccer',
   };
 
+  const warningText = typeof club100Data.warning === 'string' ? club100Data.warning : null;
   let currentPlayers = club100Data[selectedSport] || [];
 
   // Sorting logic

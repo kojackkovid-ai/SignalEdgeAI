@@ -69,7 +69,7 @@ RUN mkdir -p ./ml-models/trained
 USER appuser
 
 # Expose the port that the application listens on.
-EXPOSE 8080
+EXPOSE 8000
 
 # Run the application.
 CMD ["/app/start.sh"]
