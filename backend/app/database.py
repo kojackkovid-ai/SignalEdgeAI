@@ -109,15 +109,12 @@ async def run_migrations():
     """Run database migrations - add missing columns if needed"""
     from sqlalchemy import text
     
+    # Detect database type from URL string (avoids corrupting PostgreSQL transactions)
+    db_url = str(settings.database_url)
+    is_sqlite = "sqlite" in db_url.lower()
+    
     async with engine.begin() as conn:
         try:
-            # Detect database type
-            try:
-                await conn.execute(text("SELECT sqlite_version()"))
-                is_sqlite = True
-            except:
-                is_sqlite = False
-            
             # Check if club_100_unlocked_picks column exists
             if is_sqlite:
                 result = await conn.execute(text("PRAGMA table_info(users)"))

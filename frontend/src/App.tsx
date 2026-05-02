@@ -29,18 +29,11 @@ const App: React.FC = () => {
     tokenManager.startMonitoring(
       // On token expired
       () => {
-        console.warn('[App] Token monitoring - expiration detected, user will be logged out');
         window.location.href = '/login';
       },
       // On token refreshed
-      (newToken) => {
-        console.log('[App] Token monitoring - token refreshed successfully');
-      }
+      (_newToken) => {}
     );
-
-    // Log token info on startup
-    const tokenInfo = tokenManager.getTokenInfo();
-    console.log('[App] Token Manager Started:', tokenInfo);
 
     // Cleanup on unmount
     return () => {
@@ -50,7 +43,7 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="flex flex-col min-h-screen">
           <Header />
           <main className="flex-1">

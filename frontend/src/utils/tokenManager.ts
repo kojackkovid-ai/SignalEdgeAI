@@ -23,18 +23,13 @@ class TokenManager {
   private decodeToken(token: string): TokenPayload | null {
     try {
       const parts = token.split('.');
-      if (parts.length !== 3) {
-        console.warn('[TokenManager] Invalid token format - not 3 parts');
-        return null;
-      }
+      if (parts.length !== 3) return null;
 
-      // Decode the payload (second part)
       const decoded = JSON.parse(
         atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
       );
       return decoded as TokenPayload;
-    } catch (error) {
-      console.error('[TokenManager] Failed to decode token:', error);
+    } catch {
       return null;
     }
   }
@@ -49,7 +44,6 @@ class TokenManager {
     const payload = this.decodeToken(token);
     if (!payload || !payload.exp) return null;
 
-    // exp is in seconds, convert to milliseconds
     return payload.exp * 1000;
   }
 
@@ -99,17 +93,12 @@ class TokenManager {
     this.onTokenExpired = onExpired || null;
     this.onTokenRefreshed = onRefreshed || null;
 
-    // Clear any existing monitoring
     this.stopMonitoring();
 
-    // Monitor every 30 seconds
     this.monitoringInterval = setInterval(() => {
       this.checkTokenStatus();
     }, 30000);
 
-    console.log('[TokenManager] Started monitoring token expiration');
-
-    // Do immediate check
     this.checkTokenStatus();
   }
 
@@ -120,7 +109,6 @@ class TokenManager {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
       this.monitoringInterval = null;
-      console.log('[TokenManager] Stopped monitoring token expiration');
     }
   }
 
@@ -131,41 +119,19 @@ class TokenManager {
     const token = localStorage.getItem('access_token');
 
     if (!token) {
-      console.log('[TokenManager] No token found');
       this.stopMonitoring();
       return;
     }
 
     const timeLeft = this.getTimeUntilExpiration();
-    if (timeLeft === null) {
-      console.warn('[TokenManager] Could not decode token expiration');
-      return;
-    }
+    if (timeLeft === null) return;
 
-    const expirationMinutes = Math.round(timeLeft / 60000);
-    console.log(
-      `[TokenManager] Token expires in ${expirationMinutes} minutes`
-    );
-
-    // If token has expired
     if (timeLeft <= 0) {
-      console.warn('[TokenManager] ⏰ Token has expired');
       this.stopMonitoring();
       if (this.onTokenExpired) {
         this.onTokenExpired();
       }
       localStorage.removeItem('access_token');
-      return;
-    }
-
-    // If token is expiring soon
-    if (timeLeft < this.refreshThresholdMs) {
-      const refreshMinutes = Math.round(
-        (this.refreshThresholdMs - timeLeft) / 60000
-      );
-      console.log(
-        `[TokenManager] ⚠️ Token expiring in ${expirationMinutes} minutes - should be refreshed in ~${refreshMinutes} minutes`
-      );
     }
   }
 
@@ -204,7 +170,6 @@ class TokenManager {
   clearToken(): void {
     localStorage.removeItem('access_token');
     this.stopMonitoring();
-    console.log('[TokenManager] Token cleared');
   }
 
   /**
@@ -212,7 +177,6 @@ class TokenManager {
    */
   setToken(token: string): void {
     localStorage.setItem('access_token', token);
-    console.log('[TokenManager] Token set');
     if (this.onTokenRefreshed) {
       this.onTokenRefreshed(token);
     }

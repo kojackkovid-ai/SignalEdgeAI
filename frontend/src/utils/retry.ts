@@ -6,6 +6,7 @@ export interface RetryConfig {
   retryDelayMultiplier?: number; // exponential backoff
   retryableStatusCodes?: number[];
   retryableErrorCodes?: string[];
+  excludeUrls?: string[]; // URL substrings that should never be retried
 }
 
 /**
@@ -78,6 +79,7 @@ export function addRetryInterceptor(
     maxRetries = DEFAULT_RETRY_CONFIG.maxRetries || 3,
     retryDelay = DEFAULT_RETRY_CONFIG.retryDelay || 1000,
     retryDelayMultiplier = DEFAULT_RETRY_CONFIG.retryDelayMultiplier || 2,
+    excludeUrls = [],
   } = config;
 
   // Add response interceptor for retries
@@ -91,8 +93,13 @@ export function addRetryInterceptor(
         axiosConfig._retryCount = 0;
       }
 
+      // Skip retry for excluded URLs (e.g. analytics events)
+      const requestUrl = axiosConfig.url || '';
+      const isExcluded = excludeUrls.some((pattern) => requestUrl.includes(pattern));
+
       // Check if we should retry
       if (
+        !isExcluded &&
         axiosConfig._retryCount < maxRetries &&
         isRetryableError(error, config)
       ) {
@@ -143,54 +150,3 @@ export function addRetryInterceptor(
   );
 }
 
-/**
- * Log retry statistics
- * Useful for monitoring retry patterns
- */
-export function logRetryStats(axiosInstance: AxiosInstance): void {
-  const stats = {
-    totalRequests: 0,
-    retriedRequests: 0,
-    successfulRetries: 0,
-    failedRetries: 0,
-  };
-
-  axiosInstance.interceptors.request.use((config: any) => {
-    stats.totalRequests += 1;
-    return config;
-  });
-
-  axiosInstance.interceptors.response.use(
-    (response: any) => {
-      if (response.config._retryCount > 0) {
-        stats.retriedRequests += 1;
-        stats.successfulRetries += 1;
-      }
-      return response;
-    },
-    (error: any) => {
-      if (error.config?._retryCount > 0) {
-        stats.retriedRequests += 1;
-        stats.failedRetries += 1;
-      }
-      return Promise.reject(error);
-    }
-  );
-
-  // Log stats periodically
-  setInterval(() => {
-    if (stats.totalRequests > 0) {
-      const retryRate = ((stats.retriedRequests / stats.totalRequests) * 100).toFixed(2);
-      const successRate =
-        stats.retriedRequests > 0
-          ? ((stats.successfulRetries / stats.retriedRequests) * 100).toFixed(2)
-          : 'N/A';
-
-      console.info(
-        `📊 Retry Stats - Total: ${stats.totalRequests}, ` +
-        `Retried: ${stats.retriedRequests} (${retryRate}%), ` +
-        `Success Rate: ${successRate}%`
-      );
-    }
-  }, 60000); // Log every minute
-}

@@ -220,7 +220,7 @@ async def login(
 
 @router.post("/logout")
 async def logout(
-    current_user_id: str = Depends(lambda: get_auth_service().get_current_user()),
+    current_user_id: str = Depends(get_auth_service().get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Logout user"""
@@ -228,7 +228,7 @@ async def logout(
     return {"message": "Logged out successfully"}
 
 @router.post("/refresh")
-async def refresh_token(current_user_id: str = Depends(lambda: get_auth_service().get_current_user())):
+async def refresh_token(current_user_id: str = Depends(get_auth_service().get_current_user)):
     """Refresh access token"""
     token = get_auth_service().create_access_token(data={"sub": current_user_id})
     return {

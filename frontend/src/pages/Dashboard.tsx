@@ -34,14 +34,8 @@ const Dashboard = (): JSX.Element | null => {
     | 'soccer_ger.1'
     | 'soccer_fra.1';
 
-  // Debug: Log authentication status on mount
+  // Track dashboard page view on mount
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    console.log('[Dashboard] Mount - Token in storage:', token ? `${token.substring(0, 20)}...` : 'NONE');
-    console.log('[Dashboard] isAuthenticated:', isAuthenticated);
-    console.log('[Dashboard] user:', user?.id);
-    
-    // Track dashboard page view
     if (user?.id) {
       analyticsTracker.trackPageView(user.id, 'dashboard').catch(() => {});
     }
@@ -127,12 +121,10 @@ const Dashboard = (): JSX.Element | null => {
         // Check if cache uses old sport key format (short keys like 'nba')
         const hasOldKeys = Object.keys(parsed).some(key => !key.includes('_'));
         if (hasOldKeys) {
-          console.log('[Dashboard] Detected old cache format, clearing cache');
           localStorage.removeItem('predictionsCache');
           predictionsCache.current = {};
         } else {
           predictionsCache.current = parsed;
-          console.log('[Dashboard] Loaded cache from localStorage:', Object.keys(parsed));
         }
       }
     } catch (e) {
@@ -184,14 +176,11 @@ const Dashboard = (): JSX.Element | null => {
     const fetchData = async (forceRefresh = false) => {
       // Check if we have valid cached data
       if (!forceRefresh && isCacheValid(activeTab)) {
-        const cacheAge = Math.round((Date.now() - predictionsCache.current[activeTab].timestamp) / 60000);
-        console.log('[Dashboard] Using cached predictions for', activeTab, '- Count:', predictionsCache.current[activeTab].data.length, '- Age:', cacheAge + ' minutes');
         setPredictions(predictionsCache.current[activeTab].data);
         setLoading(false);
         
         // Trigger background refresh if cache is getting stale
         if (needsBackgroundRefresh(activeTab)) {
-          console.log('[Dashboard] Background refresh triggered for', activeTab);
           fetchData(true); // Force refresh without blocking UI
         }
         return;
@@ -200,14 +189,9 @@ const Dashboard = (): JSX.Element | null => {
       setLoading(!isCacheValid(activeTab)); // Only show loading spinner if no cached data
       try {
         const canonicalSportKey = legacySportKeyMap[activeTab] || activeTab;
-        console.log('[Dashboard] Fetching predictions for sport:', canonicalSportKey);
         
         // Use the api utility which properly attaches auth tokens
         const data = await api.getPredictions({ sport: canonicalSportKey, limit: 20 });
-        
-        console.log('[Dashboard] Raw API response:', data);
-        console.log('[Dashboard] Response type:', typeof data);
-        console.log('[Dashboard] Is array:', Array.isArray(data));
         
         // Handle both array response and object with predictions key
         let predictionsList = [];
@@ -219,8 +203,6 @@ const Dashboard = (): JSX.Element | null => {
           predictionsList = data.predictions;
         }
         
-        console.log('[Dashboard] Processed predictions list:', predictionsList.length, predictionsList);
-        
         if (predictionsList.length > 0) {
           // Cache the predictions with timestamp
           predictionsCache.current[activeTab] = {
@@ -229,18 +211,14 @@ const Dashboard = (): JSX.Element | null => {
           };
           saveCacheToStorage(); // Persist to localStorage
           setPredictions(predictionsList);
-          console.log('[Dashboard] Cached and displayed predictions for:', activeTab);
         } else {
-          console.log('[Dashboard] No predictions found, setting empty array');
           setPredictions([]);
         }
       } catch (err: any) {
-        console.error('[Dashboard] Error fetching predictions:', err);
-        console.error('[Dashboard] Error details:', err.message);
+        console.error('[Dashboard] Error fetching predictions:', err.message);
         
         // If fetch fails but we have cached data, use it
         if (isCacheValid(activeTab)) {
-          console.log('[Dashboard] Fetch failed, using cached data fallback');
           setPredictions(predictionsCache.current[activeTab].data);
         } else {
           setError(`Failed to load predictions: ${err.message}`);
@@ -284,20 +262,12 @@ const Dashboard = (): JSX.Element | null => {
     
     const fetchTierInfo = async () => {
       try {
-        console.log('[Dashboard] Fetching tier info from /users/tier');
         const response = await api.getTier();
-        console.log('[Dashboard] Full tier response:', response);
-        console.log('[Dashboard] Response.data:', response);
         
         // Handle tier data - response is already the data object from getTier()
         if (response && typeof response === 'object') {
           const tierValue = response.tier || 'starter';
-          const dailyLimitValue = response.daily_limit;
           const picksUsedValue = response.picks_used_today || 0;
-          const isUnlimited = response.is_unlimited || tierValue === 'elite' || tierValue === 'pro_plus';
-          
-          console.log('[Dashboard] Extracted tier:', tierValue, 'limit:', dailyLimitValue, 'used:', picksUsedValue, 'unlimited:', isUnlimited);
-          console.log('[Dashboard] Tier "' + tierValue + '" should have limit:', tierConfig[tierValue as keyof typeof tierConfig]?.dailyLimit);
           
           setUserTier(tierValue);
           // Update auth store with new tier
@@ -309,16 +279,11 @@ const Dashboard = (): JSX.Element | null => {
           
           // Use the tier config limit (now has correct unlimited values for pro, pro_plus, and elite)
           const limitToSet = tierConfig[tierValue as keyof typeof tierConfig]?.dailyLimit || 1;
-          
-          console.log('[Dashboard] Applied tier limit for "' + tierValue + '":', limitToSet);
           setPickLimit(limitToSet);
           setPickCount(picksUsedValue);
-        } else {
-          console.warn('[Dashboard] Unexpected tier response format:', response);
         }
       } catch (err: any) {
-        console.error('[Dashboard] Error fetching tier info:', err);
-        console.error('[Dashboard] Error response:', err.response?.data);
+        console.error('[Dashboard] Error fetching tier info:', err.message);
         // Fallback to starter tier
         setUserTier('starter');
         setPickLimit(1);
@@ -344,9 +309,7 @@ const Dashboard = (): JSX.Element | null => {
     
     try {
       // Fetch unified props for this game
-      console.log('[Dashboard] Fetching unified props for:', game.sport_key, game.event_id);
       const fullProps = await api.getFullGameProps(game.sport_key, game.event_id);
-      console.log('[Dashboard] Full game props response:', fullProps);
       
       // Helper function to enrich props with sport_key and event_id
       const enrichPropsWithContext = (props: any[]): any[] => {
@@ -384,13 +347,7 @@ const Dashboard = (): JSX.Element | null => {
         ];
         setGameProps(allProps);
         
-        console.log('[Dashboard] Organized props - Goals:', fullProps.goals?.length || 0, 
-                    'Assists:', fullProps.assists?.length || 0, 
-                    'Anytime Goal:', fullProps.anytime_goal?.length || 0,
-                    'Team Props:', fullProps.team_props?.length || 0,
-                    'Other Props:', fullProps.other_props?.length || 0);
       } else {
-        console.log('[Dashboard] Unexpected response format:', fullProps);
         setGoalsProps([]);
         setAssistsProps([]);
         setAnytimeGoalProps([]);
@@ -450,14 +407,6 @@ const Dashboard = (): JSX.Element | null => {
         models: selectedGame.models
       };
       
-      // ENHANCED DEBUG LOGGING - Show exactly what's being sent
-      console.log('[Dashboard] 🔍 UNLOCK DEBUG:');
-      console.log('  gameId:', gameId, typeof gameId);
-      console.log('  sport_key:', selectedGame.sport_key, typeof selectedGame.sport_key);
-      console.log('  event_id:', selectedGame.event_id, typeof selectedGame.event_id);
-      console.log('  prediction:', selectedGame.prediction, typeof selectedGame.prediction);
-      console.log('  Full predictionData:', predictionData);
-      
       // Validate required fields
       const missingFields = [];
       if (!gameId) missingFields.push('gameId');
@@ -471,57 +420,41 @@ const Dashboard = (): JSX.Element | null => {
       
       const response = await api.followPrediction(gameId, predictionData, selectedGame.sport_key);
       if (response) {
-        // Update the selected game state
         setSelectedGame((prev: any) => ({ ...prev, is_locked: false }));
         setPickCount((prev: number) => prev + 1);
         
-        // CRITICAL: Update the cached predictions list so the prediction shows as unlocked everywhere
+        // Update the cached predictions list so the prediction shows as unlocked everywhere
         const updatedPredictions = predictions.map((pred: any) => {
           if (pred.id === gameId) {
-            console.log('[Dashboard] Updated prediction in cache - marked as unlocked:', gameId);
             return { ...pred, is_locked: false };
           }
           return pred;
         });
         
-        // Update both state and cache
         setPredictions(updatedPredictions);
         predictionsCache.current[activeTab] = {
           data: updatedPredictions,
           timestamp: predictionsCache.current[activeTab]?.timestamp || Date.now()
         };
-        saveCacheToStorage(); // Persist to localStorage
+        saveCacheToStorage();
         
-        console.log('[Dashboard] Successfully unlocked prediction:', gameId);
         alert('Pick unlocked! You now have access to this prediction.');
       }
     } catch (err: any) {
-      console.error('[Dashboard] ❌ Error unlocking game:', err);
+      console.error('[Dashboard] Error unlocking game:', err.message);
       
-      // DETAILED ERROR RESPONSE
       const status = err.response?.status;
       const errorDetail = err.response?.data?.detail;
-      const fullError = err.response?.data;
       
-      console.error('[Dashboard] 🔴 ERROR DETAILS:');
-      console.error('  HTTP Status:', status);
-      console.error('  Error message:', errorDetail || err.message);
-      console.error('  Full response body:', fullError);
-      console.error('  Request URL:', err.config?.url);
-      console.error('  Request method:', err.config?.method);
-      console.error('  Request params:', err.config?.params);
-      console.error('  Request data:', err.config?.data);
-      
-      // More specific error message
       let errorMsg = 'Failed to unlock game pick. ';
-      if (err.response?.status === 404) {
+      if (status === 404) {
         errorMsg += 'Endpoint not found. Please refresh the page.';
-      } else if (err.response?.status === 401) {
+      } else if (status === 401) {
         errorMsg += 'Session expired. Please log in again.';
-      } else if (err.response?.status === 403) {
+      } else if (status === 403) {
         errorMsg += 'Daily limit reached. Upgrade your tier for more picks.';
-      } else if (err.response?.data?.detail) {
-        errorMsg += err.response.data.detail;
+      } else if (errorDetail) {
+        errorMsg += errorDetail;
       } else {
         errorMsg += 'Please try again.';
       }
@@ -547,13 +480,10 @@ const Dashboard = (): JSX.Element | null => {
     // Find the full prop data from gameProps
     const propData = gameProps.find((p: any) => p.id === basePropId);
     if (!propData) {
-      console.error('[Dashboard] Prop not found:', basePropId);
-      console.error('[Dashboard] Available props:', gameProps.map((p: any) => p?.id));
       alert('Error: Prop data not found. Please refresh and try again.');
       return;
     }
 
-    console.log('[Dashboard] Starting unlock for prop:', propId, 'base:', basePropId, propData);
     setUnlockingId(propId);
     
     try {
@@ -561,17 +491,6 @@ const Dashboard = (): JSX.Element | null => {
       // For player props, these should be available in the propData or selectedGame
       const sportKey = propData.sport_key || selectedGame?.sport_key;
       const eventId = propData.event_id || selectedGame?.event_id;
-      
-      console.log('[Dashboard] 🔍 PROP UNLOCK DEBUG:');
-      console.log('  propId:', propId);
-      console.log('  sportKey from propData:', propData.sport_key);
-      console.log('  sportKey from selectedGame:', selectedGame?.sport_key);
-      console.log('  Using sportKey:', sportKey);
-      console.log('  eventId from propData:', propData.event_id);
-      console.log('  eventId from selectedGame:', selectedGame?.event_id);
-      console.log('  Using eventId:', eventId);
-      console.log('  propData.player:', propData.player);
-      console.log('  propData.market_key:', propData.market_key);
       
       // Pass the complete prop data to the API
       const predictionData = {
@@ -598,20 +517,12 @@ const Dashboard = (): JSX.Element | null => {
       if (propData.prediction_type === 'player_prop' && !propData.player) missingFields.push('player');
       if (!propData.market_key) missingFields.push('market_key');
       if (missingFields.length > 0) {
-        console.error('[Dashboard] ❌ MISSING REQUIRED FIELDS FOR PROP UNLOCK:', missingFields);
         alert(`Error: Missing required fields: ${missingFields.join(', ')}`);
         return;
       }
       
-      console.log('[Dashboard] ✅ All required fields present. Unlocking prop with data:', predictionData);
-      
       // Use the follow endpoint with complete prop data
       const response = await api.followPrediction(propId, predictionData, sportKey);
-      console.log('[Dashboard] Unlock prop raw response:', response);
-      console.log('[Dashboard] Unlock prop response type:', typeof response);
-      console.log('[Dashboard] Unlock prop response keys:', response ? Object.keys(response) : 'none');
-      console.log('[Dashboard] Anytime goal names in response:', response?.anytime_goal_names);
-      console.log('[Dashboard] Anytime goal scorers in response:', response?.anytime_goal_scorers);
       
       if (response && typeof response === 'object') {
         // Update the prop to show it's unlocked
@@ -656,82 +567,22 @@ const Dashboard = (): JSX.Element | null => {
         };
         
         // Update ALL the separated arrays that PropsTab uses
-        console.log('[Dashboard] Updating all prop arrays for ID:', basePropId, 'team unlock:', isTeamSpecificUnlock ? (isHomeTeamUnlock ? 'home' : 'away') : 'full');
-
-        setGoalsProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
-            console.log('[Dashboard] ✅ Updated goalsProps - prop now unlocked');
-          }
-          return updated;
-        });
-        
-        setAssistsProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
-            console.log('[Dashboard] ✅ Updated assistsProps - prop now unlocked');
-          }
-          return updated;
-        });
-
-        setAnytimeGoalProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
-            console.log('[Dashboard] ✅ Updated anytimeGoalProps - prop now unlocked');
-          }
-          return updated;
-        });
-        
-        setTeamProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
-            console.log('[Dashboard] ✅ Updated teamProps - prop now unlocked');
-          }
-          return updated;
-        });
-
-        setOtherProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
-          if (updated.some((p: any) => p?.id === basePropId && !p.is_locked)) {
-            console.log('[Dashboard] ✅ Updated otherProps - prop now unlocked');
-          }
-          return updated;
-        });
-
-        setGameProps((prev: any[]) => {
-          const updated = prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p);
-          console.log('[Dashboard] ✅ Updated gameProps - total props:', updated.length);
-          return updated;
-        });
-        
-        setPickCount((prev: number) => {
-          const newCount = prev + 1;
-          console.log('[Dashboard] Pick count updated:', prev, '->', newCount);
-          return newCount;
-        });
-        console.log('[Dashboard] 🎉 Prop unlocked successfully - all arrays updated');
+        setGoalsProps((prev: any[]) => prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p));
+        setAssistsProps((prev: any[]) => prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p));
+        setAnytimeGoalProps((prev: any[]) => prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p));
+        setTeamProps((prev: any[]) => prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p));
+        setOtherProps((prev: any[]) => prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p));
+        setGameProps((prev: any[]) => prev.map((p: any) => p && p.id === basePropId ? createUpdatedProp(p) : p));
+        setPickCount((prev: number) => prev + 1);
       } else {
-        console.warn('[Dashboard] No valid response from unlock API');
         alert('Failed to unlock prediction. Please try again.');
       }
     } catch (err: any) {
-      console.error('[Dashboard] ❌ Error unlocking prop:', err);
+      console.error('[Dashboard] Error unlocking prop:', err.message);
       
-      // DETAILED ERROR RESPONSE
       const status = err.response?.status;
       const errorDetail = err.response?.data?.detail;
-      const fullError = err.response?.data;
       
-      console.error('[Dashboard] 🔴 ERROR DETAILS:');
-      console.error('  HTTP Status:', status);
-      console.error('  Error message:', errorDetail || err.message);
-      console.error('  Full response body:', fullError);
-      console.error('  Request URL:', err.config?.url);
-      console.error('  Request method:', err.config?.method);
-      console.error('  Request params:', err.config?.params);
-      console.error('  Request data:', err.config?.data);
-      
-      // More specific error message
       let errorMsg = 'Failed to unlock prediction. ';
       if (status === 404) {
         errorMsg += 'Endpoint not found. Please refresh the page.';

@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { addRetryInterceptor, logRetryStats } from './retry';
+import { addRetryInterceptor } from './retry';
 
 // Use Vite proxy in development for CORS handling
 const API_BASE_URL = import.meta.env.DEV 
@@ -14,18 +14,18 @@ class ApiClient {
   constructor() {
     this.client = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 160000, // 160 second timeout by default for long-running requests
+      timeout: 160000,
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    // Add retry interceptor for automatic retries on transient failures
+    // Add retry interceptor — skip analytics/event endpoint to avoid spam
     addRetryInterceptor(this.client, {
       maxRetries: 3,
-      retryDelay: 1000, // 1 second initial delay
-      retryDelayMultiplier: 2, // exponential backoff: 1s, 2s, 4s
-      retryableStatusCodes: [408, 429, 500, 502, 503, 504],
+      retryDelay: 1000,
+      retryDelayMultiplier: 2,
+      retryableStatusCodes: [408, 502, 503, 504],
       retryableErrorCodes: [
         'ECONNABORTED',
         'ECONNREFUSED',
@@ -34,27 +34,16 @@ class ApiClient {
         'ETIMEDOUT',
         'ECONNRESET',
       ],
+      excludeUrls: ['/analytics/event'],
     });
-
-    // Log retry statistics periodically (useful for monitoring)
-    logRetryStats(this.client);
 
     // Add token to requests (but not for auth endpoints)
     this.client.interceptors.request.use((config) => {
       const token = localStorage.getItem('access_token');
-      console.log('[API] Request to:', config.url);
-      console.log('[API] Token in localStorage:', token ? `${token.substring(0, 20)}...` : 'NONE');
-      
-      // Don't require token for auth endpoints
       const isAuthEndpoint = config.url?.includes('/auth/');
-      
+
       if (token && !isAuthEndpoint) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('[API] Authorization header set ✓');
-      } else if (!isAuthEndpoint) {
-        console.warn('[API] NO TOKEN FOUND - Request will fail auth');
-      } else {
-        console.log('[API] Auth endpoint - no token required ✓');
       }
       return config;
     });
@@ -83,10 +72,8 @@ class ApiClient {
 
           if (!isRefreshing) {
             isRefreshing = true;
-            console.log('[Auth] Token expired or invalid - attempting refresh...');
 
             try {
-              // Create a new axios instance to avoid infinite loops
               const refreshClient = axios.create({
                 baseURL: API_BASE_URL,
                 timeout: 10000,
@@ -98,21 +85,18 @@ class ApiClient {
                 refreshClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
               }
 
-              // Call refresh endpoint
               const response = await refreshClient.post('/auth/refresh');
               const newToken = response.data.access_token;
 
-              console.log('[Auth] ✅ Token refreshed successfully');
               localStorage.setItem('access_token', newToken);
               this.client.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
               onRefreshed(newToken);
               isRefreshing = false;
 
-              // Retry original request with new token
               originalRequest.headers.Authorization = `Bearer ${newToken}`;
               return this.client(originalRequest);
             } catch (refreshError) {
-              console.error('[Auth] ❌ Token refresh failed:', refreshError);
+              console.warn('[Auth] Session expired — please log in again');
               localStorage.removeItem('access_token');
               isRefreshing = false;
               refreshSubscribers = [];
@@ -120,7 +104,6 @@ class ApiClient {
               return Promise.reject(refreshError);
             }
           } else {
-            // Wait for token refresh to complete, then retry
             return new Promise((resolve) => {
               addRefreshSubscriber((token: string) => {
                 originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -132,7 +115,6 @@ class ApiClient {
 
         // For other 401 errors without retry attempt
         if (error.response?.status === 401) {
-          console.warn('[Auth] 401 Unauthorized - clearing session');
           localStorage.removeItem('access_token');
           window.location.href = '/login';
         }
@@ -180,12 +162,11 @@ class ApiClient {
     try {
       const response = await this.client.get('/predictions/', {
         params: filters,
-        timeout: 160000, // 160 second timeout - backend needs time to enrich from 7 sports in parallel
+        timeout: 160000,
       });
       return response.data;
     } catch (error: any) {
       if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-        console.error('Predictions endpoint timed out after 160 seconds');
         throw new Error('Predictions service is taking too long. Please try again.');
       }
       throw error;

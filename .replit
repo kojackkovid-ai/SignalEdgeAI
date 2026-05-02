@@ -26,13 +26,13 @@ args = "Start application"
 name = "Backend API"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd backend && python -m uvicorn app.main:app --host localhost --port 8000"
-waitForPort = 8000
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && LD_LIBRARY_PATH=/nix/store/055bzdrski1dwqa4km1gxpcjhpn73mng-gcc-10.3.0-lib/lib:$LD_LIBRARY_PATH python -m uvicorn app.main:app --host localhost --port 8000"
+waitForPort = 8000
 
 [[workflows.workflow]]
 name = "Start application"
@@ -53,6 +53,7 @@ externalPort = 80
 [[ports]]
 localPort = 8000
 externalPort = 8000
+exposeLocalhost = true
 
 [deployment]
 deploymentTarget = "autoscale"
