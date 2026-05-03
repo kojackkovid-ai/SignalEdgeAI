@@ -7,9 +7,9 @@ services:
     image: postgres:16-alpine
     container_name: signaledge-db-prod
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: sports_predictions_password
-      POSTGRES_DB: sports_predictions_prod
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-sports_predictions_prod}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
@@ -73,7 +73,7 @@ services:
       # env_file .env.production loads all required variables:
       # STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY, SECRET_KEY, ALGORITHM,
       # ACCESS_TOKEN_EXPIRE_MINUTES, ODDS_API_KEY, LOG_LEVEL, etc.
-      DATABASE_URL: postgresql+asyncpg://postgres:sports_predictions_password@postgres:5432/sports_predictions_prod
+      DATABASE_URL: ${DATABASE_URL}
       ENVIRONMENT: production
 
     depends_on:
@@ -100,7 +100,7 @@ services:
       args:
         VITE_API_URL: /api
         VITE_APP_NAME: SignalEdge AI
-        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY:-pk_test_51SuaLd8f0rj8wiWDNdeOgNvgt3mFoKpmkXlzV2JWN8gUxash7DzogdtiZUu0rkCEMI5F3HtmTBquAhVVSKrknAy4003kbnRUu6}
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY}
     container_name: signaledge-web-prod
     ports:
       - "3000:80"
@@ -134,12 +134,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile.prod
     container_name: signaledge-ml-worker
+    env_file:
+      - .env.production
     command: python /app/ml-models/training/__main__.py
     volumes:
       - ./ml-models:/app/ml-models
     environment:
-      DATABASE_URL: postgresql+asyncpg://${DB_USER:-postgres}:${DB_PASSWORD:-changeme_in_production}@postgres:5432/${DB_NAME:-sports_predictions}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       LOG_LEVEL: INFO
     healthcheck:
       test: ["CMD", "test", "-d", "/app/ml-models/trained"]
@@ -158,10 +160,12 @@ services:
   db-backup:
     image: postgres:16-alpine
     container_name: signaledge-backup
+    env_file:
+      - .env.production
     command: >
       sh -c "
         while true; do
-          PGPASSWORD=${DB_PASSWORD:-changeme_in_production} pg_dump -h postgres -U ${DB_USER:-postgres} ${DB_NAME:-sports_predictions} | gzip > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql.gz
+          PGPASSWORD=${DB_PASSWORD} pg_dump -h postgres -U ${DB_USER:-postgres} ${DB_NAME:-sports_predictions} | gzip > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql.gz
           find /backups -name 'backup_*.sql.gz' -mtime +7 -delete
           sleep 86400
         done

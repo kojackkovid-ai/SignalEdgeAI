@@ -533,4 +533,4 @@ class AdvancedModelEnsemble:
 
 if __name__ == "__main__":
     # Example usage
-    print("Advanced Statistical Models loaded successfully")
+    logger.info("Advanced Statistical Models loaded successfully")

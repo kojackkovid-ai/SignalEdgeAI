@@ -4,6 +4,7 @@ Provides distributed rate limiting for scalability and performance
 """
 
 import time
+import asyncio
 import logging
 from typing import Dict, Optional, Tuple, Any
 from functools import wraps
@@ -78,7 +79,7 @@ class RedisRateLimiter:
             return f"ratelimit:{client_id}:{endpoint}"
         return f"ratelimit:{client_id}"
 
-    def check_rate_limit(
+    async def check_rate_limit(
         self, request: Request, endpoint: Optional[str] = None
     ) -> Tuple[bool, int, Dict[str, Any]]:
         """
@@ -104,6 +105,9 @@ class RedisRateLimiter:
 
             # Get current bucket state
             bucket = self.redis_client.get(bucket_key)
+            if asyncio.iscoroutine(bucket):
+                bucket = await bucket
+
             if bucket:
                 bucket_data = json.loads(bucket)
             else:
@@ -134,11 +138,13 @@ class RedisRateLimiter:
                 retry_after = int((1.0 - bucket_data["tokens"]) / refill_rate) + 1
 
             # Store updated bucket (with expiration)
-            self.redis_client.setex(
+            set_result = self.redis_client.setex(
                 bucket_key,
                 window * 2,  # Expiration after 2 windows
                 json.dumps(bucket_data),
             )
+            if asyncio.iscoroutine(set_result):
+                await set_result
 
             # Prepare rate limit info
             remaining = max(0, int(bucket_data["tokens"]))
@@ -195,7 +201,7 @@ class EnhancedRateLimitMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Check rate limit
-        allowed, retry_after, rate_info = self.limiter.check_rate_limit(request, path)
+        allowed, retry_after, rate_info = await self.limiter.check_rate_limit(request, path)
 
         if not allowed:
             logger.warning(f"Rate limit exceeded: {path} - retry after {retry_after}s")

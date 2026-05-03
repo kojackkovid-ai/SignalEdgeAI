@@ -25,6 +25,10 @@ FRONTEND_URL=https://your-domain.com
 MAILGUN_API_KEY=key_YOUR_KEY
 MAILGUN_DOMAIN=your-domain.mailgun.org
 
+# Monitoring
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+SENTRY_ENVIRONMENT=production
+
 # Logging
 LOG_LEVEL=info
 

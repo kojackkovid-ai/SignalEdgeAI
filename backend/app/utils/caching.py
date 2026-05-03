@@ -9,12 +9,22 @@ import logging
 from functools import wraps
 from typing import Callable, Optional, Any, Dict, List
 from datetime import datetime, timedelta
+import redis.asyncio as aioredis
 from app.services.redis_cache import RedisCacheService
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
 # Global cache service instance
 _cache_service: Optional[RedisCacheService] = None
+
+
+def get_redis_client(redis_url: Optional[str] = None):
+    """Get a Redis client instance using the configured URL."""
+    url = redis_url or settings.redis_url
+    if not url:
+        url = "redis://localhost:6379"
+    return aioredis.from_url(url, encoding="utf-8", decode_responses=True)
 
 
 async def init_cache_service(redis_url: Optional[str] = None) -> RedisCacheService:

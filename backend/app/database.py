@@ -15,24 +15,25 @@ def create_database_engine():
     DATABASE_URL = settings.database_url
     safe_url = DATABASE_URL.replace(settings.db_pass, '***') if settings.db_pass else DATABASE_URL
     
-    # Print to logs which database is being used
-    print(f"[DATABASE] Connecting to: {safe_url}")
-    print(f"[DATABASE] DB_HOST: {settings.db_host}, DB_PORT: {settings.db_port}, DB_NAME: {settings.db_name}")
+    # Log database connection details safely
+    logger.info("[DATABASE] Connecting to: %s", safe_url)
+    logger.debug("[DATABASE] DB_HOST: %s, DB_PORT: %s, DB_NAME: %s", settings.db_host, settings.db_port, settings.db_name)
     
     # SQLite support for local development
     if "sqlite" in DATABASE_URL:
-        print(f"[DATABASE] [INFO] Using SQLite for local development at: {settings.db_host}")
+        logger.info("[DATABASE] Using SQLite for local development at: %s", settings.db_host)
         engine = create_async_engine(
             DATABASE_URL,
             echo=False,
             future=True,
             connect_args={"check_same_thread": False}
         )
-        print(f"[DATABASE] [OK] SQLite engine created successfully")
+        logger.info("[DATABASE] SQLite engine created successfully")
         return engine
     
     # PostgreSQL for production/Docker
-    print(f"[DATABASE] Configuring PostgreSQL connection pool (pool_size=20, max_overflow=40)")
+    logger.info("[DATABASE] Configuring PostgreSQL connection pool (pool_size=%s, max_overflow=%s)", 
+                settings.db_pool_size, settings.db_max_overflow)
     connect_args = {}
     try:
         parsed_url = make_url(DATABASE_URL)
@@ -45,15 +46,15 @@ def create_database_engine():
         if sslmode is None:
             sslmode = settings.db_sslmode or os.getenv("PGSSLMODE")
             if sslmode:
-                print(f"[DATABASE] Using SSL mode from environment: {sslmode}")
+                logger.info("[DATABASE] Using SSL mode from environment: %s", sslmode)
 
         if sslmode is None and parsed_url.host and str(parsed_url.host).endswith(".flycast"):
             sslmode = "disable"
-            print(f"[DATABASE] Detected Fly internal host {parsed_url.host}, defaulting sslmode=disable")
+            logger.info("[DATABASE] Detected Fly internal host %s, defaulting sslmode=disable", parsed_url.host)
 
         if sslmode is not None:
             connect_args["ssl"] = False if sslmode.lower() == "disable" else True
-            print(f"[DATABASE] Converted sslmode={sslmode} -> ssl={connect_args['ssl']}")
+            logger.info("[DATABASE] Converted sslmode=%s -> ssl=%s", sslmode, connect_args["ssl"])
 
         parsed_url = URL.create(
             drivername=drivername,
@@ -76,21 +77,22 @@ def create_database_engine():
     else:
         safe_db_url = DATABASE_URL.render_as_string(hide_password=True)
 
-    print(f"[DATABASE] Using DATABASE_URL: {safe_db_url}")
+    logger.info("[DATABASE] Using DATABASE_URL: %s", safe_db_url)
     connect_args = connect_args or {}
     engine_kwargs = {
-        "echo": False,
+        "echo": settings.db_echo,
         "future": True,
-        "pool_pre_ping": True,
-        "pool_size": 20,
-        "max_overflow": 40,
+        "pool_pre_ping": settings.db_pool_pre_ping,
+        "pool_size": settings.db_pool_size,
+        "max_overflow": settings.db_max_overflow,
+        "pool_recycle": settings.db_pool_recycle,
         "connect_args": connect_args,
     }
-    print(f"[DATABASE] connect_args: {connect_args}")
+    logger.debug("[DATABASE] connect_args: %s", connect_args)
 
     engine = create_async_engine(DATABASE_URL, **engine_kwargs)
     
-    print(f"[DATABASE] [OK] PostgreSQL engine created successfully")
+    logger.info("[DATABASE] [OK] PostgreSQL engine created successfully")
     return engine
 
 engine = create_database_engine()

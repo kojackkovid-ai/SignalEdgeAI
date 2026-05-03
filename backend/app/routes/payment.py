@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Header
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
+from enum import Enum
 from app.database import get_db
 from app.services.auth_service import AuthService
 from app.services.stripe_service import stripe_service
@@ -75,9 +76,23 @@ router = APIRouter()
 # Lazy-loaded
 auth_service = None
 
+class PlanEnum(str, Enum):
+    basic = "basic"
+    pro = "pro"
+    pro_plus = "pro_plus"
+    elite = "elite"
+
+
+class BillingCycleEnum(str, Enum):
+    monthly = "monthly"
+    annual = "annual"
+
+
 class CreatePaymentIntentRequest(BaseModel):
-    plan: str
-    billing_cycle: str
+    plan: PlanEnum
+    billing_cycle: BillingCycleEnum
+    idempotency_key: Optional[constr(min_length=1)] = None
+
 
 class PaymentIntentResponse(BaseModel):
     client_secret: str
@@ -113,18 +128,6 @@ async def create_payment_intent(
             
             if not user:
                 logger.error(f"[Payment] ❌ User not found in database: {current_user_id}")
-                user_lookup_error = "User not found in database - your session may be invalid"
-                # Refresh database connection and try again
-                try:
-                    await db.refresh()
-                    user = await get_auth_service().get_user_by_id(db, current_user_id)
-                    if user:
-                        logger.info(f"[Payment] ✅ User found after DB refresh: {user.id}")
-                except Exception as refresh_error:
-                    logger.warning(f"[Payment] Failed to refresh DB connection: {refresh_error}")
-            
-            if not user:
-                logger.error(f"[Payment] User still not found after retry: {current_user_id}")
                 raise HTTPException(
                     status_code=401,
                     detail="User session is invalid. Please log in again."
@@ -143,8 +146,8 @@ async def create_payment_intent(
         # Get pricing from tier_features.py for consistency and maintainability
         from app.models.tier_features import TierFeatures
         
-        plan = request.plan.lower()
-        cycle = request.billing_cycle.lower()
+        plan = request.plan.value.lower()
+        cycle = request.billing_cycle.value.lower()
         
         # Validate plan
         try:
@@ -159,7 +162,7 @@ async def create_payment_intent(
             raise HTTPException(status_code=400, detail=f"Invalid plan '{plan}'. Must be one of: {', '.join(all_tiers)}")
         
         # Validate billing cycle
-        if cycle not in ['monthly', 'annual']:
+        if cycle not in [billing.value for billing in BillingCycleEnum]:
             logger.error(f"[Payment] Invalid cycle: {cycle}")
             raise HTTPException(status_code=400, detail="Invalid billing cycle. Must be 'monthly' or 'annual'")
         
@@ -186,7 +189,8 @@ async def create_payment_intent(
                     "user_email": user.email,
                     "plan": plan,
                     "billing_cycle": cycle
-                }
+                },
+                idempotency_key=request.idempotency_key,
             )
             
             logger.info(f"[Payment] ✅ Payment intent created successfully")
@@ -220,8 +224,8 @@ async def create_payment_intent(
         )
 
 class ConfirmPaymentRequest(BaseModel):
-    payment_intent_id: str
-    plan: str
+    payment_intent_id: constr(min_length=10)
+    plan: PlanEnum
 
 @router.post("/confirm-payment")
 async def confirm_payment(
@@ -239,13 +243,12 @@ async def confirm_payment(
         
         # Verify payment with Stripe
         logger.info(f"[Payment] Verifying payment with Stripe...")
-        payment_verified = await stripe_service.verify_payment(request.payment_intent_id)
+        payment_info = await stripe_service.verify_payment(request.payment_intent_id)
         
-        logger.info(f"[Payment] Payment verification result: {payment_verified}")
+        logger.info(f"[Payment] Payment verification result: %s", payment_info)
         
-        if not payment_verified:
+        if payment_info.get("status") != "succeeded":
             logger.error(f"[Payment] ❌ Payment verification failed for {request.payment_intent_id}")
-            # Log failed payment
             try:
                 audit = await get_audit_service(db)
                 await audit.log_action(
@@ -256,7 +259,7 @@ async def confirm_payment(
                     ip_address=None,
                     user_agent=None,
                     status='failure',
-                    error_message='Payment verification failed'
+                    error_message=payment_info.get('error', 'Payment verification failed')
                 )
             except Exception as audit_error:
                 logger.warning(f"[Payment] Failed to log payment failure: {audit_error}")
@@ -265,6 +268,15 @@ async def confirm_payment(
                 status_code=400, 
                 detail="Payment verification failed. Please contact support."
             )
+
+        intent_metadata = payment_info.get('metadata', {}) or {}
+        if intent_metadata.get('user_id') and intent_metadata.get('user_id') != current_user_id:
+            logger.error("[Payment] Payment intent user mismatch: %s != %s", intent_metadata.get('user_id'), current_user_id)
+            raise HTTPException(status_code=403, detail="Payment intent does not belong to the authenticated user.")
+
+        if intent_metadata.get('plan') and intent_metadata.get('plan').lower() != request.plan.value.lower():
+            logger.error("[Payment] Payment intent plan mismatch: %s != %s", intent_metadata.get('plan'), request.plan.value)
+            raise HTTPException(status_code=400, detail="Payment intent metadata does not match requested plan.")
         
         logger.info(f"[Payment] Getting user {current_user_id} ...")
         # Get user
@@ -297,12 +309,10 @@ async def confirm_payment(
             audit = await get_audit_service(db)
             
             # Log payment
-            payment_amount = {
-                'basic': {'monthly': 1200, 'annual': 12000},
-                'pro': {'monthly': 2900, 'annual': 29000},
-                'pro_plus': {'monthly': 4900, 'annual': 49000},
-                'elite': {'monthly': 9900, 'annual': 99000}
-            }.get(plan_lower, {}).get('monthly', 0)
+            try:
+                payment_amount = TierFeatures.get_tier_price(plan_lower, 'monthly') or 0
+            except Exception:
+                payment_amount = 0
             
             await audit.log_action(
                 user_id=current_user_id,
@@ -369,6 +379,18 @@ async def confirm_payment(
             )
 
 
+class WebhookEventLog(BaseModel):
+    event_id: str
+    event_type: str
+    created: int
+    processed_at: str
+    status: str
+    user_id: Optional[str] = None
+    payment_intent_id: Optional[str] = None
+    amount: Optional[int] = None
+    currency: Optional[str] = None
+    error_message: Optional[str] = None
+
 @router.post("/webhook")
 async def stripe_webhook(
     request: Request,
@@ -380,6 +402,8 @@ async def stripe_webhook(
     This is the reliable fallback when the browser closes before confirm-payment is called.
     """
     from app.config import settings
+    import time
+    from datetime import datetime
 
     webhook_secret = settings.stripe_webhook_secret
     if not webhook_secret:
@@ -389,65 +413,183 @@ async def stripe_webhook(
     payload = await request.body()
     sig_header = request.headers.get("Stripe-Signature")
     if not sig_header:
+        logger.error("[Webhook] Missing Stripe-Signature header")
         raise HTTPException(status_code=400, detail="Missing Stripe-Signature header")
+
+    # Parse payload for logging
+    try:
+        event_data = json.loads(payload)
+        event_id = event_data.get("id")
+        event_type = event_data.get("type")
+        created = event_data.get("created")
+    except json.JSONDecodeError:
+        logger.error("[Webhook] Invalid JSON payload")
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    # Validate event structure
+    if not event_id or not event_type:
+        logger.error(f"[Webhook] Missing event_id or event_type in payload")
+        raise HTTPException(status_code=400, detail="Invalid event structure")
+
+    # Check for duplicate events (idempotency)
+    try:
+        # In a real implementation, you'd check a database/cache for processed event_ids
+        # For now, we'll just log and continue
+        logger.info(f"[Webhook] Processing event {event_id} of type {event_type}")
+    except Exception as e:
+        logger.warning(f"[Webhook] Event validation warning: {e}")
 
     try:
         event = stripe_service.verify_webhook_signature(payload, sig_header, webhook_secret)
     except Exception as e:
-        logger.warning(f"[Webhook] Signature verification failed: {e}")
+        logger.error(f"[Webhook] Signature verification failed for event {event_id}: {e}")
+        # Log failed webhook attempt
+        await _log_webhook_event(
+            db, event_id, event_type, created, "signature_failed",
+            error_message=str(e)
+        )
         raise HTTPException(status_code=400, detail="Invalid webhook signature")
 
-    event_type = event.get("type")
-    logger.info(f"[Webhook] Received event: {event_type}")
+    # Log successful signature verification
+    await _log_webhook_event(db, event_id, event_type, created, "received")
 
+    # Process different event types
     if event_type == "payment_intent.succeeded":
-        payment_intent = event["data"]["object"]
-        metadata = payment_intent.get("metadata", {})
-        user_id = metadata.get("user_id")
-        plan = metadata.get("plan")
-        payment_intent_id = payment_intent.get("id")
+        success = await _process_payment_intent_succeeded(db, event, event_id)
+        status = "processed" if success else "failed"
+        await _log_webhook_event(
+            db, event_id, event_type, created, status,
+            user_id=event.get("data", {}).get("object", {}).get("metadata", {}).get("user_id"),
+            payment_intent_id=event.get("data", {}).get("object", {}).get("id")
+        )
 
-        if not user_id or not plan:
-            logger.warning(f"[Webhook] Missing user_id/plan in metadata for {payment_intent_id}")
-            return {"status": "ok"}
+    elif event_type in ["payment_intent.payment_failed", "payment_intent.canceled"]:
+        # Log failed/canceled payments
+        payment_intent = event.get("data", {}).get("object", {})
+        await _log_webhook_event(
+            db, event_id, event_type, created, "logged",
+            user_id=payment_intent.get("metadata", {}).get("user_id"),
+            payment_intent_id=payment_intent.get("id"),
+            error_message=event_type
+        )
 
-        valid_tiers = ["basic", "pro", "pro_plus", "elite"]
-        plan_lower = plan.lower()
-        if plan_lower not in valid_tiers:
-            logger.warning(f"[Webhook] Invalid plan in metadata: {plan}")
-            return {"status": "ok"}
+    else:
+        # Log unhandled event types
+        logger.info(f"[Webhook] Unhandled event type: {event_type}")
+        await _log_webhook_event(db, event_id, event_type, created, "ignored")
 
+    return {"status": "ok"}
+
+async def _process_payment_intent_succeeded(db: AsyncSession, event: dict, event_id: str) -> bool:
+    """Process payment_intent.succeeded event"""
+    payment_intent = event["data"]["object"]
+    metadata = payment_intent.get("metadata", {})
+    user_id = metadata.get("user_id")
+    plan = metadata.get("plan")
+    payment_intent_id = payment_intent.get("id")
+
+    # Validate required metadata
+    if not user_id or not plan:
+        logger.warning(f"[Webhook] Missing user_id/plan in metadata for {payment_intent_id}")
+        return False
+
+    # Validate plan
+    valid_tiers = ["basic", "pro", "pro_plus", "elite"]
+    plan_lower = plan.lower()
+    if plan_lower not in valid_tiers:
+        logger.warning(f"[Webhook] Invalid plan in metadata: {plan}")
+        return False
+
+    try:
+        user = await get_auth_service().get_user_by_id(db, user_id)
+        if not user:
+            logger.error(f"[Webhook] User not found: {user_id}")
+            return False
+
+        if user.subscription_tier == plan_lower:
+            logger.info(f"[Webhook] Tier already set to {plan_lower} for user {user_id} — idempotent skip")
+            return True
+
+        old_tier = user.subscription_tier
+        user.subscription_tier = plan_lower
+        await db.commit()
+        logger.info(f"[Webhook] ✅ Tier updated via webhook: user={user_id} {old_tier}→{plan_lower}")
+
+        # Audit log
         try:
-            user = await get_auth_service().get_user_by_id(db, user_id)
-            if not user:
-                logger.error(f"[Webhook] User not found: {user_id}")
-                return {"status": "ok"}
+            audit = await get_audit_service(db)
+            await audit.log_action(
+                user_id=user_id,
+                action="tier_upgrade",
+                resource="payment",
+                resource_id=payment_intent_id,
+                ip_address=None,
+                user_agent=None,
+                status="success",
+                details={"old_tier": old_tier, "new_tier": plan_lower, "source": "stripe_webhook"},
+            )
+        except Exception as audit_err:
+            logger.warning(f"[Webhook] Audit log failed: {audit_err}")
 
-            if user.subscription_tier == plan_lower:
-                logger.info(f"[Webhook] Tier already set to {plan_lower} for user {user_id} — idempotent skip")
-                return {"status": "ok"}
+        return True
 
-            old_tier = user.subscription_tier
-            user.subscription_tier = plan_lower
-            await db.commit()
-            logger.info(f"[Webhook] ✅ Tier updated via webhook: user={user_id} {old_tier}→{plan_lower}")
+    except Exception as e:
+        logger.error(f"[Webhook] Error processing payment_intent.succeeded: {e}", exc_info=True)
+        return False
 
-            try:
-                audit = await get_audit_service(db)
-                await audit.log_action(
-                    user_id=user_id,
-                    action="tier_upgrade",
-                    resource="payment",
-                    resource_id=payment_intent_id,
-                    ip_address=None,
-                    user_agent=None,
-                    status="success",
-                    details={"old_tier": old_tier, "new_tier": plan_lower, "source": "stripe_webhook"},
-                )
-            except Exception as audit_err:
-                logger.warning(f"[Webhook] Audit log failed: {audit_err}")
+async def _log_webhook_event(
+    db: AsyncSession,
+    event_id: str,
+    event_type: str,
+    created: int,
+    status: str,
+    user_id: Optional[str] = None,
+    payment_intent_id: Optional[str] = None,
+    amount: Optional[int] = None,
+    currency: Optional[str] = None,
+    error_message: Optional[str] = None
+):
+    """Log webhook event to database for audit trail"""
+    try:
+        # In a real implementation, you'd have a WebhookEvent model
+        # For now, we'll just log to the audit service
+        audit = await get_audit_service(db)
+        await audit.log_action(
+            user_id=user_id or "system",
+            action="webhook_received",
+            resource="stripe",
+            resource_id=event_id,
+            ip_address=None,
+            user_agent=None,
+            status=status,
+            details={
+                "event_type": event_type,
+                "created": created,
+                "payment_intent_id": payment_intent_id,
+                "amount": amount,
+                "currency": currency,
+                "error_message": error_message
+            },
+        )
+    except Exception as e:
+        logger.warning(f"[Webhook] Failed to log webhook event: {e}")
 
-        except Exception as e:
-            logger.error(f"[Webhook] Error processing payment_intent.succeeded: {e}", exc_info=True)
+    try:
+        # Audit log the subscription change
+        await audit_service.log_user_action(
+            user_id=user_id,
+            action="subscription_updated",
+            resource_type="subscription",
+            resource_id=payment_intent_id,
+            ip_address=None,
+            user_agent=None,
+            status="success",
+            details={"old_tier": old_tier, "new_tier": plan_lower, "source": "stripe_webhook"},
+        )
+    except Exception as audit_err:
+        logger.warning(f"[Webhook] Audit log failed: {audit_err}")
+
+    except Exception as e:
+        logger.error(f"[Webhook] Error processing payment_intent.succeeded: {e}", exc_info=True)
 
     return {"status": "ok"}

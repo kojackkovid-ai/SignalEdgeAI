@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     stripe_public_key: Optional[str] = None
     stripe_secret_key: Optional[str] = None
     stripe_webhook_secret: Optional[str] = None
+    sentry_dsn: Optional[str] = None
     
     # Email - Mailgun
     mailgun_api_key: str = ""
@@ -56,6 +57,13 @@ class Settings(BaseSettings):
 
     # Postgres SSL mode override
     db_sslmode: Optional[str] = None
+
+    # Database Connection Pooling
+    db_pool_size: int = 20
+    db_max_overflow: int = 10
+    db_pool_recycle: int = 3600  # Recycle connections after 1 hour
+    db_pool_pre_ping: bool = True
+    db_echo: bool = False
 
     # Weather API
     openweather_api_key: str = ""
@@ -71,8 +79,8 @@ class Settings(BaseSettings):
     odds_api_base_url: str = "https://api.the-odds-api.com/v4/"
     
     # Security Settings
-    allowed_hosts: str = "localhost,127.0.0.1,backend,frontend,sports-prediction-api,sports-prediction-web"
-    cors_origins: str = "http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80,http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177,http://localhost:3000,http://localhost:3001,http://127.0.0.1:3001,http://127.0.0.1:5173"
+    allowed_hosts: str = "localhost,127.0.0.1"
+    cors_origins: str = ""
     enable_https_redirect: bool = False
     
     model_config = SettingsConfigDict(
@@ -90,42 +98,64 @@ class Settings(BaseSettings):
         """Validate critical security settings and warn if using defaults"""
         warnings.filterwarnings('always', category=SecurityWarning)
         
-        # Check secret key
-        if not self.secret_key or len(self.secret_key) < 32:
-            if not self.secret_key:
-                # Generate a temporary key for development only
-                self.secret_key = secrets.token_urlsafe(32)
+        # Determine environment mode and enforce production safety
+        if self.is_production:
+            if not self.secret_key or len(self.secret_key) < 32:
+                raise ValueError(
+                    "SECRET_KEY must be set to a strong value of at least 32 characters in production."
+                )
+            if not self.stripe_secret_key:
+                raise ValueError("STRIPE_SECRET_KEY must be configured in production.")
+            if not self.odds_api_key:
+                raise ValueError("ODDS_API_KEY must be configured in production.")
+            if not self.cors_origins:
+                raise ValueError("CORS origins must be explicitly configured in production.")
+            if not self.allowed_hosts:
+                raise ValueError("ALLOWED_HOSTS must be configured in production.")
+            if not self.sentry_dsn:
                 warnings.warn(
-                    "SECRET_KEY not set in environment. Using temporary key - "
-                    "THIS IS INSECURE FOR PRODUCTION. Set a strong SECRET_KEY in your .env file.",
+                    "SENTRY_DSN is not configured in production. Error tracking will be disabled.",
                     SecurityWarning,
                     stacklevel=2
                 )
-            else:
+            if not self.enable_https_redirect:
                 warnings.warn(
-                    f"SECRET_KEY is too short ({len(self.secret_key)} chars). "
-                    "Use at least 32 characters for production.",
+                    "HTTPS redirect is disabled in production. Set ENABLE_HTTPS_REDIRECT=true for better security.",
                     SecurityWarning,
                     stacklevel=2
                 )
+        else:
+            # Development defaults: warn instead of failing.
+            if not self.secret_key or len(self.secret_key) < 32:
+                if not self.secret_key:
+                    self.secret_key = secrets.token_urlsafe(32)
+                    warnings.warn(
+                        "SECRET_KEY not set in environment. Using temporary key - "
+                        "THIS IS INSECURE FOR PRODUCTION. Set a strong SECRET_KEY in your .env file.",
+                        SecurityWarning,
+                        stacklevel=2
+                    )
+                else:
+                    warnings.warn(
+                        f"SECRET_KEY is too short ({len(self.secret_key)} chars). "
+                        "Use at least 32 characters for production.",
+                        SecurityWarning,
+                        stacklevel=2
+                    )
         
-        # Check odds API key
+        # Check odds API keys
         if not self.odds_api_keys:
             warnings.warn(
                 "ODDS_API_KEY not set. Odds API features will be disabled. "
-                "Set your API key or fallback keys in the .env file.",
+                "Set your API key or fallback keys in the environment.",
                 SecurityWarning,
                 stacklevel=2
             )
-        
-        # Check Stripe keys in production
-        if os.getenv("ENVIRONMENT") == "production":
-            if not self.stripe_secret_key:
-                warnings.warn(
-                    "STRIPE_SECRET_KEY not set in production environment.",
-                    SecurityWarning,
-                    stacklevel=2
-                )
+
+    @property
+    def is_production(self) -> bool:
+        """Detect running in a production environment."""
+        return os.getenv("ENVIRONMENT", "").lower() == "production"
 
     @property
     def database_url(self) -> str:
@@ -163,12 +193,16 @@ class Settings(BaseSettings):
     @property
     def allowed_hosts_list(self) -> list:
         """Parse allowed hosts from comma-separated string"""
-        return [h.strip() for h in self.allowed_hosts.split(",") if h.strip()]
+        hosts = [h.strip() for h in self.allowed_hosts.split(",") if h.strip()]
+        return hosts if hosts else ["*"]
     
     @property
     def cors_origins_list(self) -> list:
         """Parse CORS origins from comma-separated string"""
-        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        origins = [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+        if not origins and not self.is_production:
+            return ["*"]
+        return origins
 
     @property
     def odds_api_keys(self) -> list[str]:

@@ -4,6 +4,9 @@ Handles email preferences, sending, verification, etc
 """
 
 import logging
+from pydantic import BaseModel
+from typing import Optional, Dict, Any
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Header, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -22,6 +25,42 @@ from app.config import Settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/email", tags=["email"])
+
+# Pydantic Schemas
+class EmailPreferencesResponse(BaseModel):
+    prediction_results: bool = True
+    daily_digest: bool = True
+    weekly_digest: bool = True
+    tier_updates: bool = True
+    promotional: bool = True
+    account_updates: bool = True
+    new_features: bool = True
+    accuracy_milestone: bool = True
+
+class UpdateEmailPreferencesRequest(BaseModel):
+    prediction_results: Optional[bool] = None
+    daily_digest: Optional[bool] = None
+    weekly_digest: Optional[bool] = None
+    tier_updates: Optional[bool] = None
+    promotional: Optional[bool] = None
+    account_updates: Optional[bool] = None
+    new_features: Optional[bool] = None
+    accuracy_milestone: Optional[bool] = None
+
+class EmailVerificationRequest(BaseModel):
+    email: str
+
+class EmailVerificationResponse(BaseModel):
+    message: str
+    verification_token: str
+
+class SendTestEmailRequest(BaseModel):
+    template_name: str
+    recipient_email: Optional[str] = None
+
+class SendTestEmailResponse(BaseModel):
+    message: str
+    email_id: Optional[str] = None
 
 # Lazy initialization - avoid blocking during import
 _settings = None
@@ -86,6 +125,13 @@ class EmailPreferencesSchema:
     account_updates: bool = True
     new_features: bool = True
     accuracy_milestone: bool = True
+
+
+@router.get("/preferences", response_model=EmailPreferencesResponse)
+async def get_email_preferences(
+    current_user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
 
 
 @router.get("/preferences")

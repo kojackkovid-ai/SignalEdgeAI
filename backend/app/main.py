@@ -9,11 +9,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import logging
 import asyncio
+import sentry_sdk
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
@@ -26,6 +28,7 @@ ESPNPredictionService = None
 
 # Models
 from app.models.tier_features import TierFeatures
+from app.models.db_models import User
 
 # Routes
 from app.routes import predictions, auth, users, models as model_routes, payment, resolution, analytics, prediction_history, email, ml_operations, club100_addon, admin
@@ -44,13 +47,19 @@ from app.utils.structured_logging import setup_structured_logging, get_logger
 from app.utils.health_checks import health_registry, setup_default_health_checks, HealthCheck, check_database
 from app.utils.rate_limiter import setup_rate_limiting
 from app.utils.enhanced_rate_limiter import setup_enhanced_rate_limiting
-# TEMPORARILY DISABLED: from app.utils.comprehensive_logging import setup_comprehensive_logging
+from app.utils.comprehensive_logging import setup_comprehensive_logging
 from app.utils.exceptions import setup_exception_handlers
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from app.utils.circuit_breaker import get_circuit_breaker
 from app.utils.error_handler import APIException, api_exception_handler, general_exception_handler
-from app.utils.caching import init_cache_service, get_cache_service, CacheKeys
+from app.utils.caching import init_cache_service, get_cache_service, get_redis_client, CacheKeys
 from app.utils.monitoring import get_monitoring_service, init_monitoring
+from app.utils.validation_middleware import setup_validation_middleware
 from app.models.responses import ErrorResponse
+
+# New utilities
+from app.utils.graceful_shutdown import setup_graceful_shutdown
 
 # Setup structured logging
 setup_structured_logging(level=logging.INFO)
@@ -99,6 +108,29 @@ app = FastAPI(
     version="2.0.0",
     redirect_slashes=False
 )
+
+
+def initialize_error_tracking() -> None:
+    """Initialize Sentry if configured for production."""
+    if settings.is_production:
+        if settings.sentry_dsn:
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                integrations=[FastApiIntegration(), SqlalchemyIntegration()],
+                traces_sample_rate=0.1,
+                environment="production",
+                send_default_pii=False,
+            )
+            logger.info("🧭 Sentry initialized for production error tracking")
+        else:
+            logger.warning(
+                "SENTRY_DSN is not configured in production. Error tracking is disabled."
+            )
+
+initialize_error_tracking()
+setup_comprehensive_logging(app)
+setup_validation_middleware(app)
+setup_graceful_shutdown(app)
 
 # Global service instances
 enhanced_ml_service = None
@@ -156,138 +188,139 @@ async def request_validation_middleware(request: Request, call_next):
     return await call_next(request)
 
 # Rate limiting middleware (based on subscription tier)
-# TEMPORARILY DISABLED FOR DEBUGGING - causes timeout
-# @app.middleware("http")
-# async def rate_limiting_middleware(request: Request, call_next):
-#     """Rate limit based on user's subscription tier"""
-#     try:
-#         # Only rate limit prediction endpoints
-#         if "/predictions/" not in request.url.path or request.method != "GET":
-#             return await call_next(request)
-#         
-#         # Extract user ID from token (if available)
-#         auth_header = request.headers.get("authorization", "")
-#         if not auth_header.startswith("Bearer "):
-#             return await call_next(request)
-#         
-#         # Get user tier from JWT token (basic parsing)
-#         try:
-#             from app.services.auth_service import AuthService
-#             from app.database import AsyncSessionLocal
-#             from sqlalchemy import select
-#             from app.models.db_models import User
-#             
-#             auth_service = AuthService()
-#             token = auth_header.replace("Bearer ", "")
-#             user_id = auth_service._decode_token(token)
-#             
-#             if not user_id:
-#                 return await call_next(request)
-#             
-#             # Get user's tier and daily limit
-#             async with AsyncSessionLocal() as session:
-#                 result = await session.execute(select(User.subscription_tier).where(User.id == user_id))
-#                 user_tier = result.scalar_one_or_none()
-#                 
-#                 if user_tier:
-#                     tier_config = TierFeatures.get_tier_config(user_tier.lower() if user_tier else 'starter')
-#                     daily_limit = tier_config.get('predictions_per_day')
-#                     
-#                     # If unlimited (Pro/Elite), skip rate limiting
-#                     if daily_limit is None or daily_limit > 1000:
-#                         return await call_next(request)
-#                     
-#                     # Check daily count in Redis
-#                     try:
-#                         from app.services.redis_cache import redis_client
-#                         today = datetime.utcnow().strftime('%Y-%m-%d')
-#                         key = f"predictions:daily:{user_id}:{today}"
-#                         count = await redis_client.incr(key)
-#                         
-#                         # Set expiry to 24 hours on first increment
-#                         if count == 1:
-#                             await redis_client.expire(key, 86400)
-#                         
-#                         if count > daily_limit:
-#                             logger.warning(f"Rate limit exceeded for user {user_id}: {count}/{daily_limit}")
-#                             return JSONResponse(
-#                                 status_code=429,
-#                                 content={
-#                                     "error": "Daily prediction limit exceeded",
-#                                     "limit": daily_limit,
-#                                     "used": count - 1,  # Subtract the increment we just did
-#                                     "message": f"You've reached your daily limit of {daily_limit} predictions. Upgrade your plan for more!"
-#                                 }
-#                             )
-#                     except Exception as redis_error:
-#                         logger.warning(f"Redis rate limiting failed, skipping: {redis_error}")
-#                         # Continue if Redis fails - don't break the service
-#                         
-#         except Exception as auth_error:
-#             logger.debug(f"Rate limiting auth failed, skipping: {auth_error}")
-#             # Continue if auth fails - don't break the service
-#         
-#         return await call_next(request)
-#     
-#     except Exception as e:
-#         logger.error(f"Rate limiting middleware error: {e}")
-#         # Don't break the service if middleware fails
-#         return await call_next(request)
+@app.middleware("http")
+async def rate_limiting_middleware(request: Request, call_next):
+    """Rate limit based on user's subscription tier"""
+    try:
+        # Only rate limit prediction endpoints
+        if "/predictions/" not in request.url.path or request.method != "GET":
+            return await call_next(request)
+        
+        # Extract user ID from token (if available)
+        auth_header = request.headers.get("authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return await call_next(request)
+        
+        # Get user tier from JWT token (basic parsing)
+        try:
+            from app.services.auth_service import AuthService
+            
+            auth_service = AuthService()
+            token = auth_header.replace("Bearer ", "")
+            user_id = auth_service._decode_token(token)
+            
+            if not user_id:
+                return await call_next(request)
+            
+            # Get user's tier and daily limit
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(select(User.subscription_tier).where(User.id == user_id))
+                user_tier = result.scalar_one_or_none()
+                
+                if user_tier:
+                    tier_config = TierFeatures.get_tier_config(user_tier.lower() if user_tier else 'starter')
+                    daily_limit = tier_config.get('predictions_per_day')
+                    
+                    # If unlimited (Pro/Elite), skip rate limiting
+                    if daily_limit is None or daily_limit > 1000:
+                        return await call_next(request)
+                    
+                    # Check daily count in Redis
+                    try:
+                        from app.services.redis_cache import redis_client
+                        today = datetime.utcnow().strftime('%Y-%m-%d')
+                        key = f"predictions:daily:{user_id}:{today}"
+                        count = await redis_client.incr(key)
+                        
+                        # Set expiry to 24 hours on first increment
+                        if count == 1:
+                            await redis_client.expire(key, 86400)
+                        
+                        if count > daily_limit:
+                            logger.warning(f"Rate limit exceeded for user {user_id}: {count}/{daily_limit}")
+                            return JSONResponse(
+                                status_code=429,
+                                content={
+                                    "error": "Daily prediction limit exceeded",
+                                    "limit": daily_limit,
+                                    "used": count - 1,  # Subtract the increment we just did
+                                    "message": f"You've reached your daily limit of {daily_limit} predictions. Upgrade your plan for more!"
+                                }
+                            )
+                    except Exception as redis_error:
+                        logger.warning(f"Redis rate limiting failed, skipping: {redis_error}")
+                        # Continue if Redis fails - don't break the service
+                        
+        except Exception as auth_error:
+            logger.debug(f"Rate limiting auth failed, skipping: {auth_error}")
+            # Continue if auth fails - don't break the service
+        
+        return await call_next(request)
+    
+    except Exception as e:
+        logger.error(f"Rate limiting middleware error: {e}")
+        # Don't break the service if middleware fails
+        return await call_next(request)
 
 
 # Monitoring middleware - track all requests and responses
-# TEMPORARILY DISABLED FOR DEBUGGING - causes "No response returned" error
-# @app.middleware("http")
-# async def monitoring_middleware(request: Request, call_next):
-#     """Monitor all requests for performance and errors"""
-#     import time
-#     
-#     start_time = time.time()
-#     
-#     try:
-#         # Don't monitor health checks or internal endpoints
-#         if request.url.path in ["/health", "/ready", "/metrics"]:
-#             return await call_next(request)
-#         
-#         response = await call_next(request)
-#         
-#         # Record metrics
-#         response_time = (time.time() - start_time) * 1000  # Convert to ms
-#         monitoring = get_monitoring_service()
-#         
-#         monitoring.performance.record_request(
-#             method=request.method,
-#             path=request.url.path,
-#             status_code=response.status_code,
-#             response_time=response_time,
-#             user_id=None  # Could extract from token if needed
-#         )
-#         
-#         # Record if error
-#         if response.status_code >= 400:
-#             monitoring.errors.record_error(
-#                 error_code=f"HTTP_{response.status_code}",
-#                 message=f"{request.method} {request.url.path}",
-#                 status_code=response.status_code,
-#                 path=request.url.path,
-#             )
-#         
-#         return response
-#     
-#     except Exception as e:
-#         response_time = (time.time() - start_time) * 1000
-#         monitoring = get_monitoring_service()
-#         
-#         monitoring.errors.record_error(
-#             error_code="MIDDLEWARE_ERROR",
-#             message=str(e),
-#             status_code=500,
-#             path=request.url.path,
-#             exception=e
-#         )
-#         
-#         logger.error(f"Monitoring middleware error: {e}")
-#         raise
+@app.middleware("http")
+async def monitoring_middleware(request: Request, call_next):
+    """Monitor all requests for performance and errors"""
+    import time
+    
+    start_time = time.time()
+    
+    try:
+        # Don't monitor health checks or internal endpoints
+        if request.url.path in ["/health", "/ready", "/metrics"]:
+            return await call_next(request)
+        
+        response = await call_next(request)
+        
+        # Record metrics
+        response_time = (time.time() - start_time) * 1000  # Convert to ms
+        try:
+            monitoring = get_monitoring_service()
+            monitoring.performance.record_request(
+                method=request.method,
+                path=request.url.path,
+                status_code=response.status_code,
+                response_time=response_time,
+                user_id=None  # Could extract from token if needed
+            )
+            
+            # Record if error
+            if response.status_code >= 400:
+                monitoring.errors.record_error(
+                    error_code=f"HTTP_{response.status_code}",
+                    message=f"{request.method} {request.url.path}",
+                    status_code=response.status_code,
+                    path=request.url.path,
+                )
+        except Exception as monitoring_error:
+            logger.debug(f"Monitoring recording failed: {monitoring_error}")
+            # Don't fail the request if monitoring fails
+        
+        return response
+    
+    except Exception as e:
+        try:
+            response_time = (time.time() - start_time) * 1000
+            monitoring = get_monitoring_service()
+            
+            monitoring.errors.record_error(
+                error_code="MIDDLEWARE_ERROR",
+                message=str(e),
+                status_code=500,
+                path=request.url.path,
+                exception=e
+            )
+        except Exception as monitoring_error:
+            logger.debug(f"Error monitoring failed: {monitoring_error}")
+        
+        logger.error(f"Monitoring middleware error: {e}")
+        raise
 
 
 
@@ -309,6 +342,16 @@ async def initialize_enhanced_services():
         monitoring = init_monitoring()
         logger.info("[OK] Monitoring service initialized")
         
+        # Initialize caching service for Redis-backed features
+        redis_client = None
+        try:
+            cache_service = await init_cache_service(settings.redis_url)
+            redis_client = cache_service._client
+            logger.info("[OK] Cache service initialized")
+        except Exception as cache_error:
+            redis_client = None
+            logger.warning("[WARN] Cache service initialization failed; continuing with in-memory fallback: %s", cache_error)
+        
         # ML Services - now enabled with TensorFlow support
         enhanced_ml_service = None  # Can be initialized later with proper ML pipeline
         logger.info("[OK] ML service ready (TensorFlow enabled)")
@@ -321,8 +364,8 @@ async def initialize_enhanced_services():
         model_monitor = None  # Initialize with model performance tracker when needed
         logger.info("[OK] Model monitoring ready")
         
-        # Setup health checks
-        setup_default_health_checks()
+        # Setup health checks with real services where possible
+        setup_default_health_checks(AsyncSessionLocal, redis_client)
         logger.info("[OK] Health checks configured")
         
         return True
@@ -474,11 +517,12 @@ app.add_exception_handler(Exception, general_exception_handler)
 # setup_comprehensive_logging(app)
 
 # CORS configuration - MUST come before routes
-# In production set ALLOWED_ORIGINS to a comma-separated list of your domains,
-# e.g. "https://yourdomain.com,https://www.yourdomain.com"
-import os as _os
-_raw_origins = _os.environ.get("ALLOWED_ORIGINS", "").strip()
-allowed_origins: list[str] = [o.strip() for o in _raw_origins.split(",") if o.strip()] or ["*"]
+# In production, set CORS_ORIGINS to an explicit comma-separated list of domains.
+allowed_origins = settings.cors_origins_list
+if settings.is_production and not allowed_origins:
+    logger.warning("Production CORS origins are not configured. No origins will be allowed until CORS_ORIGINS is set.")
+elif not allowed_origins:
+    allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -489,31 +533,17 @@ app.add_middleware(
     max_age=3600,
 )
 
-# Custom trusted host middleware that exempts health checks
-@app.middleware("http")
-async def trusted_host_middleware(request: Request, call_next):
-    """Custom trusted host middleware that allows health checks"""
-    # Allow health and readiness checks from any host
-    if request.url.path in ["/health", "/ready", "/live"]:
-        return await call_next(request)
+allowed_hosts = settings.allowed_hosts_list
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=allowed_hosts,
+)
+logger.info("Trusted host middleware enabled for: %s", allowed_hosts)
 
-    return await call_next(request)
+if settings.enable_https_redirect or settings.is_production:
+    app.add_middleware(HTTPSRedirectMiddleware)
+    logger.info("HTTPS redirect middleware enabled")
 
-# Trusted host middleware - DISABLED in favor of custom middleware above
-# try:
-#     trusted_hosts = [
-#         "localhost",
-#         "127.0.0.1",
-#         "signaledge-ai.fly.dev",
-#         "yourdomain.com",
-#         "www.yourdomain.com",
-#         # Add production domains here
-#         "*",  # Allow all hosts for health checks and internal requests
-#     ]
-#     app.add_middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts)
-#     logger.info(f"✅ Trusted host middleware enabled for: {trusted_hosts}")
-# except Exception as e:
-#     logger.warning(f"Trusted host middleware setup failed: {e}")
 
 # Setup enhanced rate limiting with Redis (if available)
 try:
@@ -675,16 +705,13 @@ async def get_monitoring_dashboard():
 @app.get("/api/system/health/detailed", tags=["System"])
 async def get_detailed_health():
     """Get detailed health check information"""
-    monitoring = get_monitoring_service()
-    
-    # Run all health checks
-    health_results = await monitoring.health.run_all_checks()
+    health_results = await health_registry.run_all(force_refresh=True)
     
     return {
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "overall_status": monitoring.health.get_status(),
-        "health_check_results": health_results,
-        "active_alerts": len(monitoring.alerts.get_active_alerts()),
+        "overall_status": health_results.get("status", "unknown"),
+        "health_check_results": health_results.get("checks", {}),
+        "active_alerts": len(get_monitoring_service().alerts.get_active_alerts()),
     }
 
 # System metrics endpoint

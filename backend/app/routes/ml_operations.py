@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
+from pydantic import BaseModel
 
 from app.database import AsyncSessionLocal, get_db
 from app.models.db_models import (
@@ -24,6 +25,41 @@ from app.services.auth_service import get_current_user
 
 logger = logging.getLogger(__name__)
 
+# Pydantic Schemas
+class TrainingStatusResponse(BaseModel):
+    scheduler_running: bool
+    scheduled_jobs: List[Dict]
+    next_runs: Dict[str, str]
+    recent_history: List[Dict]
+
+class TrainingSessionResponse(BaseModel):
+    id: int
+    sport_key: str
+    market_type: str
+    started_at: str
+    completed_at: Optional[str]
+    duration_seconds: Optional[float]
+    training_samples: Optional[int]
+    validation_accuracy: Optional[float]
+    status: str
+    trigger_reason: Optional[str]
+
+class ModelPerformanceResponse(BaseModel):
+    sport_key: str
+    market_type: str
+    accuracy: float
+    total_predictions: int
+    correct_predictions: int
+    last_updated: str
+
+class TriggerTrainingRequest(BaseModel):
+    sport_key: str
+    market_type: str
+    reason: Optional[str] = "manual"
+
+class TriggerTrainingResponse(BaseModel):
+    message: str
+    job_id: Optional[int] = None
 
 async def require_admin(current_user: User = Depends(get_current_user)) -> User:
     """Restrict endpoint to admin-tier users only."""
@@ -35,7 +71,7 @@ async def require_admin(current_user: User = Depends(get_current_user)) -> User:
 router = APIRouter(dependencies=[Depends(require_admin)])
 
 
-@router.get("/api/ml/training/status", tags=["ML Training"])
+@router.get("/api/ml/training/status", response_model=TrainingStatusResponse, tags=["ML Training"])
 async def get_training_status(
     session: AsyncSession = Depends(get_db)
 ) -> Dict:
@@ -57,7 +93,7 @@ async def get_training_status(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/api/ml/training/history", tags=["ML Training"])
+@router.get("/api/ml/training/history", response_model=List[TrainingSessionResponse], tags=["ML Training"])
 async def get_training_history(
     sport_key: Optional[str] = Query(None, description="Filter by sport"),
     market_type: Optional[str] = Query(None, description="Filter by market type"),

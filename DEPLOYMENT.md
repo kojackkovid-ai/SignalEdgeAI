@@ -46,6 +46,8 @@ STRIPE_SECRET_KEY=sk_live_your_stripe_key
 STRIPE_PUBLIC_KEY=pk_live_your_stripe_key
 
 # Monitoring
+SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
+SENTRY_ENVIRONMENT=production
 GRAFANA_PASSWORD=your_grafana_admin_password
 
 # API URL

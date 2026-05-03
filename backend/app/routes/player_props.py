@@ -20,13 +20,37 @@ from app.database import get_db
 from app.services.auth_service import AuthService
 from app.models.db_models import User
 from app.services.player_props_service import PlayerPropsService
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import logging
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/events", tags=["player_props"])
 # Lazy-loaded
 auth_service = None
+
+class PlayerPropPrediction(BaseModel):
+    player_name: str
+    stat_type: str
+    predicted_line: float
+    over_confidence: float
+    under_confidence: float
+    reasoning: str
+    season_avg: Optional[float]
+    last_5_avg: Optional[float]
+    player_id: Optional[str]
+
+class PlayerPropsResponse(BaseModel):
+    event_id: str
+    sport_key: str
+    player_props: List[PlayerPropPrediction]
+    total: int
+
+class PlayerSpecificPropsResponse(BaseModel):
+    player_id: str
+    player_name: str
+    position: Optional[str]
+    stats: Dict[str, Dict[str, Any]]
 
 @router.get("/{event_id}/player-props")
 async def get_player_props(
@@ -38,7 +62,7 @@ async def get_player_props(
     min_confidence: float = Query(0.55, ge=0.5, le=1.0),
     current_user_id: str = Depends(lambda: get_auth_service().get_current_user()),
     db: AsyncSession = Depends(get_db)
-):
+) -> PlayerPropsResponse:
     """
     Get all available player prop predictions for a game
     
@@ -71,12 +95,12 @@ async def get_player_props(
         if max(p['over_confidence'], p['under_confidence']) >= min_confidence
     ]
     
-    return {
-        'event_id': event_id,
-        'sport_key': sport_key,
-        'player_props': props,
-        'total': len(props)
-    }
+    return PlayerPropsResponse(
+        event_id=event_id,
+        sport_key=sport_key,
+        player_props=props,
+        total=len(props)
+    )
 
 @router.get("/{event_id}/player-props/{player_id}")
 async def get_player_specific_props(
@@ -85,7 +109,7 @@ async def get_player_specific_props(
     sport_key: str = Query(...),
     current_user_id: str = Depends(lambda: get_auth_service().get_current_user()),
     db: AsyncSession = Depends(get_db)
-):
+) -> PlayerSpecificPropsResponse:
     """
     Get detailed prop predictions for a specific player in a game
     
