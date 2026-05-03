@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { addRetryInterceptor } from './retry';
+import { useAuthStore } from './store';
 
 // Use Vite proxy in development for CORS handling
 const API_BASE_URL = import.meta.env.DEV 
@@ -90,6 +91,7 @@ class ApiClient {
 
               localStorage.setItem('access_token', newToken);
               this.client.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+              useAuthStore.getState().setToken(newToken);
               onRefreshed(newToken);
               isRefreshing = false;
 

@@ -21,6 +21,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/analytics", tags=["Analytics"])
 
 
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Restrict endpoint to admin-tier users only."""
+    if getattr(current_user, "subscription_tier", None) != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
 class EventTrackingRequest(BaseModel):
     """Request body for event tracking"""
     event_type: str
@@ -60,7 +67,7 @@ async def track_event(
 
 @router.get("/conversion-funnel")
 async def get_conversion_funnel(
-    current_user_id: str = Depends(get_current_user),
+    _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
     service: AnalyticsService = Depends(get_analytics_service),
 ):
@@ -75,7 +82,7 @@ async def get_conversion_funnel(
 @router.get("/daily-active-users")
 async def get_daily_active_users(
     days: int = Query(30, ge=1, le=365),
-    current_user_id: str = Depends(get_current_user),
+    _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
     service: AnalyticsService = Depends(get_analytics_service),
 ):
@@ -92,7 +99,7 @@ async def get_daily_active_users(
 @router.get("/events")
 async def get_event_analytics(
     days: int = Query(30, ge=1, le=365),
-    current_user_id: str = Depends(get_current_user),
+    _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
     service: AnalyticsService = Depends(get_analytics_service),
 ):
@@ -106,7 +113,7 @@ async def get_event_analytics(
 @router.get("/churn")
 async def get_churn_analysis(
     days: int = Query(90, ge=1, le=365),
-    current_user_id: str = Depends(get_current_user),
+    _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
     service: AnalyticsService = Depends(get_analytics_service),
 ):
@@ -119,7 +126,7 @@ async def get_churn_analysis(
 
 @router.get("/revenue")
 async def get_revenue_metrics(
-    current_user: User = Depends(get_current_user),
+    _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
     service: AnalyticsService = Depends(get_analytics_service),
 ):
@@ -132,7 +139,7 @@ async def get_revenue_metrics(
 
 @router.get("/dashboard")
 async def get_analytics_dashboard(
-    current_user: User = Depends(get_current_user),
+    _: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
     service: AnalyticsService = Depends(get_analytics_service),
 ):

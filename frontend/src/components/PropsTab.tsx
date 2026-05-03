@@ -263,20 +263,7 @@ const PropsTab: React.FC<PropsTabProps> = ({
                       </div>
                     ))
                   ) : (
-                    <>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-800 font-medium">XGBoost:</span>
-                        <span className="font-bold text-gray-900">{prop.confidence ? Math.round(prop.confidence * 0.95) : 65}%</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-800 font-medium">RandomForest:</span>
-                        <span className="font-bold text-gray-900">{prop.confidence ? Math.round(prop.confidence * 1.02) : 68}%</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-800 font-medium">NeuralNet:</span>
-                        <span className="font-bold text-gray-900">{prop.confidence ? Math.round(prop.confidence * 0.88) : 62}%</span>
-                      </div>
-                    </>
+                    <p className="text-sm text-gray-500 italic">Model breakdown not available</p>
                   )}
                 </div>
               </div>

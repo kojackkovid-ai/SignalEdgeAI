@@ -384,7 +384,7 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
           <table className="w-full">
             <thead>
               <tr className="bg-gradient-to-r from-gray-900 to-gray-800 text-white">
-                <th className="px-4 py-4 text-left font-bold border-b-2 border-gray-700 cursor-pointer hover:bg-gray-700/50" onClick={() => handleSort('name')}>
+                <th className="px-4 py-4 text-left font-bold border-b-2 border-gray-700 cursor-pointer hover:bg-gray-700/50" onClick={() => handleSort('name')} onKeyDown={(e) => e.key === 'Enter' && handleSort('name')} tabIndex={0} role="button" aria-label="Sort by player name">
                   <div className="flex items-center gap-2">
                     Player Name
                     <SortArrow column="name" />
@@ -394,18 +394,18 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
                 <th className="px-4 py-4 text-left font-bold border-b-2 border-gray-700">
                   Prop Line
                 </th>
-                <th className="px-4 py-4 text-center font-bold border-b-2 border-gray-700 cursor-pointer hover:bg-gray-700/50" onClick={() => handleSort('consecutive_games')}>
+                <th className="px-4 py-4 text-center font-bold border-b-2 border-gray-700 cursor-pointer hover:bg-gray-700/50" onClick={() => handleSort('consecutive_games')} onKeyDown={(e) => e.key === 'Enter' && handleSort('consecutive_games')} tabIndex={0} role="button" aria-label="Sort by streak">
                   <div className="flex items-center justify-center gap-1">
                     Streak
                     <SortArrow column="consecutive_games" />
                   </div>
                 </th>
-                <th className="px-4 py-4 text-center font-bold border-b-2 border-gray-700 cursor-pointer hover:bg-gray-700/50" onClick={() => handleSort('last_4_games')}>
+                <th className="px-4 py-4 text-center font-bold border-b-2 border-gray-700 cursor-pointer hover:bg-gray-700/50" onClick={() => handleSort('last_4_games')} onKeyDown={(e) => e.key === 'Enter' && handleSort('last_4_games')} tabIndex={0} role="button" aria-label="Sort by last 4 games">
                   <div className="flex items-center justify-center gap-1">
                     Last 4 <SortArrow column="last_4_games" />
                   </div>
                 </th>
-                <th className="px-4 py-4 text-center font-bold border-b-2 border-gray-700 cursor-pointer hover:bg-gray-700/50" onClick={() => handleSort('last_5_games')}>
+                <th className="px-4 py-4 text-center font-bold border-b-2 border-gray-700 cursor-pointer hover:bg-gray-700/50" onClick={() => handleSort('last_5_games')} onKeyDown={(e) => e.key === 'Enter' && handleSort('last_5_games')} tabIndex={0} role="button" aria-label="Sort by last 5 games">
                   <div className="flex items-center justify-center gap-1">
                     Last 5 <SortArrow column="last_5_games" />
                   </div>

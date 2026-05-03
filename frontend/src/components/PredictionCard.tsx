@@ -58,7 +58,7 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({
   created_at,
   resolved_at,
   result,
-  userTier = 'free',
+  userTier = 'starter',
   pickCount = 0,
   maxPicks = 1,
   featured = false,
@@ -69,11 +69,6 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({
   recent_10_avg,
   point,
 }) => {
-  // Debug logging
-  console.log('[PredictionCard] Rendering with props:', {
-    id, sport, league, matchup, prediction, confidence, userTier
-  });
-
   const handleViewDetails = () => {
     // Track prediction view
     if (id) {

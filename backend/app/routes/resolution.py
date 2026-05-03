@@ -4,6 +4,8 @@ Resolution Status Endpoint - Monitor prediction resolution background task
 
 from fastapi import APIRouter, Depends, HTTPException
 from app.services.prediction_resolution_service import PredictionResolutionService
+from app.services.auth_service import get_current_user
+from app.models.db_models import User
 from app.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
@@ -35,7 +37,14 @@ async def get_resolution_status():
     }
 
 
-@router.post("/trigger")
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Restrict endpoint to admin-tier users only."""
+    if getattr(current_user, "subscription_tier", None) != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
+@router.post("/trigger", dependencies=[Depends(require_admin)])
 async def trigger_resolution_manually(db: AsyncSession = Depends(get_db)):
     """
     Manually trigger prediction resolution task for debugging/testing.

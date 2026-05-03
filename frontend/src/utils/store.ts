@@ -1,5 +1,23 @@
 import { create } from 'zustand';
 
+function isTokenExpired(token: string | null): boolean {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof payload.exp !== 'number' || payload.exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
+const storedToken = localStorage.getItem('access_token');
+const initialToken = storedToken && !isTokenExpired(storedToken) ? storedToken : null;
+if (!initialToken && storedToken) {
+  localStorage.removeItem('access_token');
+}
+
 interface User {
   id: string;
   email: string;
@@ -22,8 +40,8 @@ interface AuthStore {
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
-  token: localStorage.getItem('access_token'),
-  isAuthenticated: !!localStorage.getItem('access_token'),
+  token: initialToken,
+  isAuthenticated: !!initialToken,
   
   setUser: (user) => set({ user }),
   

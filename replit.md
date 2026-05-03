@@ -97,6 +97,24 @@ AI-powered sports prediction platform with ML ensemble models (XGBoost, LightGBM
 16. **UX: Analytics error state added** - Analytics page would get stuck showing "Loading analytics..." indefinitely on API failure. Now shows a proper error message with a "Try Again" button.
 17. **UX: Login redirect URL preserved** - When the token monitor redirects an expired session to `/login`, it now appends `?redirect=/original/path`. The login page reads this param and navigates back after success so users don't lose their place.
 
+## Platform Review Improvements (Pass 3)
+
+### Critical Security
+18. **ML endpoints protected** — All 8+ endpoints in `ml_operations.py` (training trigger, job enable/disable, model health, performance, dashboard) were completely unprotected — no auth at all. Added router-level `require_admin` dependency via `dependencies=[Depends(require_admin)]`; a single line locks the entire router.
+19. **Resolution trigger protected** — `POST /api/resolution/trigger` was public, letting anyone spam expensive ESPN+DB calls. Added `require_admin` dependency.
+20. **Analytics revenue/dashboard admin-only** — `/revenue`, `/dashboard`, `/conversion-funnel`, `/daily-active-users`, `/events`, and `/churn` were accessible to any registered user (showed MRR, churn rates, total revenue). All now require admin tier.
+
+### Auth Lifecycle Fixes
+21. **Token refresh syncs Zustand store** — `api.ts` was refreshing the token into `localStorage` and the axios default header, but never called `useAuthStore.getState().setToken()`. Any component reading from the Zustand store would hold the stale expired token for the rest of the session. Now calls `setToken(newToken)` immediately after a successful refresh.
+22. **Store init skips expired tokens** — `store.ts` was initialising `isAuthenticated` from `localStorage` without checking expiry. A user with a token that expired while the tab was closed would briefly appear authenticated. Added `isTokenExpired()` helper; the store now starts with `null`/`false` for expired tokens and cleans up localStorage immediately.
+
+### UI / UX Fixes
+23. **PredictionCard default tier aligned** — `userTier` prop defaulted to `'free'` but `normalizedTier` defaulted to `'starter'`, creating a logic mismatch in feature-gating that could show the wrong locked/unlocked state. Both now default to `'starter'`.
+24. **PredictionCard console.log removed** — Component was logging every render with `id`, `sport`, `league`, `matchup`, `prediction`, `confidence`, and `userTier` to the browser console.
+25. **PropsTab fake model names removed** — When `prop.models` was missing the fallback rendered hardcoded "XGBoost: 65%", "RandomForest: 68%", "NeuralNet: 62%" labels, implying precision that wasn't real. Replaced with "Model breakdown not available".
+26. **Header mobile button accessible** — Mobile nav toggle was missing `aria-label` and `aria-expanded`, making it invisible to screen readers. Now announces its state dynamically ("Open navigation menu" / "Close navigation menu").
+27. **Club100 table headers keyboard accessible** — All four sortable column headers (Player Name, Streak, Last 4, Last 5) now have `tabIndex`, `role="button"`, `aria-label`, and `onKeyDown` Enter handlers so keyboard-only users can sort the table.
+
 ## Optional Integrations (not required for basic functionality)
 - **OddsAPI** - Real-time sports odds (ODDS_API_KEY env var)
 - **Stripe** - Payment processing (STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY)

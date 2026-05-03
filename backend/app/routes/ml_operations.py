@@ -14,14 +14,25 @@ from app.database import AsyncSessionLocal, get_db
 from app.models.db_models import (
     TrainingSession,
     ModelPerformanceMetrics,
-    ScheduledTrainingJob
+    ScheduledTrainingJob,
+    User,
 )
 from app.services.training_scheduler import get_training_scheduler
 from app.services.model_performance_monitor import get_model_monitor
 from app.services.ml_training_dashboard import get_dashboard
+from app.services.auth_service import get_current_user
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+
+
+async def require_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Restrict endpoint to admin-tier users only."""
+    if not getattr(current_user, "subscription_tier", None) == "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
+router = APIRouter(dependencies=[Depends(require_admin)])
 
 
 @router.get("/api/ml/training/status", tags=["ML Training"])
