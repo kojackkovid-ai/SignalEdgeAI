@@ -63,8 +63,14 @@ const PropsTab: React.FC<PropsTabProps> = ({
   // Separate player props from team props for non-hockey/soccer sports
   const playerPropsNBA = useMemo(() => {
     return otherProps.filter(p => 
-      !['game_total', 'anytime_goal_team'].includes(p.market_key)
+      !['game_total', 'anytime_goal_team'].includes(p.market_key) &&
+      !p.market_key.startsWith('pitcher_')
     );
+  }, [otherProps]);
+
+  // MLB starting pitcher props
+  const pitcherProps = useMemo(() => {
+    return otherProps.filter(p => p.market_key.startsWith('pitcher_'));
   }, [otherProps]);
 
   const teamPropsNBA = useMemo(() => {
@@ -322,6 +328,15 @@ const PropsTab: React.FC<PropsTabProps> = ({
           </div>
         )}
       </div>
+
+      {/* MLB STARTING PITCHER PROPS SECTION */}
+      {pitcherProps.length > 0 && (
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 p-6 rounded-lg border border-red-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">⚾ STARTING PITCHER PROPS</h2>
+          <p className="text-sm text-gray-600 mb-6">AI-generated lines for today's starting pitchers — Strikeouts, Hits Allowed, Pitching Outs (IP×3), and Walks.</p>
+          {renderPropsSection(pitcherProps, 'Starting Pitcher Props')}
+        </div>
+      )}
 
       {/* TEAM STATS SECTION */}
       {(teamPropsNBA.length > 0 || (isHockeyOrSoccer && teamProps.length > 0)) && (
