@@ -116,8 +116,19 @@ async def security_headers_middleware(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.stripe.com https://stripe.com; frame-src https://js.stripe.com"
-    response.headers["Permissions-Policy"] = "payment=(self 'https://js.stripe.com')"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://js.stripe.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com https://fonts.stripe.com; "
+        "img-src 'self' data: https:; "
+        "connect-src 'self' https://api.stripe.com https://m.stripe.com https://m.stripe.network; "
+        "frame-src https://js.stripe.com https://hooks.stripe.com; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self' https://hooks.stripe.com"
+    )
+    response.headers["Permissions-Policy"] = "payment=(self \"https://js.stripe.com\")"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     
     # Cache control for static assets
@@ -451,12 +462,12 @@ async def startup_event():
 app.add_exception_handler(APIException, api_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
-# Setup OWASP security middleware (implements security headers)
-try:
-    from app.utils.owasp_security import setup_owasp_security
-    setup_owasp_security(app)
-except Exception as e:
-    logger.warning(f"OWASP security setup failed: {e}")
+# OWASP security headers are set by security_headers_middleware above.
+# setup_owasp_security is intentionally NOT called here — calling
+# app.add_middleware(BaseHTTPMiddleware subclass) after @app.middleware
+# decorators are registered causes Starlette to store a 2-tuple instead
+# of a 3-tuple in the middleware stack, crashing every request with
+# "ValueError: not enough values to unpack (expected 3, got 2)".
 
 # Setup comprehensive logging middleware (must be early)
 # TEMPORARILY DISABLED - causes "No response returned" error
