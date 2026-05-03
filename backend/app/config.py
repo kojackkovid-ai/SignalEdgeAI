@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     # Monetization
     stripe_public_key: Optional[str] = None
     stripe_secret_key: Optional[str] = None
+    stripe_webhook_secret: Optional[str] = None
     
     # Email - Mailgun
     mailgun_api_key: str = ""

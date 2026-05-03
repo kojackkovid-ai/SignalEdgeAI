@@ -53,19 +53,14 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
     try {
       setIsLoading(true);
       setError(null);
-      console.log('[Club100Display] Fetching Club 100 data...');
-
       const response = await api.get('/predictions/club-100/data', { timeout: 15000 });
-      console.log('[Club100Display] API Response:', response.data);
 
       if (response.data && response.data.success) {
         const data = response.data.data;
-        console.log('[Club100Display] Setting Club 100 data:', data);
 
         // Extract unlocked picks list
         const unlockedList = data.unlocked_picks || [];
         setUnlockedPicks(new Set(unlockedList));
-        console.log('[Club100Display] Unlocked picks:', unlockedList);
 
         if (response.data.warning) {
           setError(response.data.warning);
@@ -80,11 +75,9 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
         if (availableSports.length > 0) {
           setSelectedSport(availableSports[0]);
         } else {
-          console.log('[Club100Display] No sports with data, defaulting to NBA');
           setSelectedSport('nba');
         }
       } else {
-        console.error('[Club100Display] API response missing or success=false:', response.data);
         setError('Invalid response from server');
       }
     } catch (err: any) {
@@ -180,7 +173,6 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log('Upgrade button clicked, navigating to /pricing');
                   navigate('/pricing');
                 }}
                 className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-bold hover:shadow-lg hover:scale-105 transition transform cursor-pointer"
@@ -191,7 +183,6 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
-                  console.log('Go Back button clicked');
                   if (onBack) {
                     onBack();
                   } else {
@@ -282,15 +273,11 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
       setUnlockedPlayerId(player.player_id);
       setSuccessMessage(null);
       
-      console.log(`[Club100Display] Attempting to unlock ${player.player_id}...`);
-      
       const response = await api.post(
         `/predictions/club-100/follow/${player.player_id}`,
         {},
         { timeout: 15000 }
       );
-      
-      console.log('[Club100Display] Unlock response:', response.data);
       
       if (response.data && response.data.success) {
         // Add to unlocked picks

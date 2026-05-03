@@ -214,23 +214,27 @@ async def get_model_performance(
     performance = []
     
     for sport in sports:
-        predictions_result = await session.execute(
+        # Count resolved predictions (result is not null) for this sport
+        total_result = await session.execute(
             select(func.count(Prediction.id))
-            .where(Prediction.sport_key == sport.lower())
+            .where(
+                Prediction.sport_key == sport.lower(),
+                Prediction.result.isnot(None),
+            )
         )
-        total = predictions_result.scalar() or 0
-        
+        total = total_result.scalar() or 0
+
         if total > 0:
-            # Calculate accuracy from user predictions
-            accuracy_result = await session.execute(
-                select(func.count(UserPrediction.id))
+            # Count wins from the same Prediction table (consistent denominator)
+            correct_result = await session.execute(
+                select(func.count(Prediction.id))
                 .where(
-                    UserPrediction.actual_outcome == True,
-                    Prediction.sport_key == sport.lower()
+                    Prediction.sport_key == sport.lower(),
+                    Prediction.result == "win",
                 )
             )
-            correct = accuracy_result.scalar() or 0
-            accuracy = (correct / total) * 100 if total > 0 else 0
+            correct = correct_result.scalar() or 0
+            accuracy = (correct / total) * 100
         else:
             accuracy = 0
             correct = 0

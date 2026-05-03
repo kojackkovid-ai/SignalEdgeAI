@@ -135,14 +135,6 @@ export const PredictionCard: React.FC<PredictionCardProps> = ({
   const safeReasoning = Array.isArray(reasoning) ? reasoning : [];
   const safeModels = Array.isArray(models) ? models : [];
 
-  // Debug: Log what will be rendered
-  console.log('[PredictionCard] Render state:', {
-    normalizedTier, isStarter, isBasic, isPro, isUltimate,
-    canPick, pickCount, maxPicks,
-    safeReasoningLength: safeReasoning.length,
-    safeModelsLength: safeModels.length
-  });
-
   return (
     <div className={`prediction-card bg-white rounded-lg shadow-md p-4 ${featured ? 'featured' : ''} ${is_locked ? 'locked' : ''}`}>
       {/* Header */}

@@ -118,9 +118,11 @@ class PredictionResolutionService:
         if user:
             user.total_predictions = total
             user.win_rate = win_rate  # Decimal 0-1
-            # ROI calculation: convert to percentage for readability (0-100)
-            # Formula: (win_rate - 0.50) / 0.50 * 100
-            user.roi = ((win_rate - 0.50) / 0.50 * 100) if total > 0 else 0.0
+            # ROI calculation: edge above breakeven at standard -110 juice
+            # Breakeven win rate for -110 = 11/21 ≈ 52.38%
+            # Formula: (win_rate - 0.5238) / 0.5238 * 100 → % edge vs breakeven
+            BREAKEVEN = 11 / 21  # ≈ 0.5238 for -110 standard juice
+            user.roi = ((win_rate - BREAKEVEN) / BREAKEVEN * 100) if total > 0 else 0.0
             
             db.add(user)
             await db.commit()

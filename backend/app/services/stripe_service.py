@@ -196,4 +196,24 @@ class StripeService:
             logger.error(f"Error cancelling payment: {str(e)}")
             return False
 
+    @staticmethod
+    def verify_webhook_signature(payload: bytes, sig_header: str, webhook_secret: str):
+        """
+        Verify an incoming Stripe webhook signature.
+
+        Args:
+            payload: Raw request body bytes
+            sig_header: Value of the Stripe-Signature header
+            webhook_secret: STRIPE_WEBHOOK_SECRET from environment
+
+        Returns:
+            Parsed Stripe Event object
+
+        Raises:
+            stripe.error.SignatureVerificationError: If the signature is invalid
+        """
+        stripe_module = _init_stripe()
+        return stripe_module.Webhook.construct_event(payload, sig_header, webhook_secret)
+
+
 stripe_service = StripeService()

@@ -3,7 +3,7 @@ Analytics API Routes
 Admin/Dashboard endpoints for viewing analytics and prediction accuracy
 """
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, Header
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,14 +48,26 @@ async def track_event(
     request: EventTrackingRequest,
     db: AsyncSession = Depends(get_db),
     service: AnalyticsService = Depends(get_analytics_service),
+    authorization: Optional[str] = Header(None),
 ):
     """
     Track a user event from frontend.
-    This endpoint is called by the frontend to log user actions.
+    user_id is derived from the Bearer token when present; the body user_id is
+    ignored entirely to prevent spoofing analytics events on behalf of other users.
     """
+    resolved_user_id: Optional[str] = None
+    if authorization:
+        try:
+            from app.services.auth_service import AuthService
+            parts = authorization.split()
+            if len(parts) == 2 and parts[0].lower() == "bearer":
+                resolved_user_id = AuthService()._decode_token(parts[1])
+        except Exception:
+            pass  # anonymous event — user_id stays None
+
     await service.log_event(
         db=db,
-        user_id=request.user_id,
+        user_id=resolved_user_id,
         event_type=request.event_type,
         event_data=request.event_data,
         session_id=request.session_id,

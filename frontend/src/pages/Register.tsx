@@ -25,8 +25,7 @@ const Register: React.FC = () => {
       if (password.length > 72) setWarning('Password truncated to 72 characters before submission');
 
       const response = await api.register(email, truncatedPassword, username);
-      console.log('[Register] Response:', response);
-      
+
       // Store auth token in localStorage FIRST
       localStorage.setItem('access_token', response.access_token);
       
@@ -43,8 +42,6 @@ const Register: React.FC = () => {
         totalPredictions: 0,
         roi: 0,
       });
-      
-      console.log('[Register] Token saved to localStorage and store');
       
       // Track signup event
       analyticsTracker.trackSignup(email).catch(() => {});

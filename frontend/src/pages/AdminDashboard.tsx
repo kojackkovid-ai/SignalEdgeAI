@@ -1,30 +1,62 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+
+interface ModelPerf { sport: string; accuracy: number; total_predictions: number; correct_predictions: number; }
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'analytics' | 'models' | 'health' | 'settings'>('overview');
   const [stats, setStats] = useState({
-    totalUsers: 1250,
-    activeUsers: 980,
-    monthlyRevenue: 24500,
-    activeSubscriptions: 450,
-    predictions: 125000,
-    accuracy: 87.4
+    totalUsers: 0,
+    activeUsers: 0,
+    monthlyRevenue: 0,
+    activeSubscriptions: 0,
+    predictions: 0,
+    accuracy: 0
   });
+  const [tierData, setTierData] = useState<{ name: string; value: number }[]>([]);
+  const [modelPerf, setModelPerf] = useState<ModelPerf[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch admin data on mount
     fetchAdminStats();
   }, []);
 
   const fetchAdminStats = async () => {
+    setStatsLoading(true);
     try {
-      // API calls would go here
-      console.log('Fetching admin statistics...');
+      const [statsRes, tiersRes, modelsRes] = await Promise.allSettled([
+        api.get('/admin/stats'),
+        api.get('/admin/tiers'),
+        api.get('/admin/models/performance'),
+      ]);
+
+      if (statsRes.status === 'fulfilled') {
+        const s = statsRes.value.data;
+        setStats({
+          totalUsers: s.total_users ?? 0,
+          activeUsers: s.active_users ?? 0,
+          monthlyRevenue: s.monthly_revenue ?? 0,
+          activeSubscriptions: s.active_subscriptions ?? 0,
+          predictions: s.total_predictions ?? 0,
+          accuracy: s.platform_accuracy ?? 0,
+        });
+      }
+
+      if (tiersRes.status === 'fulfilled') {
+        const t = tiersRes.value.data as Record<string, number>;
+        setTierData(Object.entries(t).map(([name, value]) => ({ name, value })));
+      }
+
+      if (modelsRes.status === 'fulfilled') {
+        setModelPerf(modelsRes.value.data as ModelPerf[]);
+      }
     } catch (err) {
-      console.error('Error fetching admin stats:', err);
+      // Stats unavailable — keep zeros shown
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -81,33 +113,27 @@ const AdminDashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-white rounded-lg shadow p-6">
                 <p className="text-sm text-gray-600">Total Users</p>
-                <p className="text-3xl font-bold text-blue-600 mt-2">{stats.totalUsers}</p>
-                <p className="text-xs text-gray-500 mt-2">↑ 12% from last month</p>
+                <p className="text-3xl font-bold text-blue-600 mt-2">{statsLoading ? '—' : stats.totalUsers.toLocaleString()}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <p className="text-sm text-gray-600">Monthly Revenue</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">${stats.monthlyRevenue.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-2">↑ 8% from last month</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">{statsLoading ? '—' : `$${stats.monthlyRevenue.toLocaleString()}`}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <p className="text-sm text-gray-600">Active Subscriptions</p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">{stats.activeSubscriptions}</p>
-                <p className="text-xs text-gray-500 mt-2">↑ 5% from last month</p>
+                <p className="text-3xl font-bold text-purple-600 mt-2">{statsLoading ? '—' : stats.activeSubscriptions.toLocaleString()}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <p className="text-sm text-gray-600">Platform Accuracy</p>
-                <p className="text-3xl font-bold text-orange-600 mt-2">{stats.accuracy}%</p>
-                <p className="text-xs text-gray-500 mt-2">↑ 2.3% from last month</p>
+                <p className="text-3xl font-bold text-orange-600 mt-2">{statsLoading ? '—' : `${stats.accuracy.toFixed(1)}%`}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
                 <p className="text-sm text-gray-600">Total Predictions</p>
-                <p className="text-3xl font-bold text-indigo-600 mt-2">{stats.predictions.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-2">↑ 22% from last month</p>
+                <p className="text-3xl font-bold text-indigo-600 mt-2">{statsLoading ? '—' : stats.predictions.toLocaleString()}</p>
               </div>
               <div className="bg-white rounded-lg shadow p-6">
-                <p className="text-sm text-gray-600">Active Users (Today)</p>
-                <p className="text-3xl font-bold text-pink-600 mt-2">{stats.activeUsers}</p>
-                <p className="text-xs text-gray-500 mt-2">Peak at 3:45 PM</p>
+                <p className="text-sm text-gray-600">Active Users</p>
+                <p className="text-3xl font-bold text-pink-600 mt-2">{statsLoading ? '—' : stats.activeUsers.toLocaleString()}</p>
               </div>
             </div>
 
@@ -134,33 +160,29 @@ const AdminDashboard: React.FC = () => {
             {/* Subscription Distribution */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-bold mb-4">Subscription Tier Distribution</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Starter (Free)', value: 400 },
-                      { name: 'Basic ($12)', value: 250 },
-                      { name: 'Pro ($29)', value: 180 },
-                      { name: 'Pro Plus ($49)', value: 50 },
-                      { name: 'Elite ($99)', value: 20 }
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    <Cell fill="#3b82f6" />
-                    <Cell fill="#10b981" />
-                    <Cell fill="#8b5cf6" />
-                    <Cell fill="#f59e0b" />
-                    <Cell fill="#ef4444" />
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              {tierData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={tierData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {tierData.map((_, i) => (
+                        <Cell key={i} fill={['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444'][i % 5]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-400 py-12">{statsLoading ? 'Loading…' : 'No tier data available'}</p>
+              )}
             </div>
           </div>
         )}
@@ -229,17 +251,26 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-bold mb-4">ML Model Performance</h3>
             <div className="space-y-4">
-              {['NBA', 'NFL', 'MLB', 'NHL', 'Soccer'].map((sport) => (
-                <div key={sport} className="p-4 border rounded-lg">
+              {modelPerf.length > 0 ? modelPerf.map((m) => (
+                <div key={m.sport} className="p-4 border rounded-lg">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium">{sport}</span>
-                    <span className="text-green-600">87.4% accuracy</span>
+                    <span className="font-medium">{m.sport}</span>
+                    <span className={`font-semibold ${m.accuracy >= 55 ? 'text-green-600' : m.accuracy >= 50 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                      {m.total_predictions > 0 ? `${m.accuracy.toFixed(1)}%` : 'No data yet'}
+                    </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '87.4%' }}></div>
-                  </div>
+                  {m.total_predictions > 0 && (
+                    <>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.min(m.accuracy, 100)}%` }} />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">{m.correct_predictions} / {m.total_predictions} resolved predictions</p>
+                    </>
+                  )}
                 </div>
-              ))}
+              )) : (
+                <p className="text-center text-gray-400 py-8">{statsLoading ? 'Loading…' : 'No model performance data available'}</p>
+              )}
             </div>
           </div>
         )}

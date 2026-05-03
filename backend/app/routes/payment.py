@@ -367,3 +367,87 @@ async def confirm_payment(
                 status_code=500,
                 detail=f"Payment confirmation failed: {error_msg}"
             )
+
+
+@router.post("/webhook")
+async def stripe_webhook(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Handle Stripe webhook events (payment_intent.succeeded).
+    Requires STRIPE_WEBHOOK_SECRET environment variable.
+    This is the reliable fallback when the browser closes before confirm-payment is called.
+    """
+    from app.config import settings
+
+    webhook_secret = settings.stripe_webhook_secret
+    if not webhook_secret:
+        logger.warning("[Webhook] STRIPE_WEBHOOK_SECRET not configured — endpoint disabled")
+        raise HTTPException(status_code=503, detail="Webhook not configured")
+
+    payload = await request.body()
+    sig_header = request.headers.get("Stripe-Signature")
+    if not sig_header:
+        raise HTTPException(status_code=400, detail="Missing Stripe-Signature header")
+
+    try:
+        event = stripe_service.verify_webhook_signature(payload, sig_header, webhook_secret)
+    except Exception as e:
+        logger.warning(f"[Webhook] Signature verification failed: {e}")
+        raise HTTPException(status_code=400, detail="Invalid webhook signature")
+
+    event_type = event.get("type")
+    logger.info(f"[Webhook] Received event: {event_type}")
+
+    if event_type == "payment_intent.succeeded":
+        payment_intent = event["data"]["object"]
+        metadata = payment_intent.get("metadata", {})
+        user_id = metadata.get("user_id")
+        plan = metadata.get("plan")
+        payment_intent_id = payment_intent.get("id")
+
+        if not user_id or not plan:
+            logger.warning(f"[Webhook] Missing user_id/plan in metadata for {payment_intent_id}")
+            return {"status": "ok"}
+
+        valid_tiers = ["basic", "pro", "pro_plus", "elite"]
+        plan_lower = plan.lower()
+        if plan_lower not in valid_tiers:
+            logger.warning(f"[Webhook] Invalid plan in metadata: {plan}")
+            return {"status": "ok"}
+
+        try:
+            user = await get_auth_service().get_user_by_id(db, user_id)
+            if not user:
+                logger.error(f"[Webhook] User not found: {user_id}")
+                return {"status": "ok"}
+
+            if user.subscription_tier == plan_lower:
+                logger.info(f"[Webhook] Tier already set to {plan_lower} for user {user_id} — idempotent skip")
+                return {"status": "ok"}
+
+            old_tier = user.subscription_tier
+            user.subscription_tier = plan_lower
+            await db.commit()
+            logger.info(f"[Webhook] ✅ Tier updated via webhook: user={user_id} {old_tier}→{plan_lower}")
+
+            try:
+                audit = await get_audit_service(db)
+                await audit.log_action(
+                    user_id=user_id,
+                    action="tier_upgrade",
+                    resource="payment",
+                    resource_id=payment_intent_id,
+                    ip_address=None,
+                    user_agent=None,
+                    status="success",
+                    details={"old_tier": old_tier, "new_tier": plan_lower, "source": "stripe_webhook"},
+                )
+            except Exception as audit_err:
+                logger.warning(f"[Webhook] Audit log failed: {audit_err}")
+
+        except Exception as e:
+            logger.error(f"[Webhook] Error processing payment_intent.succeeded: {e}", exc_info=True)
+
+    return {"status": "ok"}

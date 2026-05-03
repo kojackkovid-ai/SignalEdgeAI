@@ -192,21 +192,17 @@ const Pricing: React.FC = () => {
                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                     }`}
                     onClick={() => {
-                      console.log('[Pricing] Button clicked for plan:', plan.name, 'Auth:', isAuthenticated);
-                      
                       // Track tier upgrade initiation
                       if (plan.name !== 'Starter') {
                         analyticsTracker.trackEvent('tier_upgrade_initiated', { plan: plan.name.toLowerCase(), price: plan.price }, '').catch(() => {});
                       }
-                      
+
                       if (plan.name === 'Starter') {
                         navigate('/register');
                       } else if (isAuthenticated) {
                         const planKey = plan.name === 'Pro Plus' ? 'pro_plus' : plan.name.toLowerCase();
-                        console.log('[Pricing] Navigating to payment for:', planKey);
                         navigate(`/payment?plan=${planKey}&cycle=${billingCycle}`);
                       } else {
-                        console.log('[Pricing] Not authenticated, redirecting to register');
                         navigate('/register');
                       }
                     }}
