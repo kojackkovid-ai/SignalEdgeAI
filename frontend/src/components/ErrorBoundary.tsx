@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component<Props, State> {
       };
 
       // Log to console in development
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.group('📋 Error Details for Monitoring');
         console.table(errorData);
         console.groupEnd();
@@ -118,7 +118,7 @@ class ErrorBoundary extends React.Component<Props, State> {
             </div>
 
             {/* Error Details (Development Only) */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <div className="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
                 <details className="text-xs text-gray-600">
                   <summary className="cursor-pointer font-semibold mb-2 text-gray-700">

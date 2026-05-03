@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Header, Path
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Body, Header, Path, Request
+from app.utils.endpoint_rate_limiter import rate_limit
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, insert
 from sqlalchemy.exc import PendingRollbackError
@@ -1658,7 +1659,9 @@ async def get_club_100_data(
 
 
 @router.post("/club-100/follow/{player_id}")
+@rate_limit("predictions:club100_follow", requests=30, window=60)
 async def follow_club_100_pick(
+    http_request: Request,
     player_id: str = Path(..., description="Player ID to follow"),
     current_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)

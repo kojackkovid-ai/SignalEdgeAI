@@ -46,13 +46,13 @@ class RegisterRequest(BaseModel):
     @field_validator('password')
     @classmethod
     def validate_password(cls, v: str) -> str:
-        """Auto-truncate to 72 bytes for bcrypt BEFORE validation, then validate minimum 6 characters"""
+        """Validate password: minimum 8 characters, auto-truncated to 72 bytes for bcrypt"""
         if not isinstance(v, str):
             raise ValueError("Password must be a string")
         
         # Validate minimum length first
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
         
         # Auto-truncate to bcrypt limit (72 bytes)
         if len(v) > 72:
@@ -127,18 +127,16 @@ async def register(
     except ValueError as e:
         # Log failed signup attempt
         try:
-            # TEMPORARILY DISABLE AUDIT LOGGING FOR DEBUGGING
-            # audit = await get_audit_service(db)
-            # await audit.log_action(
-            #     user_id='unknown',
-            #     action='signup',
-            #     resource='user',
-            #     ip_address=http_request.client.host if (http_request and http_request.client) else None,
-            #     user_agent=http_request.headers.get('user-agent') if http_request else None,
-            #     status='failure',
-            #     error_message=str(e)
-            # )
-            pass
+            audit = await get_audit_service(db)
+            await audit.log_action(
+                user_id='unknown',
+                action='signup',
+                resource='user',
+                ip_address=http_request.client.host if (http_request and http_request.client) else None,
+                user_agent=http_request.headers.get('user-agent') if http_request else None,
+                status='failure',
+                error_message=str(e)
+            )
         except Exception as audit_error:
             logger.warning(f"Failed to log signup attempt: {audit_error}")
         
@@ -305,11 +303,11 @@ class ResetPasswordRequest(BaseModel):
     @field_validator('new_password')
     @classmethod
     def validate_password(cls, v: str) -> str:
-        """Validate password"""
+        """Validate password: minimum 8 characters, auto-truncated to 72 bytes for bcrypt"""
         if not isinstance(v, str):
             raise ValueError("Password must be a string")
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
         if len(v) > 72:
             v = v[:72]
         return v

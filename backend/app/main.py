@@ -463,8 +463,11 @@ except Exception as e:
 # setup_comprehensive_logging(app)
 
 # CORS configuration - MUST come before routes
-# Restrict to specific origins for security (update for production)
-allowed_origins = ["*"]
+# In production set ALLOWED_ORIGINS to a comma-separated list of your domains,
+# e.g. "https://yourdomain.com,https://www.yourdomain.com"
+import os as _os
+_raw_origins = _os.environ.get("ALLOWED_ORIGINS", "").strip()
+allowed_origins: list[str] = [o.strip() for o in _raw_origins.split(",") if o.strip()] or ["*"]
 
 app.add_middleware(
     CORSMiddleware,

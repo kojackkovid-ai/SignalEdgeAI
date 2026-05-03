@@ -231,7 +231,16 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
   };
 
   const warningText = typeof club100Data.warning === 'string' ? club100Data.warning : null;
-  let currentPlayers = club100Data[selectedSport] || [];
+
+  /** Safely extract the PlayerData[] for a given sport key, filtering out meta-fields. */
+  const getPlayers = (sport: string): PlayerData[] => {
+    const raw = club100Data[sport];
+    if (!Array.isArray(raw) || raw.length === 0) return [];
+    if (typeof raw[0] === 'string') return [];
+    return raw as PlayerData[];
+  };
+
+  let currentPlayers: PlayerData[] = getPlayers(selectedSport);
 
   // Sorting logic
   const handleSort = (column: string) => {
@@ -286,9 +295,10 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
         setUnlockedPicks(newUnlocked);
         
         // Update player data with the returned prop_line
-        if (club100Data[player.sport]) {
-          const updatedPlayers = club100Data[player.sport].map(p => 
-            p.player_id === player.player_id 
+        const sportPlayers = getPlayers(player.sport);
+        if (sportPlayers.length > 0) {
+          const updatedPlayers = sportPlayers.map(p =>
+            p.player_id === player.player_id
               ? { ...p, prop_line: response.data.prop_line }
               : p
           );
@@ -494,7 +504,7 @@ const Club100Display: React.FC<Club100DisplayProps> = ({ onBack, club100Status }
           <p className="text-gray-700 font-semibold mt-2">Players Unlocked</p>
         </div>
         <div className="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-lg p-6">
-          <div className="text-4xl font-bold text-orange-600">{Math.max(...currentPlayers.map(p => p.consecutive_games), 0)}</div>
+          <div className="text-4xl font-bold text-orange-600">{currentPlayers.length > 0 ? Math.max(...currentPlayers.map(p => p.consecutive_games)) : 0}</div>
           <p className="text-gray-700 font-semibold mt-2">Longest Active Streak</p>
         </div>
       </div>

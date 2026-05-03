@@ -1,26 +1,28 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.database import get_db
-from app.services.auth_service import AuthService
+from app.services.auth_service import get_current_user
 from app.services.ml_service import MLService
 from app.services.espn_prediction_service import ESPNPredictionService
+from app.models.db_models import User
 from pydantic import BaseModel
 from typing import List
 
 
-# Lazy-initialized services to prevent import hangs
-_auth_service = None
-
-def get_auth_service():
-    global _auth_service
-    if _auth_service is None:
-        _auth_service = AuthService()
-    return _auth_service
+async def require_admin(
+    current_user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    """Reject requests from non-admin users."""
+    result = await db.execute(select(User).where(User.id == current_user_id))
+    user = result.scalar_one_or_none()
+    if not user or user.subscription_tier != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return user
 
 
 router = APIRouter()
-# Lazy-loaded
-auth_service = None
 
 class ModelPerformance(BaseModel):
     name: str
@@ -38,23 +40,23 @@ class ModelStatus(BaseModel):
 
 @router.get("/status", response_model=ModelStatus)
 async def get_models_status(
-    current_user_id: str = Depends(lambda: get_auth_service().get_current_user()),
-    db: AsyncSession = Depends(get_db)
+    current_user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get ML models status"""
-    # Return placeholder data as we don't have active trained models yet
     return {
         "models": [],
         "ensemble_score": 0.0,
         "last_update": "N/A",
-        "auto_training_enabled": False
+        "auto_training_enabled": False,
     }
+
 
 @router.get("/performance/{model_name}")
 async def get_model_performance(
     model_name: str,
-    current_user_id: str = Depends(lambda: get_auth_service().get_current_user()),
-    db: AsyncSession = Depends(get_db)
+    current_user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get detailed model performance"""
     return {
@@ -65,66 +67,54 @@ async def get_model_performance(
             "recall": 0.0,
             "f1_score": 0.0,
             "auc_roc": 0.0,
-            "log_loss": 0.0
+            "log_loss": 0.0,
         },
         "recent_performance": {
             "last_7_days": 0.0,
             "last_30_days": 0.0,
-            "last_90_days": 0.0
-        }
+            "last_90_days": 0.0,
+        },
     }
+
 
 @router.post("/retrain/{model_name}")
 async def trigger_model_retrain(
     model_name: str,
-    current_user_id: str = Depends(lambda: get_auth_service().get_current_user()),
-    db: AsyncSession = Depends(get_db)
+    _admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ):
-    """Trigger manual model retraining"""
+    """Trigger manual model retraining (admin only)"""
     try:
-        # Check if user is admin (optional, skipping for now)
-        
-        # Lazy-loaded
-        
-        espn_service = None
         ml_service = MLService()
-        await ml_service.initialize() 
-        
-        # Fetch historical data (last 30 days)
-        # This might take a while, so in production use background tasks
-        training_data = await get_espn_service().get_historical_data(days_back=30)
-        
+        await ml_service.initialize()
+
+        espn_service = ESPNPredictionService()
+        training_data = await espn_service.get_historical_data(days_back=30)
+
         if not training_data:
-             return {
-                "message": "No historical data found for training",
-                "status": "failed"
-            }
-            
-        # Train models
+            return {"message": "No historical data found for training", "status": "failed"}
+
         success = await ml_service.train_models(training_data)
-        
+
         if success:
             return {
                 "message": f"Successfully retrained models on {len(training_data)} historical games",
                 "status": "success",
-                "estimated_time": "Completed"
+                "estimated_time": "Completed",
             }
-        else:
-             return {
-                "message": "Training failed",
-                "status": "failed"
-            }
-            
+        return {"message": "Training failed", "status": "failed"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/backtest/{model_name}")
 async def get_model_backtest(
     model_name: str,
     start_date: str = "2024-01-01",
     end_date: str = "2024-01-24",
-    current_user_id: str = Depends(lambda: get_auth_service().get_current_user()),
-    db: AsyncSession = Depends(get_db)
+    current_user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get model backtest results"""
     return {
@@ -136,5 +126,5 @@ async def get_model_backtest(
         "pushes": 0,
         "win_rate": 0.0,
         "roi": 0.0,
-        "max_drawdown": 0.0
+        "max_drawdown": 0.0,
     }

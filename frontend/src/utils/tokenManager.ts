@@ -12,7 +12,7 @@ interface TokenPayload {
 
 class TokenManager {
   private refreshThresholdMs = 5 * 60 * 1000; // Refresh 5 minutes before expiry
-  private monitoringInterval: NodeJS.Timeout | null = null;
+  private monitoringInterval: ReturnType<typeof setInterval> | null = null;
   private onTokenExpired: (() => void) | null = null;
   private onTokenRefreshed: ((token: string) => void) | null = null;
 

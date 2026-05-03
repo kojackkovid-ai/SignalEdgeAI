@@ -20,6 +20,11 @@ const Register: React.FC = () => {
     setError('');
     setWarning('');
     try {
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters');
+        setLoading(false);
+        return;
+      }
       // Truncate password to 72 characters (bcrypt limit)
       const truncatedPassword = password.slice(0, 72);
       if (password.length > 72) setWarning('Password truncated to 72 characters before submission');
@@ -86,15 +91,19 @@ const Register: React.FC = () => {
             required
             className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            maxLength={72}
-            className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              minLength={8}
+              maxLength={72}
+              className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <p className="text-xs text-gray-400 mt-1 pl-1">Minimum 8 characters</p>
+          </div>
           {warning && <div className="text-yellow-600 text-sm text-center">{warning}</div>}
           {error && <div className="text-red-500 text-sm text-center">{error}</div>}
           <button

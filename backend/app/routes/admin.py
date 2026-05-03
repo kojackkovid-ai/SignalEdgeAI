@@ -273,19 +273,21 @@ async def get_system_health(
         uptime_percentage=db_uptime
     ))
     
-    # Check cache (Redis)
+    # Check cache (Redis) — attempt a real ping
     try:
-        # This would require redis client - placeholder
+        from app.utils.caching import get_redis_client
+        redis_client = get_redis_client()
+        redis_client.ping()
         cache_status = "healthy"
         cache_uptime = 99.8
     except Exception:
-        cache_status = "unhealthy"
-        cache_uptime = 0
-    
+        cache_status = "not configured"
+        cache_uptime = 0.0
+
     health_checks.append(SystemHealthResponse(
         service="Cache Layer",
         status=cache_status,
-        uptime_percentage=cache_uptime
+        uptime_percentage=cache_uptime,
     ))
     
     # Check API
