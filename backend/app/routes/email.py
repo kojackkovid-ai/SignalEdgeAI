@@ -132,13 +132,6 @@ async def get_email_preferences(
     current_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-
-
-@router.get("/preferences")
-async def get_email_preferences(
-    current_user_id: str = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
     """Get user's email preferences"""
     try:
         result = await db.execute(
