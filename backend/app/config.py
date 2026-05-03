@@ -134,12 +134,12 @@ class Settings(BaseSettings):
         # Check if DATABASE_URL is set (for Docker/production)
         fly_database_url = os.getenv("FLY_DATABASE_URL")
         if fly_database_url:
-            print(f"[CONFIG] Using FLY_DATABASE_URL from environment")
+            logger.info("[CONFIG] Using FLY_DATABASE_URL from environment")
             return fly_database_url
 
         database_url = os.getenv("DATABASE_URL")
         if database_url:
-            print(f"[CONFIG] Using DATABASE_URL from environment")
+            logger.info("[CONFIG] Using DATABASE_URL from environment")
             return database_url
         
         # Check if running in Docker (indicated by DB_HOST != localhost)
@@ -151,13 +151,13 @@ class Settings(BaseSettings):
         if use_sqlite:
             db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "sports_predictions.db")
             url = f"sqlite+aiosqlite:///{db_path}"
-            print(f"[CONFIG] Using SQLite for local development: {db_path}")
+            logger.info("[CONFIG] Using SQLite for local development: %s", db_path)
             return url
         
         # Build PostgreSQL URL from individual components
         url = f"postgresql+asyncpg://{self.db_user}:{self.db_pass}@{self.db_host}:{self.db_port}/{self.db_name}"
-        print(f"[CONFIG] Using PostgreSQL: {self.db_host}:{self.db_port}/{self.db_name}")
-        print(f"[CONFIG] Database URL: {url.replace(self.db_pass, '***')}")
+        logger.info("[CONFIG] Using PostgreSQL: %s:%s/%s", self.db_host, self.db_port, self.db_name)
+        logger.info("[CONFIG] Database URL: %s", url.replace(self.db_pass, "***"))
         return url
     
     @property

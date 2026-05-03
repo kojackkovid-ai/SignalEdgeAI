@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -69,6 +69,7 @@ const App: React.FC = () => {
               <Route path="/legal/refund" element={<RefundPolicy />} />
               <Route path="/legal/cookies" element={<CookiePolicy />} />
               <Route path="/legal/risk" element={<RiskDisclosure />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
           <Footer />
