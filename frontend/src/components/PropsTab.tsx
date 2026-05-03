@@ -1,6 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { analyticsTracker } from '../utils/analytics';
 
+interface Last5Game {
+  date: string;
+  stat_type: string;
+  value: number;
+  opponent: string;
+}
+
 interface Prop {
   id: string;
   player?: string;
@@ -19,6 +26,7 @@ interface Prop {
   prediction_type?: string;
   anytime_goal_scorers?: any;
   anytime_goal_names?: string[];
+  last_5_games_data?: Last5Game[];
 }
 
 interface PropsTabProps {
@@ -240,6 +248,44 @@ const PropsTab: React.FC<PropsTabProps> = ({
               </svg>
               <span>Unlocked - Good luck!</span>
             </div>
+
+            {/* Last 5 Games section — always shown after unlock when data is available */}
+            {prop.last_5_games_data && prop.last_5_games_data.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-green-200">
+                <p className="text-sm font-medium text-gray-800 mb-2">📅 Last {prop.last_5_games_data.length} Games</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-gray-500 border-b border-gray-100">
+                        <th className="text-left pb-1 pr-2">Date</th>
+                        <th className="text-left pb-1 pr-2">Opp</th>
+                        <th className="text-right pb-1">Result</th>
+                        {prop.point !== undefined && <th className="text-right pb-1 pl-2">Line</th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {prop.last_5_games_data.map((g, i) => {
+                        const hitLine = prop.point !== undefined ? g.value > prop.point : null;
+                        return (
+                          <tr key={i} className="border-b border-gray-50">
+                            <td className="py-1 pr-2 text-gray-600">
+                              {g.date ? `${g.date.slice(4,6)}/${g.date.slice(6,8)}` : '—'}
+                            </td>
+                            <td className="py-1 pr-2 text-gray-700 font-medium">{g.opponent || '—'}</td>
+                            <td className={`py-1 text-right font-bold ${hitLine === true ? 'text-green-600' : hitLine === false ? 'text-red-500' : 'text-gray-800'}`}>
+                              {g.value}
+                            </td>
+                            {prop.point !== undefined && (
+                              <td className="py-1 pl-2 text-right text-gray-400">{prop.point}</td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* Show reasoning based on tier */}
             {tierConfig[userTier as keyof typeof tierConfig]?.showReasoning && prop.reasoning && (

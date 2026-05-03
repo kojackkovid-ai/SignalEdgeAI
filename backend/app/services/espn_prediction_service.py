@@ -205,12 +205,25 @@ class ESPNPredictionService:
         # Redis cache for distributed caching
         self._redis = None
         self._redis_ttl = 600  # 10 minutes for Redis cache
-        # NOTE: Redis initialization disabled to prevent startup hang
-        # Will fall back to in-memory cache for now
-        # TODO: Implement lazy Redis initialization on first async use
-        
+
         # Batch request tracking for deduplication
         self._pending_requests = {}
+
+        # Scoreboard player history cache (sport_key -> {athlete_id -> [game_entries]})
+        self._sb_player_cache: Dict[str, Dict[str, List[Dict]]] = {}
+        self._sb_player_cache_ts: Dict[str, datetime] = {}
+        self._SB_CACHE_TTL = 1800  # 30 minutes
+
+        # Scoreboard category -> stat_type mappings per sport
+        self._SB_CAT_MAP: Dict[str, Dict[str, str]] = {
+            "basketball_nba": {"points": "points", "rebounds": "rebounds", "assists": "assists"},
+            "baseball_mlb": {"homeRuns": "home_runs", "RBIs": "runs_batted_in"},
+            "icehockey_nhl": {"goals": "goals", "assists": "assists"},
+            "americanfootball_nfl": {
+                "passingYards": "pass_yards", "rushingYards": "rush_yards",
+                "receivingYards": "rec_yards", "receptions": "receptions",
+            },
+        }
         self._request_lock = asyncio.Lock()
     
     @property
@@ -679,6 +692,124 @@ class ESPNPredictionService:
 
         
         return games
+
+    # ------------------------------------------------------------------
+    # Scoreboard helpers for prediction resolution + last-5-games data
+    # ------------------------------------------------------------------
+
+    async def get_scoreboard(self, sport_key: str, date_str: str) -> List[Dict[str, Any]]:
+        """
+        Return completed-game scores for `sport_key` on `date_str` (YYYYMMDD).
+        Called by prediction_service.resolve_predictions().
+        """
+        espn_path = self.SPORT_MAPPING.get(sport_key)
+        if not espn_path:
+            return []
+        url = f"{self.BASE_URL}/{espn_path}/scoreboard"
+        try:
+            response = await self.client.get(url, params={"dates": date_str})
+            if response.status_code != 200:
+                return []
+            games = []
+            for event in response.json().get("events", []):
+                comps = event.get("competitions", [])
+                if not comps:
+                    continue
+                comp = comps[0]
+                status = comp.get("status", {}).get("type", {})
+                completed = status.get("completed", False) or status.get("name", "") in (
+                    "STATUS_FINAL", "STATUS_FINAL_OT",
+                )
+                home_team = away_team = None
+                for c in comp.get("competitors", []):
+                    info = {
+                        "name": c.get("team", {}).get("displayName", ""),
+                        "score": int(float(c.get("score") or 0)),
+                    }
+                    if c.get("homeAway") == "home":
+                        home_team = info
+                    else:
+                        away_team = info
+                if home_team and away_team:
+                    games.append({"home_team": home_team, "away_team": away_team, "completed": completed})
+            return games
+        except Exception as exc:
+            logger.error(f"[SCOREBOARD] {sport_key} {date_str}: {exc}")
+            return []
+
+    async def _get_sport_scoreboard_player_data(self, sport_key: str) -> Dict[str, List[Dict]]:
+        """
+        Build/return cached dict of {athlete_id -> [game_entry, …]} from the last 7 days
+        of ESPN scoreboards.  Used to attach last-5-games context to player props.
+        """
+        ts = self._sb_player_cache_ts.get(sport_key)
+        if ts and (datetime.utcnow() - ts).total_seconds() < self._SB_CACHE_TTL:
+            return self._sb_player_cache.get(sport_key, {})
+
+        espn_path = self.SPORT_MAPPING.get(sport_key)
+        cat_map = self._SB_CAT_MAP.get(sport_key, {})
+        if not espn_path or not cat_map:
+            return {}
+
+        player_history: Dict[str, List[Dict]] = {}
+        today = datetime.utcnow().date()
+
+        for days_ago in range(7, 0, -1):
+            game_date = today - timedelta(days=days_ago)
+            date_str = game_date.strftime("%Y%m%d")
+            try:
+                resp = await self.client.get(
+                    f"{self.BASE_URL}/{espn_path}/scoreboard",
+                    params={"dates": date_str},
+                )
+                if resp.status_code != 200:
+                    continue
+                data = resp.json()
+            except Exception:
+                continue
+
+            for event in data.get("events", []):
+                for comp in event.get("competitions", []):
+                    team_abbrevs: Dict[str, str] = {}
+                    for c in comp.get("competitors", []):
+                        team_abbrevs[c.get("homeAway", "")] = c.get("team", {}).get("abbreviation", "")
+                    for c in comp.get("competitors", []):
+                        ha = c.get("homeAway", "")
+                        opponent = team_abbrevs.get("away" if ha == "home" else "home", "")
+                        for cat in c.get("leaders", []):
+                            stat_type = cat_map.get(cat.get("name", ""))
+                            if not stat_type:
+                                continue
+                            for leader in cat.get("leaders", []):
+                                athlete = leader.get("athlete", {})
+                                aid = str(athlete.get("id", ""))
+                                if not aid:
+                                    continue
+                                try:
+                                    val = float(leader.get("value", 0))
+                                except (TypeError, ValueError):
+                                    continue
+                                if aid not in player_history:
+                                    player_history[aid] = []
+                                player_history[aid].append({
+                                    "date": date_str,
+                                    "stat_type": stat_type,
+                                    "value": val,
+                                    "opponent": opponent,
+                                })
+
+        self._sb_player_cache[sport_key] = player_history
+        self._sb_player_cache_ts[sport_key] = datetime.utcnow()
+        return player_history
+
+    async def _get_player_last_5_games(
+        self, sport_key: str, athlete_id: str, stat_type: str
+    ) -> List[Dict]:
+        """Return up to 5 recent game results for a player/stat from scoreboard history."""
+        history = await self._get_sport_scoreboard_player_data(sport_key)
+        entries = [e for e in history.get(str(athlete_id), []) if e.get("stat_type") == stat_type]
+        entries.sort(key=lambda x: x.get("date", ""), reverse=True)
+        return entries[:5]
 
     async def _fetch_games_internal(self, url: str, params: dict, sport_key: str) -> List[Dict[str, Any]]:
         """Internal method to fetch games from ESPN API - ONLY returns future/upcoming games"""
@@ -4310,12 +4441,12 @@ class ESPNPredictionService:
                     "is_locked": True,
                     "player": player_name,
                     "market_key": market_key,
-                    "market_name": market_name,  # Add market name for UI display
+                    "market_name": market_name,
                     "point": line_to_use if 'line_to_use' in dir() else point,
                     "over_line": over_line if 'over_line' in dir() else None,
                     "under_line": under_line if 'under_line' in dir() else None,
-                    # Ensure team_name is always set - use team abbreviation if full name not available
                     "team_name": team_name if team_name else "N/A",
+                    "last_5_games_data": await self._get_player_last_5_games(sport_key, player_id, market_key) if player_id else [],
                 }
                 props.append(prop)
         
@@ -4772,20 +4903,28 @@ class ESPNPredictionService:
                     "era": 4.20,
                 }
 
-            # Dynamic lines from real stats where available
-            k_avg   = stats_dict.get("strikeoutsPerGame") or stats_dict.get("strikeouts", 6.0)
-            h_avg   = stats_dict.get("hitsAllowedPerGame") or stats_dict.get("hitsAllowed", 6.5)
-            ip_avg  = stats_dict.get("inningsPitched") or stats_dict.get("inningsPitchedPerStart", 5.5)
-            bb_avg  = stats_dict.get("walksPerGame") or stats_dict.get("walks", 2.5)
+            def _pg(d: Dict, *keys: str, default: float, cap: float) -> float:
+                """Return first key whose value is a plausible per-game figure (0 < v ≤ cap)."""
+                for k in keys:
+                    v = d.get(k)
+                    if v is not None:
+                        try:
+                            fv = float(v)
+                            if 0 < fv <= cap:
+                                return fv
+                        except (TypeError, ValueError):
+                            pass
+                return default
 
-            try: k_avg  = float(k_avg)
-            except Exception: k_avg = 6.0
-            try: h_avg  = float(h_avg)
-            except Exception: h_avg = 6.5
-            try: ip_avg = float(ip_avg)
-            except Exception: ip_avg = 5.5
-            try: bb_avg = float(bb_avg)
-            except Exception: bb_avg = 2.5
+            # Only accept per-game figures; season totals (k_avg > 18, etc.) are rejected
+            k_avg  = _pg(stats_dict, "strikeoutsPerGame", "kPerGame", "k9",
+                         default=6.0, cap=18.0)
+            h_avg  = _pg(stats_dict, "hitsAllowedPerGame", "hitsPerGame", "hits9",
+                         default=6.5, cap=15.0)
+            ip_avg = _pg(stats_dict, "inningsPitched", "inningsPitchedPerStart", "ipPerStart",
+                         default=5.5, cap=9.0)
+            bb_avg = _pg(stats_dict, "walksPerGame", "bbPerGame", "bb9",
+                         default=2.5, cap=8.0)
 
             # Pitching outs = IP × 3, rounded to nearest 0.5
             outs_avg = round(ip_avg * 3 * 2) / 2
@@ -4866,6 +5005,7 @@ class ESPNPredictionService:
                         {"name": "Matchup Model",   "prediction": prediction, "confidence": round(confidence - 3, 1), "weight": 0.4},
                     ],
                     "has_espn_stats": bool(stats_dict),
+                    "last_5_games_data": await self._get_player_last_5_games(sport_key, pitcher_id, market_key) if pitcher_id else [],
                 }
                 props.append(prop)
 

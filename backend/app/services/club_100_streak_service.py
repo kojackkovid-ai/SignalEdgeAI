@@ -93,22 +93,267 @@ class Club100StreakService:
         },
     }
 
-    # ESPN sport path used in the athlete gamelog URL
+    # ESPN sport paths for scoreboard API
     ESPN_SPORT_PATHS: Dict[str, str] = {
         "nba": "basketball/nba",
         "nfl": "football/nfl",
         "mlb": "baseball/mlb",
         "nhl": "hockey/nhl",
     }
-    
+
+    # ESPN scoreboard leader category name -> our stat_type
+    SCOREBOARD_CAT_MAP: Dict[str, Dict[str, str]] = {
+        "nba": {
+            "points":   "points",
+            "rebounds": "rebounds",
+            "assists":  "assists",
+        },
+        "mlb": {
+            "homeRuns": "home_runs",
+            "RBIs":     "runs_batted_in",
+        },
+        "nhl": {
+            "goals":   "goals",
+            "assists": "assists",
+        },
+        "nfl": {
+            "passingYards":   "pass_yards",
+            "rushingYards":   "rush_yards",
+            "receivingYards": "receiving_yards",
+            "receptions":     "receptions",
+        },
+    }
+
     def __init__(self):
         self._cache = {}
-        self._cache_ttl = 1800  # 30 minute cache for streak analysis (bulk fetches are fast)
+        self._cache_ttl = 1800  # 30 minute cache
         self._last_update = {}
-        self._gamelog_cache: Dict[str, Any] = {}  # athlete_id -> gamelog data
+        self._scoreboard_history_cache: Dict[str, Any] = {}  # sport -> {athlete_id -> {...}}
+        self._scoreboard_history_ts: Dict[str, datetime] = {}
 
     # ------------------------------------------------------------------
-    # ESPN Gamelog helpers (no DB required)
+    # Historical scoreboard helpers — no broken gamelog API needed
+    # ------------------------------------------------------------------
+
+    async def _build_player_history_from_scoreboards(
+        self, sport: str, days: int = 10
+    ) -> Dict[str, Dict[str, Any]]:
+        """
+        Fetch the past `days` days of ESPN scoreboards for `sport` and build a
+        per-player game-stat history dict.
+
+        Returns:
+            {athlete_id: {name, team, position, games: {date_str: {stat_type: float}}}}
+        """
+        cache_key = f"history_{sport}"
+        cached_ts = self._scoreboard_history_ts.get(cache_key)
+        if cached_ts and (datetime.utcnow() - cached_ts).total_seconds() < 1800:
+            return self._scoreboard_history_cache.get(cache_key, {})
+
+        sport_path = self.ESPN_SPORT_PATHS.get(sport)
+        cat_map = self.SCOREBOARD_CAT_MAP.get(sport, {})
+        if not sport_path or not cat_map:
+            return {}
+
+        player_data: Dict[str, Dict[str, Any]] = {}
+        today = datetime.utcnow().date()
+
+        import httpx as _httpx
+        async with _httpx.AsyncClient(timeout=8.0) as client:
+            for days_ago in range(days, 0, -1):
+                game_date = today - timedelta(days=days_ago)
+                date_str = game_date.strftime("%Y%m%d")
+                url = f"https://site.api.espn.com/apis/site/v2/sports/{sport_path}/scoreboard?dates={date_str}"
+                try:
+                    resp = await client.get(url)
+                    if resp.status_code != 200:
+                        continue
+                    data = resp.json()
+                except Exception:
+                    continue
+
+                for event in data.get("events", []):
+                    for comp in event.get("competitions", []):
+                        # Build opponent lookup
+                        team_abbrevs: Dict[str, str] = {}
+                        for c in comp.get("competitors", []):
+                            ha = c.get("homeAway", "")
+                            team_abbrevs[ha] = c.get("team", {}).get("abbreviation", "")
+
+                        for c in comp.get("competitors", []):
+                            ha = c.get("homeAway", "")
+                            opp = team_abbrevs.get("away" if ha == "home" else "home", "")
+                            my_abbrev = c.get("team", {}).get("abbreviation", "")
+
+                            for cat in c.get("leaders", []):
+                                cat_name = cat.get("name", "")
+                                stat_type = cat_map.get(cat_name)
+                                if not stat_type:
+                                    continue
+                                for leader in cat.get("leaders", []):
+                                    athlete = leader.get("athlete", {})
+                                    aid = str(athlete.get("id", ""))
+                                    if not aid:
+                                        continue
+                                    try:
+                                        val = float(leader.get("value", 0))
+                                    except (TypeError, ValueError):
+                                        continue
+                                    if aid not in player_data:
+                                        player_data[aid] = {
+                                            "name": athlete.get("displayName") or athlete.get("fullName", "Unknown"),
+                                            "team": my_abbrev,
+                                            "position": (athlete.get("position") or {}).get("abbreviation", ""),
+                                            "games": {},
+                                        }
+                                    if date_str not in player_data[aid]["games"]:
+                                        player_data[aid]["games"][date_str] = {"opponent": opp}
+                                    player_data[aid]["games"][date_str][stat_type] = val
+
+        self._scoreboard_history_cache[cache_key] = player_data
+        self._scoreboard_history_ts[cache_key] = datetime.utcnow()
+        logger.info(f"[CLUB100] {sport.upper()} scoreboard history built: {len(player_data)} players from last {days} days")
+        return player_data
+
+    async def _analyze_sport_streaks_from_scoreboards(
+        self,
+        sport: str,
+        min_streak_length: int,
+        today_games_dict: Dict[str, Any],
+        today_games: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """
+        Use historical ESPN scoreboard data (past 10 days) to compute consecutive
+        prop-line streaks.  No broken gamelog endpoint needed.
+        """
+        player_data = await self._build_player_history_from_scoreboards(sport)
+
+        sport_path = self.ESPN_SPORT_PATHS.get(sport, "")
+        cat_map = self.SCOREBOARD_CAT_MAP.get(sport, {})
+        today = datetime.utcnow().date()
+        today_str = today.strftime("%Y%m%d")
+
+        # Augment with today's completed/live games and collect today's athlete IDs
+        today_athlete_ids: Set[str] = set(today_games_dict.keys())
+        try:
+            import httpx as _httpx
+            async with _httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.get(
+                    f"https://site.api.espn.com/apis/site/v2/sports/{sport_path}/scoreboard"
+                )
+                if resp.status_code == 200:
+                    for event in resp.json().get("events", []):
+                        for comp in event.get("competitions", []):
+                            team_abbrevs: Dict[str, str] = {}
+                            for c in comp.get("competitors", []):
+                                team_abbrevs[c.get("homeAway", "")] = c.get("team", {}).get("abbreviation", "")
+                            for c in comp.get("competitors", []):
+                                ha = c.get("homeAway", "")
+                                opp = team_abbrevs.get("away" if ha == "home" else "home", "")
+                                my_abbrev = c.get("team", {}).get("abbreviation", "")
+                                for cat in c.get("leaders", []):
+                                    cat_name = cat.get("name", "")
+                                    stat_type = cat_map.get(cat_name)
+                                    for leader in cat.get("leaders", []):
+                                        athlete = leader.get("athlete", {})
+                                        aid = str(athlete.get("id", ""))
+                                        if not aid:
+                                            continue
+                                        today_athlete_ids.add(aid)
+                                        if stat_type:
+                                            try:
+                                                val = float(leader.get("value", 0))
+                                            except (TypeError, ValueError):
+                                                continue
+                                            if aid not in player_data:
+                                                player_data[aid] = {
+                                                    "name": athlete.get("displayName") or athlete.get("fullName", "Unknown"),
+                                                    "team": my_abbrev,
+                                                    "position": (athlete.get("position") or {}).get("abbreviation", ""),
+                                                    "games": {},
+                                                }
+                                            if today_str not in player_data[aid]["games"]:
+                                                player_data[aid]["games"][today_str] = {"opponent": opp}
+                                            player_data[aid]["games"][today_str][stat_type] = val
+        except Exception as exc:
+            logger.debug(f"[CLUB100] Today's {sport} scoreboard error: {exc}")
+
+        logger.info(
+            f"[CLUB100] {sport.upper()}: {len(player_data)} players total, "
+            f"{len(today_athlete_ids)} playing today"
+        )
+
+        if not player_data:
+            return []
+
+        stat_categories = self.STAT_CATEGORIES.get(sport, [])
+        streaks: List[Dict[str, Any]] = []
+
+        for aid, info in player_data.items():
+            if today_athlete_ids and aid not in today_athlete_ids:
+                continue
+
+            sorted_dates = sorted(info["games"].keys())
+            for stat_type in stat_categories:
+                values: List[float] = []
+                per_game_history: List[Dict[str, Any]] = []
+                for d in sorted_dates:
+                    gd = info["games"][d]
+                    val = gd.get(stat_type)
+                    if val is not None:
+                        values.append(val)
+                        per_game_history.append({
+                            "date": d,
+                            "value": val,
+                            "stat_type": stat_type,
+                            "opponent": gd.get("opponent", ""),
+                        })
+
+                if len(values) < min_streak_length:
+                    continue
+
+                fake_logs = [{"stats": {stat_type: v}} for v in values]
+                streak_info = self._analyze_stat_streak(fake_logs, stat_type, min_streak_length)
+                if not streak_info or streak_info["best_streak"] < min_streak_length:
+                    continue
+
+                prop_line = self._calculate_prop_line(stat_type, streak_info["avg_recent"])
+                details = streak_info["details"]
+                last_4_raw = details.get("4_games")
+                last_5_raw = details.get("5_games")
+
+                streaks.append({
+                    "player_id": f"{sport}_{aid}_{stat_type}",
+                    "name": info["name"],
+                    "team": info["team"],
+                    "sport": sport,
+                    "position": info["position"],
+                    "prop_line": f"Over {prop_line} {self._format_stat_name(stat_type)}",
+                    "stat_type": stat_type,
+                    "consecutive_games": streak_info["best_streak"],
+                    "last_4_games": {
+                        "games_analyzed": last_4_raw["games"],
+                        "coverage_count": last_4_raw["cleared"],
+                        "coverage_percent": last_4_raw["percent"],
+                    } if last_4_raw else None,
+                    "last_5_games": {
+                        "games_analyzed": last_5_raw["games"],
+                        "coverage_count": last_5_raw["cleared"],
+                        "coverage_percent": last_5_raw["percent"],
+                    } if last_5_raw else None,
+                    "recent_values": streak_info["recent_values"],
+                    "per_game_history": per_game_history[-5:],
+                    "avg_recent": round(streak_info["avg_recent"], 1),
+                    "games_today": today_games_dict.get(aid, []),
+                    "data_freshness": datetime.utcnow().isoformat() + "Z",
+                    "source": "espn_scoreboard_history",
+                })
+
+        streaks.sort(key=lambda x: x.get("consecutive_games", 0), reverse=True)
+        return streaks[:20]
+
+    # ------------------------------------------------------------------
+    # Kept for reference but no longer used as primary fallback
     # ------------------------------------------------------------------
 
     async def _fetch_espn_gamelog(self, sport: str, athlete_id: str) -> Optional[Dict[str, Any]]:
@@ -386,8 +631,8 @@ class Club100StreakService:
         players_with_logs, all_player_logs = await self._get_players_with_logs_bulk(db, sport)
         
         if not players_with_logs:
-            logger.info(f"[CLUB100] {sport.upper()}: No DB game logs — falling back to ESPN gamelog API")
-            return await self._analyze_sport_streaks_espn(sport, min_streak_length, today_games_dict, today_games)
+            logger.info(f"[CLUB100] {sport.upper()}: No DB game logs — using ESPN historical scoreboards")
+            return await self._analyze_sport_streaks_from_scoreboards(sport, min_streak_length, today_games_dict, today_games)
         
         logger.debug(f"[CLUB100] Analyzing {len(players_with_logs)} {sport.upper()} players for streaks")
         
