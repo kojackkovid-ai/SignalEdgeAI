@@ -101,7 +101,6 @@ class StripeService:
                 "amount": amount,
                 "currency": currency,
                 "metadata": metadata or {},
-                "payment_method_types": ["card"],
                 "automatic_payment_methods": {"enabled": True},
             }
             if idempotency_key:
