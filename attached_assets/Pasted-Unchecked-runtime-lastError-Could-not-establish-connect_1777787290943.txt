@@ -1,0 +1,64 @@
+Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+installHook.js:1 Error restoring session i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+inpage.js:1 Uncaught (in promise) i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+inpage.js:1 Error restoring session i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+inpage.js:1 Uncaught (in promise) i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+inpage.js:1 Error restoring session i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+inpage.js:1 Uncaught (in promise) i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+index-BTekaPe0.js:85 
+ GET https://signaledge-ai.fly.dev/api/predictions/club-100/data 403 (Forbidden)
+installHook.js:1 [Club100Display] Error fetching Club 100 data: AxiosError: Request failed with status code 403
+    at h_ (index-BTekaPe0.js:85:1087)
+    at XMLHttpRequest.b (index-BTekaPe0.js:85:5927)
+    at Ji.request (index-BTekaPe0.js:87:2094)
+    at async j (index-BTekaPe0.js:143:29563)
+installHook.js:1 Error details: AxiosError: Request failed with status code 403
+    at h_ (index-BTekaPe0.js:85:1087)
+    at XMLHttpRequest.b (index-BTekaPe0.js:85:5927)
+    at Ji.request (index-BTekaPe0.js:87:2094)
+    at async j (index-BTekaPe0.js:143:29563)
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+shared-21fcfb1768883…50c1814f0e36a2.js:1 
+ GET https://api.stripe.com/v1/elements/sessions?client_secret=pi_3TSsrFDEiqaxtf…ayment_method_preference.payment_intent.payment_method&type=payment_intent 400 (Bad Request)
+lockdown-install.js:1 SES Removing unpermitted intrinsics
+installHook.js:1 Unhandled payment Element loaderror 
+{error: {…}}
+inpage.js:1 Error restoring session i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+inpage.js:1 Uncaught (in promise) i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+inpage.js:1 Error restoring session i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+inpage.js:1 Uncaught (in promise) i: Failed to connect to MetaMask
+    at Object.connect (inpage.js:1:63525)
+Caused by: Error: MetaMask extension not found
+    at inpage.js:1:57978
+connect	@	inpage.js:1
