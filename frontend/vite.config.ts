@@ -39,10 +39,9 @@ function readEnvFile(): Record<string, string> {
 
 const envVars = readEnvFile()
 
-// Extract only the first valid Stripe key token — guards against accidental doubling in env var
+// Extract only the first valid Stripe key — split on second occurrence of pk_ prefix
 const rawStripeKey = process.env.VITE_STRIPE_PUBLISHABLE_KEY || envVars.VITE_STRIPE_PUBLISHABLE_KEY || ''
-const stripeKeyMatch = rawStripeKey.match(/^(pk_(test|live)_[A-Za-z0-9]{80,120})/)
-const stripeKey = stripeKeyMatch ? stripeKeyMatch[1] : rawStripeKey.slice(0, 109)
+const stripeKey = rawStripeKey.replace(/^(pk_(test|live)_[A-Za-z0-9]+)pk_(test|live)_.*$/, '$1')
 const apiUrl = process.env.VITE_API_URL || envVars.VITE_API_URL || '/api'
 const appName = process.env.VITE_APP_NAME || envVars.VITE_APP_NAME || 'SignalEdge AI'
 
