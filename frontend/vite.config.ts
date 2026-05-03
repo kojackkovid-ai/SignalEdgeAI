@@ -39,10 +39,10 @@ function readEnvFile(): Record<string, string> {
 
 const envVars = readEnvFile()
 
-// Use actual values or hardcoded fallbacks
-const stripeKey = envVars.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51SuaLd8f0rj8wiWDNdeOgNvgt3mFoKpmkXlzV2JWN8gUxash7DzogdtiZUu0rkCEMI5F3HtmTBquAhVVSKrknAy4003kbnRUu6'
-const apiUrl = envVars.VITE_API_URL || '/api'
-const appName = envVars.VITE_APP_NAME || 'SignalEdge AI'
+// Use process.env first (set by Replit secrets / CI), then .env file, then fallback
+const stripeKey = process.env.VITE_STRIPE_PUBLISHABLE_KEY || envVars.VITE_STRIPE_PUBLISHABLE_KEY || ''
+const apiUrl = process.env.VITE_API_URL || envVars.VITE_API_URL || '/api'
+const appName = process.env.VITE_APP_NAME || envVars.VITE_APP_NAME || 'SignalEdge AI'
 
 console.log('[Vite Config] ========================================')
 console.log('[Vite Config] Stripe Key Length:', stripeKey.length, '(should be 100+)')
