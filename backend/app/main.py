@@ -11,6 +11,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import logging
@@ -516,6 +518,14 @@ app.add_exception_handler(Exception, general_exception_handler)
 # TEMPORARILY DISABLED - causes "No response returned" error
 # setup_comprehensive_logging(app)
 
+class HealthProbeSchemeMiddleware(BaseHTTPMiddleware):
+    """Avoid HTTPS redirects for internal health probe paths."""
+
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path in {"/health", "/ready", "/live"}:
+            request.scope["scheme"] = "https"
+        return await call_next(request)
+
 # CORS configuration - MUST come before routes
 # In production, set CORS_ORIGINS to an explicit comma-separated list of domains.
 allowed_origins = settings.cors_origins_list
@@ -523,6 +533,9 @@ if settings.is_production and not allowed_origins:
     logger.warning("Production CORS origins are not configured. No origins will be allowed until CORS_ORIGINS is set.")
 elif not allowed_origins:
     allowed_origins = ["*"]
+
+app.add_middleware(HealthProbeSchemeMiddleware)
+# ProxyHeadersMiddleware removed - Fly handles proxy headers at the edge
 
 app.add_middleware(
     CORSMiddleware,
@@ -540,7 +553,10 @@ app.add_middleware(
 )
 logger.info("Trusted host middleware enabled for: %s", allowed_hosts)
 
-if settings.enable_https_redirect or settings.is_production:
+# Only enable HTTPS redirect when explicitly configured.
+# Fly's HTTP service already handles HTTPS at the edge, and
+# internal health probes may call the local HTTP port directly.
+if settings.enable_https_redirect:
     app.add_middleware(HTTPSRedirectMiddleware)
     logger.info("HTTPS redirect middleware enabled")
 
