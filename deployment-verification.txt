@@ -1,0 +1,30 @@
+# SignalEdge AI — Fly.io Deployment Verification
+# Deployed: 2026-05-03
+# App: signaledge-ai
+# URL: https://signaledge-ai.fly.dev/
+
+## flyctl status --app signaledge-ai
+App
+ Name     │ signaledge-ai
+ Owner    │ personal
+ Hostname │ signaledge-ai.fly.dev
+ Image    │ signaledge-ai:deployment-01KQP0HAMH1FV137F5K61936E8
+
+Machines
+ PROCESS │ ID             │ VERSION │ REGION │ STATE   │ ROLE │ CHECKS             │ LAST UPDATED
+ app     │ 843e40f2294d58 │ 188     │ dfw    │ started │      │ 1 total, 1 passing │ 2026-05-03T04:13:35Z
+
+## curl https://signaledge-ai.fly.dev/health — HTTP 200
+{
+  "status": "healthy",
+  "timestamp": "2026-05-03T04:16:17.998572Z",
+  "checks": {
+    "database":  { "status": "healthy" },
+    "espn_api":  { "status": "healthy" },
+    "redis":     { "status": "healthy" },
+    "ml_models": { "status": "healthy" },
+    "disk_space":{ "status": "healthy" },
+    "memory":    { "status": "healthy" }
+  },
+  "summary": { "total": 6, "healthy": 6, "degraded": 0, "unhealthy": 0 }
+}

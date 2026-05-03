@@ -115,6 +115,30 @@ AI-powered sports prediction platform with ML ensemble models (XGBoost, LightGBM
 26. **Header mobile button accessible** — Mobile nav toggle was missing `aria-label` and `aria-expanded`, making it invisible to screen readers. Now announces its state dynamically ("Open navigation menu" / "Close navigation menu").
 27. **Club100 table headers keyboard accessible** — All four sortable column headers (Player Name, Streak, Last 4, Last 5) now have `tabIndex`, `role="button"`, `aria-label`, and `onKeyDown` Enter handlers so keyboard-only users can sort the table.
 
+## Production Deployment (Fly.io)
+
+App is live at: **https://signaledge-ai.fly.dev/**
+
+- **App name**: `signaledge-ai`
+- **Region**: `dfw` (Dallas)
+- **Config**: `fly.toml` at repo root
+- **Dockerfile**: `backend/Dockerfile` (builds backend + frontend/dist as static files)
+- **Health check**: `GET /health` returns 200 with all checks passing
+- **Deploy command**: `FLY_ACCESS_TOKEN="$FLY_API_TOKEN" flyctl deploy --remote-only`
+
+### Fly.io Secrets to configure (via `flyctl secrets set`):
+- `DATABASE_URL` — PostgreSQL connection string for production DB
+- `SECRET_KEY` — JWT signing key
+- `STRIPE_SECRET_KEY` — Stripe secret key (for payments)
+- `STRIPE_PUBLIC_KEY` — Stripe publishable key
+- `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` — Email delivery
+- `ADMIN_SECRET_KEY` — Admin endpoints protection
+- `FRONTEND_URL` — Set to `https://signaledge-ai.fly.dev` for email links
+
+### Post-deployment steps (user must perform):
+1. Run `alembic upgrade head` against production DB to apply schema migrations
+2. Set Stripe live keys via `flyctl secrets set STRIPE_SECRET_KEY=sk_live_...`
+
 ## Optional Integrations (not required for basic functionality)
 - **OddsAPI** - Real-time sports odds (ODDS_API_KEY env var)
 - **Stripe** - Payment processing (STRIPE_SECRET_KEY, STRIPE_PUBLIC_KEY)
