@@ -20,6 +20,8 @@ router = APIRouter()
 
 logger = logging.getLogger(__name__)
 
+CLUB_100_ACCESS_COST = 5
+
 # Singleton instances - created once and reused across all requests
 _auth_service_instance = None
 _prediction_service_instance = None
@@ -231,6 +233,46 @@ def get_tier_features(tier: str) -> Dict[str, Any]:
         'models_count': config.get('models_count', 0),
         'dailyLimit': config.get('predictions_per_day') or 999999
     }
+
+async def _count_user_club_100_access_entries_today(db: AsyncSession, current_user_id: str) -> int:
+    from app.models.db_models import Prediction
+
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    stmt = select(func.count()).select_from(user_predictions).join(
+        Prediction, user_predictions.c.prediction_id == Prediction.id
+    ).where(
+        and_(
+            user_predictions.c.user_id == current_user_id,
+            user_predictions.c.created_at >= today_start,
+            Prediction.sport == 'club_100_access'
+        )
+    )
+    result = await db.execute(stmt)
+    return result.scalar() or 0
+
+async def _has_club_100_access_today(db: AsyncSession, current_user_id: str) -> bool:
+    return (await _count_user_club_100_access_entries_today(db, current_user_id)) > 0
+
+async def _get_user_daily_picks_and_access_cost(db: AsyncSession, current_user_id: str) -> tuple[int, int, int]:
+    from app.models.db_models import Prediction
+
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    regular_picks_stmt = select(func.count()).select_from(user_predictions).join(
+        Prediction, user_predictions.c.prediction_id == Prediction.id
+    ).where(
+        and_(
+            user_predictions.c.user_id == current_user_id,
+            user_predictions.c.created_at >= today_start,
+            Prediction.sport != 'club_100_access'
+        )
+    )
+    regular_picks_result = await db.execute(regular_picks_stmt)
+    regular_picks_used = regular_picks_result.scalar() or 0
+
+    access_count = await _count_user_club_100_access_entries_today(db, current_user_id)
+    access_cost = access_count * CLUB_100_ACCESS_COST
+    return regular_picks_used, access_count, access_cost
+
 
 def is_player_prop_id(prediction_id: str) -> bool:
     """
@@ -965,11 +1007,17 @@ async def get_predictions(
         for pred in predictions:
             # ===== CLUB 100 ACCESS CHECK =====
             is_club_100_pick = pred.get('is_club_100_pick', False)
-            if is_club_100_pick and not bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn.club_100_unlocked:
-                # User doesn't have Club 100 access - filter out this prediction
-                logger.info(f"[GET_PREDICTIONS] Filtering Club 100 prediction {pred['id']} - user not unlocked")
-                continue
-            
+            if is_club_100_pick:
+                has_daily_access = await _has_club_100_access_today(db, current_user_id)
+                has_club_100_access = bool(
+                    (user.club_100_unlocked == True) or
+                    has_daily_access or
+                    normalized_tier in ['pro_plus', 'elite']
+                )
+                if not has_club_100_access:
+                    logger.info(f"[GET_PREDICTIONS] Filtering Club 100 prediction {pred.get('id')} - user has no Club 100 access")
+                    continue
+
             # Check if user is already following this prediction
             is_following = await get_prediction_service().is_following_prediction(db, current_user_id, pred['id'])
             
@@ -1374,38 +1422,29 @@ async def can_unlock_club_100(
         
         daily_limit = tier_config.get('predictions_per_day', 1) if tier_config else 1
         
-        # Count daily picks used (excluding prior Club 100 access picks)
-        from app.models.db_models import user_predictions, Prediction
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        
-        daily_picks_stmt = select(func.count()).select_from(user_predictions).join(
-            Prediction, user_predictions.c.prediction_id == Prediction.id
-        ).where(
-            and_(
-                user_predictions.c.user_id == current_user_id,
-                user_predictions.c.created_at >= today_start,
-                Prediction.sport != 'club_100_access'
-            )
-        )
-        
-        daily_picks_result = await db.execute(daily_picks_stmt)
-        daily_picks_used = daily_picks_result.scalar() or 0
-        
-        CLUB_100_ACCESS_COST = 5
-        picks_available = daily_limit - daily_picks_used
-        can_unlock = picks_available >= CLUB_100_ACCESS_COST or normalized_tier in ['pro_plus', 'elite']
-        
+        # Count daily picks used and club 100 access cost for today
+        daily_picks_used, access_count, access_cost = await _get_user_daily_picks_and_access_cost(db, current_user_id)
+        picks_available = daily_limit - daily_picks_used - access_cost
+        if picks_available < 0:
+            picks_available = 0
+
+        is_unlimited = normalized_tier in ['pro_plus', 'elite']
+        has_access = bool((user.club_100_unlocked == True)) or access_count > 0 or is_unlimited
+        can_unlock = normalized_tier != 'starter' and (is_unlimited or has_access or picks_available >= CLUB_100_ACCESS_COST)
+
         return {
             "can_unlock": can_unlock,
-            "unlocked": user.club_100_unlocked or False,
+            "unlocked": bool((user.club_100_unlocked == True)),
             "daily_picks_used": daily_picks_used,
             "daily_picks_available": picks_available,
             "daily_picks_limit": daily_limit,
+            "club_100_access_claimed_today": access_count > 0,
+            "club_100_access_cost_spent": access_cost,
             "access_cost": CLUB_100_ACCESS_COST,
             "tier": {
-                "name": tier_config.get('name', 'Unknown'),
-                "description": tier_config.get('description', ''),
-                "has_unlimited_picks": normalized_tier in ['pro_plus', 'elite']
+                "name": tier_config.get('name', 'Unknown') if tier_config else 'Unknown',
+                "description": tier_config.get('description', '') if tier_config else '',
+                "has_unlimited_picks": is_unlimited
             },
             "reason": "User has enough picks" if can_unlock else f"Need {CLUB_100_ACCESS_COST} picks, but only have {picks_available} available"
         }
@@ -1424,9 +1463,9 @@ async def unlock_club_100(
     current_user_id: str = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Check Club 100 access eligibility - requires 5 available daily picks, no unlock needed"""
+    """Unlock daily Club 100 access by reserving 5 picks from available daily picks."""
     try:
-        logger.info(f"[Club100] Status check for user: {current_user_id}")
+        logger.info(f"[Club100] Unlock request for user: {current_user_id}")
         
         # Get user
         result = await db.execute(select(User).where(User.id == current_user_id))
@@ -1445,56 +1484,97 @@ async def unlock_club_100(
         
         daily_limit = tier_config.get('predictions_per_day', 1) if tier_config else 1
         logger.info(f"[Club100] Tier: {normalized_tier}, daily limit: {daily_limit}")
-        
-        # Check if unlimited tier (PRO_PLUS, ELITE)
-        if normalized_tier in ['pro_plus', 'elite']:
+
+        if bool((user.club_100_unlocked == True)):
             return {
                 "eligible": True,
-                "message": f"✅ Your {tier_config.get('name', 'Elite')} tier has unlimited picks!",
-                "picks_available": 9999,
-                "picks_needed": 5,
-                "tier": normalized_tier
+                "message": "✅ Club 100 is permanently unlocked for this account.",
+                "picks_available": daily_limit,
+                "picks_needed": CLUB_100_ACCESS_COST,
+                "tier": normalized_tier,
+                "club_100_unlocked": True
             }
-        
-        # Count daily picks used TODAY - EXCLUDE Club 100 access picks
-        from app.models.db_models import user_predictions, Prediction
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        
-        daily_picks_stmt = select(func.count()).select_from(user_predictions).join(
-            Prediction, user_predictions.c.prediction_id == Prediction.id
-        ).where(
-            and_(
-                user_predictions.c.user_id == current_user_id,
-                user_predictions.c.created_at >= today_start,
-                Prediction.sport != 'club_100_access'
+
+        if normalized_tier == 'starter':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Starter tier does not have Club 100 access. Upgrade your plan to Basic or higher."
             )
-        )
-        
-        daily_picks_result = await db.execute(daily_picks_stmt)
-        daily_picks_used = daily_picks_result.scalar() or 0
-        picks_available = daily_limit - daily_picks_used
-        
-        logger.info(f"[Club100] User {current_user_id}: used {daily_picks_used}, available {picks_available}")
-        
-        CLUB_100_COST = 5
-        eligible = picks_available >= CLUB_100_COST
-        
-        if eligible:
+
+        daily_picks_used, access_count, access_cost = await _get_user_daily_picks_and_access_cost(db, current_user_id)
+        picks_available = daily_limit - daily_picks_used - access_cost
+        if picks_available < 0:
+            picks_available = 0
+
+        is_unlimited = normalized_tier in ['pro_plus', 'elite']
+        if is_unlimited:
+            tier_name = tier_config.get('name', 'Elite') if tier_config else 'Elite'
             return {
                 "eligible": True,
-                "message": f"✅ You have {picks_available} picks available! Club 100 access is ready.",
-                "picks_available": picks_available,
-                "picks_needed": CLUB_100_COST,
-                "tier": normalized_tier
+                "message": f"✅ Your {tier_name} tier has unlimited picks!",
+                "picks_available": 9999,
+                "picks_needed": CLUB_100_ACCESS_COST,
+                "tier": normalized_tier,
+                "club_100_access_claimed_today": access_count > 0
             }
-        else:
+
+        if access_count > 0:
+            return {
+                "eligible": True,
+                "message": "✅ Club 100 access already claimed for today.",
+                "picks_available": picks_available,
+                "picks_needed": CLUB_100_ACCESS_COST,
+                "tier": normalized_tier,
+                "club_100_access_claimed_today": True
+            }
+
+        if picks_available < CLUB_100_ACCESS_COST:
             return {
                 "eligible": False,
-                "message": f"❌ You need {CLUB_100_COST} available picks to access Club 100. You have {picks_available}.",
+                "message": f"❌ You need {CLUB_100_ACCESS_COST} available picks to access Club 100. You have {picks_available}.",
                 "picks_available": picks_available,
-                "picks_needed": CLUB_100_COST,
-                "tier": normalized_tier
+                "picks_needed": CLUB_100_ACCESS_COST,
+                "tier": normalized_tier,
+                "club_100_access_claimed_today": False
             }
+
+        # Reserve the daily pick access cost for Club 100 without counting it in metrics
+        from app.models.db_models import user_predictions, Prediction
+        from sqlalchemy import insert as sa_insert
+
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        access_pred_id = f"club_100_access_{current_user_id}_{today_start.date().isoformat()}"
+
+        existing_pred = await db.execute(select(Prediction).where(Prediction.id == access_pred_id))
+        if existing_pred.scalar_one_or_none() is None:
+            access_prediction = Prediction(
+                id=access_pred_id,
+                sport='club_100_access',
+                league='club_100_access',
+                prediction='Club 100 access fee',
+                confidence=0.0,
+                prediction_type='club_100_access',
+                created_at=datetime.utcnow()
+            )
+            db.add(access_prediction)
+            await db.commit()
+
+        ins_stmt = insert(user_predictions).values(
+            user_id=current_user_id,
+            prediction_id=access_pred_id,
+            created_at=datetime.utcnow()
+        )
+        await db.execute(ins_stmt)
+        await db.commit()
+
+        return {
+            "eligible": True,
+            "message": f"✅ Club 100 access granted. You have {max(picks_available - CLUB_100_ACCESS_COST, 0)} picks remaining for regular predictions.",
+            "picks_available": max(picks_available - CLUB_100_ACCESS_COST, 0),
+            "picks_needed": CLUB_100_ACCESS_COST,
+            "tier": normalized_tier,
+            "club_100_access_claimed_today": True
+        }
     
     except HTTPException:
         raise
@@ -1567,32 +1647,57 @@ async def get_club_100_data(
 
             daily_picks_result = await db.execute(daily_picks_stmt)
             daily_picks_used = daily_picks_result.scalar() or 0
-            picks_available = daily_limit - daily_picks_used
 
-            logger.info(f"[CLUB100] User {current_user_id}: used {daily_picks_used}, available {picks_available}, limit {daily_limit}")
+            access_count = await _count_user_club_100_access_entries_today(db, current_user_id)
+            access_cost = access_count * CLUB_100_ACCESS_COST
+            picks_available = daily_limit - daily_picks_used - access_cost
+
+            logger.info(
+                f"[CLUB100] User {current_user_id}: used {daily_picks_used}, access_cost {access_cost}, "
+                f"available {picks_available}, limit {daily_limit}"
+            )
 
             CLUB_100_COST = 5
-            if picks_available < CLUB_100_COST:
-                logger.warning(f"[CLUB100] User {current_user_id} denied - only {picks_available} picks available, needs {CLUB_100_COST}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail=(
-                        f"🔒 **Club 100 Access Required**\n\n"
-                        f"Club 100 shows elite athletes with consecutive streaks of 100% line clearance.\n"
-                        f"Access requires **{CLUB_100_COST} available daily picks**.\n\n"
-                        f"_Your Plan:_ {tier_name}\n"
-                        f"_Daily limit:_ {daily_limit} picks\n"
-                        f"_Picks used today:_ {daily_picks_used}\n"
-                        f"_Picks available:_ {picks_available}\n\n"
-                        f"**Upgrade your plan or come back tomorrow with fresh picks!** 🚀"
+            has_daily_access = await _has_club_100_access_today(db, current_user_id)
+            if not (user.club_100_unlocked or normalized_tier in ['pro_plus', 'elite'] or has_daily_access):
+                if picks_available < CLUB_100_COST:
+                    logger.warning(f"[CLUB100] User {current_user_id} denied - only {picks_available} picks available, needs {CLUB_100_COST}")
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail=(
+                            f"🔒 **Club 100 Access Required**\n\n"
+                            f"Club 100 shows elite athletes with consecutive streaks of 100% line clearance.\n"
+                            f"Access requires **{CLUB_100_COST} available daily picks**.\n\n"
+                            f"_Your Plan:_ {tier_name}\n"
+                            f"_Daily limit:_ {daily_limit} picks\n"
+                            f"_Picks used today:_ {daily_picks_used}\n"
+                            f"_Picks available:_ {picks_available}\n\n"
+                            f"**Upgrade your plan or come back tomorrow with fresh picks!** 🚀"
+                        )
                     )
+        else:
+            has_daily_access = await _has_club_100_access_today(db, current_user_id)
+
+        if normalized_tier == 'starter' and not user.club_100_unlocked:
+            logger.warning(f"[CLUB100] Starter tier denied access for user {current_user_id}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Starter tier does not have Club 100 access. Upgrade your plan to Basic or higher."
+            )
+
+        if not (user.club_100_unlocked or normalized_tier in ['pro_plus', 'elite'] or has_daily_access):
+            logger.warning(f"[CLUB100] User {current_user_id} denied Club 100 access - no unlock claim and not unlimited tier")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Club 100 access requires unlocking via /club-100/unlock first, or unlimited tier access. "
+                    "Starter tier is not eligible."
                 )
+            )
 
         # Get REAL Club 100 streak data using new service
         from app.services.club_100_streak_service import get_club_100_streak_service
         streak_service = get_club_100_streak_service()
-
-        logger.info(f"[CLUB100] Fetching real consecutive streak data for user {current_user_id}")
         
         try:
             club_100_data = await asyncio.wait_for(
@@ -1683,46 +1788,45 @@ async def follow_club_100_pick(
                 detail="User not found"
             )
         
-        # Check daily picks available
-        try:
-            from app.models.db_models import user_predictions, Prediction
-            today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-            
-            daily_picks_stmt = select(func.count()).select_from(user_predictions).join(
-                Prediction, user_predictions.c.prediction_id == Prediction.id
-            ).where(
-                and_(
-                    user_predictions.c.user_id == current_user_id,
-                    user_predictions.c.created_at >= today_start
+        # Ensure user has access to Club 100 before allowing follow
+        normalized_tier = (user.subscription_tier or 'starter').lower().strip()
+        has_daily_access = await _has_club_100_access_today(db, current_user_id)
+        has_club_100_access = bool((user.club_100_unlocked == True)) or normalized_tier in ['pro_plus', 'elite'] or has_daily_access
+        if normalized_tier == 'starter' and not has_club_100_access:
+            logger.warning(f"[CLUB100] Starter tier denied follow for user {current_user_id}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Starter tier does not have Club 100 access. Upgrade your plan to Basic or higher."
+            )
+
+        if not has_club_100_access:
+            logger.warning(f"[CLUB100] User {current_user_id} denied follow - no unlock claim and not unlimited tier")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Club 100 access requires unlocking via /club-100/unlock first, or unlimited tier access. "
+                    "Starter tier is not eligible."
                 )
             )
-            
-            daily_picks_result = await db.execute(daily_picks_stmt)
-            daily_picks_used = daily_picks_result.scalar() or 0
-        except Exception as e:
-            logger.warning(f"Could not count daily picks for {current_user_id}: {e}")
-            daily_picks_used = 0
-        
-        # Get tier config
+
+        # Check daily picks available using proper Club 100 access accounting
         try:
             from app.models.tier_features import TierFeatures
-            normalized_tier = (user.subscription_tier or 'starter').lower().strip()
             tier_config = TierFeatures.get_tier_config(normalized_tier)
             daily_limit = tier_config.get('predictions_per_day') or 999999
         except Exception as e:
             logger.warning(f"Could not get tier config: {e}")
             daily_limit = 999999
-        
-        daily_picks_available = daily_limit - daily_picks_used
-        
-        # Check if user has at least 1 pick available
+
+        daily_picks_used, access_count, access_cost = await _get_user_daily_picks_and_access_cost(db, current_user_id)
+        daily_picks_available = daily_limit - daily_picks_used - access_cost
         if daily_picks_available < 1:
             logger.warning(f"User {current_user_id} has insufficient picks. Have {daily_picks_available}, need 1")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Insufficient picks. You have {max(0, daily_picks_available)} picks available. Need 1 pick to follow this player."
             )
-        
+
         # Use Club100Service to follow the pick
         from app.services.club_100_service import club_100_service
         service = club_100_service

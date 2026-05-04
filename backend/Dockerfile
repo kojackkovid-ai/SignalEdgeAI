@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-
+# Build timestamp: 2026-05-03 18:33:00
 # Comments are provided throughout this file to help you get started.
 # If you need more help, visit the Dockerfile reference guide at
 # https://docs.docker.com/go/dockerfile-reference/
@@ -55,6 +55,7 @@ RUN chmod +x /app/start.sh
 
 # Copy the source code into the container.
 # Copy backend app directory
+# Cache busted: 2026-05-03 18:35:00 UTC
 COPY backend/app ./app
 # Copy backend check script
 COPY backend/check_startup.py ./check_startup.py

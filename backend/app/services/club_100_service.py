@@ -1095,7 +1095,7 @@ class Club100Service:
                 logger.warning(f"Could not get tier config for {normalized_tier}: {e}")
                 daily_limit = 1
             
-            # Count daily picks used TODAY
+            # Count daily picks used TODAY, excluding Club 100 access cost entries
             try:
                 from app.models.db_models import user_predictions, Prediction
                 today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -1105,7 +1105,8 @@ class Club100Service:
                 ).where(
                     and_(
                         user_predictions.c.user_id == user_id,
-                        Prediction.created_at >= today_start
+                        user_predictions.c.created_at >= today_start,
+                        Prediction.sport != 'club_100_access'
                     )
                 )
                 
@@ -1114,16 +1115,43 @@ class Club100Service:
             except Exception as e:
                 logger.warning(f"Could not count daily picks for {user_id}: {e}")
                 daily_picks_used = 0
-            
-            daily_picks_remaining = daily_limit - daily_picks_used
-            
+
+            try:
+                access_stmt = select(func.count()).select_from(user_predictions).join(
+                    Prediction, user_predictions.c.prediction_id == Prediction.id
+                ).where(
+                    and_(
+                        user_predictions.c.user_id == user_id,
+                        user_predictions.c.created_at >= today_start,
+                        Prediction.sport == 'club_100_access'
+                    )
+                )
+                access_result = await db.execute(access_stmt)
+                access_count = access_result.scalar() or 0
+            except Exception as e:
+                logger.warning(f"Could not count Club 100 access items for {user_id}: {e}")
+                access_count = 0
+
+            access_cost = access_count * self.CLUB_100_PICK_COST
+            daily_picks_remaining = daily_limit - daily_picks_used - access_cost
+            if daily_picks_remaining < 0:
+                daily_picks_remaining = 0
+
+            accessible = user.club_100_unlocked or normalized_tier != 'starter' and (
+                normalized_tier in ['pro_plus', 'elite'] or
+                daily_picks_remaining >= self.CLUB_100_PICK_COST or
+                access_count > 0
+            )
+
             return {
-                "accessible": True,
+                "accessible": accessible,
                 "user_tier": normalized_tier,
                 "daily_picks_used": daily_picks_used,
                 "daily_picks_limit": daily_limit,
                 "daily_picks_remaining": daily_picks_remaining,
-                "club_100_view_cost": self.CLUB_100_PICK_COST,
+                "club_100_access_cost": self.CLUB_100_PICK_COST,
+                "club_100_access_claimed_today": access_count > 0,
+                "club_100_access_cost_spent": access_cost,
                 "club_100_follow_cost": 1
             }
             

@@ -1,0 +1,3 @@
+Registering with email: test+77adeff1@example.com
+HTTP ERR 400 Bad Request
+{"detail":"Username 'testuser' is already taken"}

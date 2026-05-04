@@ -13,11 +13,18 @@ primary_region = 'ams'
     PYTHON_VERSION = '3.12.10'
 
 [env]
+  # Required production env vars must be set via Fly secrets or environment.
+  # Example:
+  #   flyctl secrets set ODDS_API_KEY=your_odds_api_key STRIPE_SECRET_KEY=sk_live_xxx STRIPE_WEBHOOK_SECRET=whsec_xxx
+  # If using attached Fly Postgres, FLY_DATABASE_URL is provided automatically.
+  ENVIRONMENT = 'production'
   API_HOST = '0.0.0.0'
   API_PORT = '8000'
   PYTHONUNBUFFERED = 'true'
   USE_SQLITE = 'false'
   PORT = '8000'
+  ALLOWED_HOSTS = 'signaledge-ai.fly.dev,*.fly.dev,localhost,127.0.0.1'
+  CORS_ORIGINS = 'https://signaledge-ai.fly.dev'
 
 [http_service]
   internal_port = 8000

@@ -5,6 +5,7 @@ ZERO hardcoded data - all computations from actual player game logs
 """
 
 import asyncio
+import json
 import logging
 from typing import Any, Dict, List, Optional, Tuple, Set
 from datetime import datetime, timedelta
@@ -192,7 +193,7 @@ class Club100StreakService:
                                     continue
                                 for leader in cat.get("leaders", []):
                                     athlete = leader.get("athlete", {})
-                                    aid = str(athlete.get("id", ""))
+                                    aid = self._extract_athlete_id(athlete)
                                     if not aid:
                                         continue
                                     try:
@@ -256,7 +257,7 @@ class Club100StreakService:
                                     stat_type = cat_map.get(cat_name)
                                     for leader in cat.get("leaders", []):
                                         athlete = leader.get("athlete", {})
-                                        aid = str(athlete.get("id", ""))
+                                        aid = self._extract_athlete_id(athlete)
                                         if not aid:
                                             continue
                                         today_athlete_ids.add(aid)
@@ -451,7 +452,7 @@ class Club100StreakService:
         for game in today_games:
             for leader in game.get("leaders", []):
                 athlete = leader.get("athlete", {})
-                aid = str(athlete.get("id", ""))
+                aid = self._extract_athlete_id(athlete)
                 if not aid:
                     continue
                 if aid not in athletes_today:
@@ -624,15 +625,23 @@ class Club100StreakService:
         today_games_dict = self._build_today_games_dict(sport, today_games)
         
         if not today_games_dict:
-            logger.info(f"[CLUB100] {sport.upper()}: No players in today's games")
-            return []
+            logger.info(
+                f"[CLUB100] {sport.upper()}: Could not build today player map from scoreboard leaders, falling back to scoreboard history"
+            )
+            return await self._analyze_sport_streaks_from_scoreboards(
+                sport, min_streak_length, today_games_dict, today_games
+            )
         
         # Get all relevant players with recent game logs AND their logs in one bulk query
         players_with_logs, all_player_logs = await self._get_players_with_logs_bulk(db, sport)
         
         if not players_with_logs:
-            logger.info(f"[CLUB100] {sport.upper()}: No DB game logs — using ESPN historical scoreboards")
-            return await self._analyze_sport_streaks_from_scoreboards(sport, min_streak_length, today_games_dict, today_games)
+            logger.info(
+                f"[CLUB100] {sport.upper()}: No DB game logs — using ESPN historical scoreboards"
+            )
+            return await self._analyze_sport_streaks_from_scoreboards(
+                sport, min_streak_length, today_games_dict, today_games
+            )
         
         logger.debug(f"[CLUB100] Analyzing {len(players_with_logs)} {sport.upper()} players for streaks")
         
@@ -670,6 +679,14 @@ class Club100StreakService:
             ),
             reverse=True
         )
+
+        if not streaks:
+            logger.info(
+                f"[CLUB100] {sport.upper()}: DB-backed analysis found no streaks, falling back to scoreboard history"
+            )
+            return await self._analyze_sport_streaks_from_scoreboards(
+                sport, min_streak_length, today_games_dict, today_games
+            )
         
         return streaks[:20]  # Limit to top 20 per sport
     
@@ -695,22 +712,23 @@ class Club100StreakService:
             leaders = game.get("leaders", [])
             for leader in leaders:
                 athlete = leader.get("athlete", {})
-                if athlete and athlete.get("id"):
-                    player_id = str(athlete.get("id"))
-                    home_away = leader.get('home_away')
-                    if home_away == 'home':
-                        opponent = away_abbrev or away_name or 'Unknown'
-                    elif home_away == 'away':
-                        opponent = home_abbrev or home_name or 'Unknown'
-                    else:
-                        opponent = 'Unknown'
-                    
-                    game_detail = {
-                        "opponent": opponent,
-                        "time": game_time,
-                        "game_name": game_info.get("name", "Game")
-                    }
-                    games_dict[player_id].append(game_detail)
+                player_id = self._extract_athlete_id(athlete)
+                if not player_id:
+                    continue
+                home_away = leader.get('home_away')
+                if home_away == 'home':
+                    opponent = away_abbrev or away_name or 'Unknown'
+                elif home_away == 'away':
+                    opponent = home_abbrev or home_name or 'Unknown'
+                else:
+                    opponent = 'Unknown'
+
+                game_detail = {
+                    "opponent": opponent,
+                    "time": game_time,
+                    "game_name": game_info.get("name", "Game")
+                }
+                games_dict[player_id].append(game_detail)
         
         return dict(games_dict)
     
@@ -1030,6 +1048,21 @@ class Club100StreakService:
         """Format stat type for display."""
         return stat_type.replace("_", " ").title()
     
+    def _extract_athlete_id(self, athlete: Dict[str, Any]) -> Optional[str]:
+        """Normalize ESPN athlete IDs from leaderboard/scoreboard payloads."""
+        if not athlete:
+            return None
+
+        candidate = athlete.get("id") or athlete.get("athleteId") or athlete.get("uid") or athlete.get("guid")
+        if candidate is None:
+            candidate = athlete.get("idStr") or athlete.get("athleteIdStr")
+
+        if candidate is None:
+            return None
+
+        candidate_str = str(candidate).strip()
+        return candidate_str if candidate_str else None
+
     def _get_sport_key(self, sport: str) -> str:
         """Convert sport name to DB sport_key format."""
         sport_key_map = {
@@ -1049,7 +1082,24 @@ class Club100StreakService:
             "nhl": player.nhl_id,
         }
         ext_id = external_id_map.get(sport)
-        return str(ext_id) if ext_id is not None else None
+        if ext_id is not None:
+            ext_id_str = str(ext_id).strip()
+            if ext_id_str:
+                return ext_id_str
+
+        if player.external_ids:
+            try:
+                external_map = json.loads(player.external_ids)
+                if isinstance(external_map, dict):
+                    candidate = external_map.get(f"{sport}_id") or external_map.get("espn_id") or external_map.get("id")
+                    if candidate is not None:
+                        candidate_str = str(candidate).strip()
+                        if candidate_str:
+                            return candidate_str
+            except Exception:
+                pass
+
+        return None
     
     def clear_cache(self):
         """Clear cached streak data."""
