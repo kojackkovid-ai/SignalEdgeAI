@@ -384,11 +384,21 @@ class ESPNPlayerStatsService:
         roster = []
         
         for athlete in athletes:
+            # Handle position which might be a dict or a string
+            position_data = athlete.get('position', {})
+            if isinstance(position_data, dict):
+                position_abbr = position_data.get('abbreviation')
+                position_name = position_data.get('displayName')
+            else:
+                # If position is a string, use it as-is
+                position_abbr = str(position_data) if position_data else None
+                position_name = str(position_data) if position_data else None
+            
             player_data = {
                 'id': athlete.get('id'),
                 'name': athlete.get('displayName') or athlete.get('fullName'),
-                'position': athlete.get('position', {}).get('abbreviation'),
-                'position_name': athlete.get('position', {}).get('displayName'),
+                'position': position_abbr,
+                'position_name': position_name,
                 'jersey': athlete.get('jersey'),
                 'active': athlete.get('active', True),
             }
