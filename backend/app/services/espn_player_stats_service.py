@@ -101,7 +101,10 @@ class ESPNPlayerStatsService:
                     return []
                     
                 data = response.json()
-                return self._parse_all_games(sport, data)
+                games = self._parse_all_games(sport, data)
+                if games:
+                    await self._attach_scheduled_game_rosters(sport, games)
+                return games
                 
         except Exception as e:
             logger.error(f"Error fetching today's games: {e}")
@@ -151,6 +154,7 @@ class ESPNPlayerStatsService:
             'id': event.get('id'),
             'name': event.get('name'),
             'status': event.get('status', {}).get('type', {}).get('name'),
+            'start_date': event.get('date'),
         }
         
         competitions = event.get('competitions', [])
@@ -229,11 +233,61 @@ class ESPNPlayerStatsService:
         events = data.get('events', [])
         for event in events:
             game_data = self._parse_scoreboard_data(sport, {'events': [event]})
-            if game_data.get('leaders'):
-                games.append(game_data)
+            games.append(game_data)
                 
         return games
     
+    async def _attach_scheduled_game_rosters(self, sport: str, games: List[Dict[str, Any]]) -> None:
+        """Attach roster players for scheduled games that have no leaders yet."""
+        if not games:
+            return
+
+        team_ids = []
+        seen = set()
+        for game in games:
+            if not game.get('leaders'):
+                for side in ('home_team', 'away_team'):
+                    team_id = game.get(side, {}).get('id')
+                    if team_id and team_id not in seen:
+                        seen.add(team_id)
+                        team_ids.append(team_id)
+
+        if not team_ids:
+            return
+
+        logger.debug(f"ESPN roster fallback: fetching rosters for scheduled games: {len(team_ids)} teams")
+        roster_cache = {}
+        tasks = [self.get_team_roster(sport, team_id) for team_id in team_ids]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for team_id, roster in zip(team_ids, results):
+            if isinstance(roster, Exception) or not roster:
+                continue
+            roster_cache[team_id] = roster
+
+        for game in games:
+            if game.get('leaders'):
+                continue
+            for side in ('home_team', 'away_team'):
+                team = game.get(side, {})
+                team_id = team.get('id')
+                home_away = team.get('home_away')
+                team_abbrev = team.get('abbreviation')
+                roster = roster_cache.get(team_id, [])
+                for athlete in roster:
+                    leader = {
+                        'category': 'scheduled',
+                        'display_name': 'Scheduled',
+                        'value': None,
+                        'display_value': '',
+                        'athlete': athlete,
+                        'team_name': team.get('name'),
+                        'team_abbrev': team_abbrev,
+                        'home_away': home_away,
+                        'position': athlete.get('position'),
+                        'jersey': athlete.get('jersey'),
+                    }
+                    game['leaders'].append(leader)
+
     def _parse_scheduled_games(self, sport: str, data: Dict) -> List[Dict[str, Any]]:
         """Parse scheduled games from scoreboard (no leaders since games haven't started)."""
         games = []

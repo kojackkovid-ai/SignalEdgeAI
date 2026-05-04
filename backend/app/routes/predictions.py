@@ -1626,8 +1626,8 @@ async def get_club_100_data(
         warning_message = None
         if total_players == 0 and not timeout_occurred:
             warning_message = (
-                "No Club 100 streaks were found. This typically means historical player game logs "
-                "are not yet loaded or are incomplete in the production database."
+                "No Club 100 streaks were found. This can happen when today's games are not yet live, "
+                "or when the production database does not yet contain the required historical player game logs."
             )
             debug_info["warning"] = warning_message
 
