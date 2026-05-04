@@ -47,10 +47,10 @@ class Settings(BaseSettings):
     stripe_webhook_secret: Optional[str] = None
     sentry_dsn: Optional[str] = None
     
-    # Email - Mailgun
-    mailgun_api_key: str = ""
-    mailgun_domain: str = ""
-    mailgun_sender: str = "noreply@sportstats.com"
+    # Email - SendGrid
+    sendgrid_api_key: str = ""
+    sendgrid_sender: str = "noreply@sportstats.com"
+    sendgrid_sender_name: str = "SignalEdge AI"
     
     # Redis
     redis_url: Optional[str] = os.environ.get("REDIS_URL", "redis://localhost:6379")

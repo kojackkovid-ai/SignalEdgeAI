@@ -16,7 +16,7 @@ from typing import Optional
 import os
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/club100", tags=["Club 100"])
+router = APIRouter(prefix="/api/club-100", tags=["Club 100"])
 
 # ============= MODELS =============
 

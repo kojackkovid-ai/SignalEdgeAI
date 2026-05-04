@@ -51,7 +51,7 @@ class EmailLog(Base):
     template_name = Column(String)  # Name of template used
     
     # Tracking
-    mailgun_message_id = Column(String, unique=True, nullable=True)  # Mailgun tracking ID
+    provider_message_id = Column(String, unique=True, nullable=True)  # Email provider tracking ID (SendGrid, Mailgun, etc)
     status = Column(String, default='sent')  # sent, bounced, complained, opened, clicked, failed
     sent_at = Column(DateTime, default=datetime.utcnow, index=True)
     opened_at = Column(DateTime, nullable=True)

@@ -1251,17 +1251,54 @@ class Club100Service:
                 all_data = await self.get_club_100_data_from_db(db)
 
             player_data = None
+            player_data_source = "unknown"
+
             for sport_players in all_data.values():
                 for player in sport_players:
                     if player.get("player_id") == player_id:
                         player_data = player
+                        player_data_source = "current_data"
                         break
                 if player_data:
                     break
             
             if not player_data:
+                logger.warning(f"[CLUB100] Player {player_id} not found in current Club 100 data, trying streak service fallback")
+                try:
+                    from app.services.club_100_streak_service import get_club_100_streak_service
+                    streak_service = get_club_100_streak_service()
+                    streak_data = await asyncio.wait_for(
+                        streak_service.get_club_100_streaks(db, min_streak_length=2, force_refresh=False),
+                        timeout=12.0
+                    )
+                    for sport_players in streak_data.values():
+                        for player in sport_players:
+                            if player.get("player_id") == player_id:
+                                player_data = player
+                                player_data_source = "streak_service"
+                                break
+                        if player_data:
+                            break
+                    if player_data:
+                        logger.info(f"[CLUB100] Found player {player_id} in streak service data")
+                except Exception as streak_err:
+                    logger.warning(f"[CLUB100] Failed streak service fallback for {player_id}: {streak_err}", exc_info=True)
+
+            if not player_data:
+                logger.warning(f"[CLUB100] Player {player_id} still not found after streak service lookup, trying DB fallback")
+                fallback_data = await self.get_club_100_data_from_db(db)
+                for sport_players in fallback_data.values():
+                    for player in sport_players:
+                        if player.get("player_id") == player_id:
+                            player_data = player
+                            player_data_source = "db_fallback"
+                            break
+                    if player_data:
+                        break
+
+            if not player_data:
                 raise ValueError(f"Player {player_id} not found in Club 100 data")
-            
+
             # Add player_id to unlocked list
             unlocked_picks.append(player_id)
             user_obj = cast(Any, user)
@@ -1337,6 +1374,7 @@ class Club100Service:
             return {
                 "success": True,
                 "player_id": player_id,
+                "player_data_source": player_data_source,
                 "unlocked": True,
                 **player_data,  # Include all player data including prop_line
                 "pick_cost": 1,

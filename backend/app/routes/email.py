@@ -17,7 +17,7 @@ from typing import Optional
 from app.database import get_db
 from app.models.db_models import User
 from app.models.email_models import EmailPreferences, EmailLog, EmailTemplate
-from app.services.mailgun_service import SendGridService
+from app.services.sendgrid_service import SendGridService
 from app.services.email_templates_service import EmailTemplateService
 from app.services.auth_service import AuthService
 from app.config import Settings
@@ -425,7 +425,7 @@ async def send_test_email(
             return {
                 'success': True,
                 'message': f'Test email sent to {user_email}',
-                'mailgun_id': result.get('mailgun_id')
+                'message_id': result.get('message_id')
             }
         else:
             raise HTTPException(status_code=500, detail=result.get('error'))

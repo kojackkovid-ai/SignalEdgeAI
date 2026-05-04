@@ -39,9 +39,9 @@ class EnhancedTrainingScheduler:
     - Retry logic and error handling
     """
     
-    # Default weekly schedule: Mondays at 2 AM UTC
+    # Default daily schedule: Every day at 2 AM UTC
     DEFAULT_SCHEDULE = {
-        'day_of_week': 0,  # 0=Monday, 6=Sunday
+        'day_of_week': None,  # Not used for daily
         'hour_utc': 2,
         'minute_utc': 0
     }
@@ -107,14 +107,17 @@ class EnhancedTrainingScheduler:
                 logger.info("Creating default weekly training schedule...")
                 
                 for idx, (sport_key, market_type) in enumerate(self.TRAINING_CONFIG):
+                    base_minutes = self.DEFAULT_SCHEDULE['minute_utc'] + (idx * 5)
+                    hour_offset, minute_utc = divmod(base_minutes, 60)
+                    hour_utc = (self.DEFAULT_SCHEDULE['hour_utc'] + hour_offset) % 24
                     job = ScheduledTrainingJob(
-                        job_name=f"weekly_retrain_{sport_key}_{market_type}",
+                        job_name=f"daily_retrain_{sport_key}_{market_type}",
                         sport_key=sport_key,
                         market_type=market_type,
-                        schedule_type="weekly",
-                        day_of_week=self.DEFAULT_SCHEDULE['day_of_week'],
-                        hour_utc=self.DEFAULT_SCHEDULE['hour_utc'],
-                        minute_utc=self.DEFAULT_SCHEDULE['minute_utc'] + (idx * 5),  # Stagger by 5 min
+                        schedule_type="daily",
+                        day_of_week=None,  # Not used for daily
+                        hour_utc=hour_utc,
+                        minute_utc=minute_utc,
                         is_enabled=True,
                         days_of_history=self.days_of_history,
                         min_samples_required=self.min_samples_required
@@ -122,13 +125,45 @@ class EnhancedTrainingScheduler:
                     session.add(job)
                 
                 await session.commit()
-                logger.info(f"Created {len(self.TRAINING_CONFIG)} weekly training jobs")
+                logger.info(f"Created {len(self.TRAINING_CONFIG)} daily training jobs")
             else:
+                # Update existing jobs to daily schedule if they are weekly
+                updated_count = 0
+                for job in existing_jobs:
+                    if job.schedule_type == "weekly":
+                        job.schedule_type = "daily"
+                        job.day_of_week = None
+                        job.job_name = job.job_name.replace("weekly", "daily")
+                        updated_count += 1
+                
+                if updated_count > 0:
+                    await session.commit()
+                    logger.info(f"Updated {updated_count} existing jobs to daily schedule")
+                
                 logger.info(f"Found {len(existing_jobs)} existing training jobs")
         
         except Exception as e:
             logger.error(f"Error initializing scheduler: {e}")
     
+    def _get_normalized_schedule(self, job: ScheduledTrainingJob) -> Tuple[int, int]:
+        """Validate and normalize schedule values for a job."""
+        hour_utc = job.hour_utc if isinstance(job.hour_utc, int) else self.DEFAULT_SCHEDULE['hour_utc']
+        minute_utc = job.minute_utc if isinstance(job.minute_utc, int) else self.DEFAULT_SCHEDULE['minute_utc']
+
+        if hour_utc < 0 or hour_utc > 23 or minute_utc < 0 or minute_utc > 59:
+            total_minutes = hour_utc * 60 + minute_utc
+            hour_utc, minute_utc = divmod(total_minutes, 60)
+            hour_utc %= 24
+
+            logger.warning(
+                f"Normalizing schedule for {job.job_name}: "
+                f"{job.hour_utc}:{job.minute_utc} -> {hour_utc}:{minute_utc}"
+            )
+            job.hour_utc = hour_utc
+            job.minute_utc = minute_utc
+
+        return hour_utc, minute_utc
+
     async def start(self):
         """Start the training scheduler"""
         if self.is_running:
@@ -170,7 +205,14 @@ class EnhancedTrainingScheduler:
                 
                 now = datetime.utcnow()
                 
+                schedule_normalized = False
+
                 for job in jobs:
+                    previous_schedule = (job.hour_utc, job.minute_utc)
+                    normalized_schedule = self._get_normalized_schedule(job)
+                    if previous_schedule != normalized_schedule:
+                        schedule_normalized = True
+
                     should_run = self._should_job_run(job, now)
                     
                     if should_run:
@@ -179,7 +221,10 @@ class EnhancedTrainingScheduler:
                         job.last_run_at = now
                         job.next_run_at = self._calculate_next_run(job, now)
                         await session.commit()
-                
+
+                if schedule_normalized:
+                    await session.commit()
+
                 # Check for drift-triggered retraining if enabled
                 if self.drift_check_enabled:
                     await self._check_performance_drift(session)
@@ -192,16 +237,18 @@ class EnhancedTrainingScheduler:
         if not job.is_enabled:
             return False
         
+        hour_utc, minute_utc = self._get_normalized_schedule(job)
+
         if job.schedule_type == "weekly":
             # Check if it's the right day
             if now.weekday() != job.day_of_week:
                 return False
             
             # Check if it's the right time (within check interval window)
-            job_time = time(job.hour_utc, job.minute_utc)
+            job_time = time(hour_utc, minute_utc)
             now_time = now.time()
             
-            job_datetime = now.replace(hour=job.hour_utc, minute=job.minute_utc, second=0, microsecond=0)
+            job_datetime = now.replace(hour=hour_utc, minute=minute_utc, second=0, microsecond=0)
             
             # Job should run if:
             # 1. Last run was before job time today
@@ -210,7 +257,7 @@ class EnhancedTrainingScheduler:
                 return now_time >= job_time and (now - job_datetime).total_seconds() <= self.check_interval
         
         elif job.schedule_type == "daily":
-            job_datetime = now.replace(hour=job.hour_utc, minute=job.minute_utc, second=0, microsecond=0)
+            job_datetime = now.replace(hour=hour_utc, minute=minute_utc, second=0, microsecond=0)
             
             if job.last_run_at is None or job.last_run_at.date() < now.date():
                 return (now - job_datetime).total_seconds() <= self.check_interval
@@ -219,19 +266,21 @@ class EnhancedTrainingScheduler:
     
     def _calculate_next_run(self, job: ScheduledTrainingJob, now: datetime) -> datetime:
         """Calculate next run time for a job"""
+        hour_utc, minute_utc = self._get_normalized_schedule(job)
+
         if job.schedule_type == "weekly":
-            # Next Monday at job time
+            # Next week at job time
             days_until_next = (job.day_of_week - now.weekday()) % 7
             if days_until_next == 0:
                 days_until_next = 7
             
             next_run = now + timedelta(days=days_until_next)
-            next_run = next_run.replace(hour=job.hour_utc, minute=job.minute_utc, second=0, microsecond=0)
+            next_run = next_run.replace(hour=hour_utc, minute=minute_utc, second=0, microsecond=0)
             return next_run
         
         elif job.schedule_type == "daily":
             next_run = now + timedelta(days=1)
-            next_run = next_run.replace(hour=job.hour_utc, minute=job.minute_utc, second=0, microsecond=0)
+            next_run = next_run.replace(hour=hour_utc, minute=minute_utc, second=0, microsecond=0)
             return next_run
         
         return now + timedelta(days=1)
@@ -357,11 +406,18 @@ class EnhancedTrainingScheduler:
             
             job_statuses = []
             for job in jobs:
+                if job.schedule_type == "weekly":
+                    schedule_str = f"Weekly {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][job.day_of_week]} at {job.hour_utc:02d}:{job.minute_utc:02d} UTC"
+                elif job.schedule_type == "daily":
+                    schedule_str = f"Daily at {job.hour_utc:02d}:{job.minute_utc:02d} UTC"
+                else:
+                    schedule_str = f"Unknown schedule type: {job.schedule_type}"
+                
                 job_statuses.append({
                     'job_name': job.job_name,
                     'sport_key': job.sport_key,
                     'market_type': job.market_type,
-                    'schedule': f"Weekly {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][job.day_of_week]} at {job.hour_utc:02d}:{job.minute_utc:02d} UTC",
+                    'schedule': schedule_str,
                     'is_enabled': job.is_enabled,
                     'last_run': job.last_run_at.isoformat() if job.last_run_at else 'Never',
                     'last_status': job.last_run_status,

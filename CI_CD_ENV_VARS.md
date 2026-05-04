@@ -21,9 +21,10 @@ SECRET_KEY=your_256_bit_secret_key_here
 API_URL=https://your-domain.com/api
 FRONTEND_URL=https://your-domain.com
 
-# Email (Mailgun)
-MAILGUN_API_KEY=key_YOUR_KEY
-MAILGUN_DOMAIN=your-domain.mailgun.org
+# Email (SendGrid)
+SENDGRID_API_KEY=SG_YOUR_KEY
+SENDGRID_SENDER=noreply@yourdomain.com
+SENDGRID_SENDER_NAME=SignalEdge AI
 
 # Monitoring
 SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id

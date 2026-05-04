@@ -10,6 +10,7 @@ from app.services.espn_prediction_service import ESPNPredictionService
 from app.services.data_validation_service import get_data_validation_service
 from app.models.tier_features import TierFeatures
 from app.models.db_models import user_predictions, User
+from app.models.prediction_records import PredictionRecord
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta, timezone
@@ -1835,10 +1836,15 @@ async def follow_club_100_pick(
             result = await service.follow_club_100_pick(db, current_user_id, player_id)
             logger.info(f"[CLUB100] Successfully followed player {player_id} for user {current_user_id}")
             
+            player_data_source = result.get("player_data_source", "unknown")
             return {
                 "success": True,
-                **result,
-                "daily_picks_remaining": daily_picks_available - 1
+                "daily_picks_remaining": daily_picks_available - 1,
+                "player_data_source": player_data_source,
+                "matched_in_current_data": player_data_source == "current_data",
+                "matched_in_streak_service": player_data_source == "streak_service",
+                "matched_in_db_fallback": player_data_source == "db_fallback",
+                **result
             }
             
         except ValueError as e:
@@ -1900,17 +1906,20 @@ async def get_club_100_platform_metrics(
         
         # Get total predictions across platform (EXCLUDE Club 100 access picks)
         result = await db.execute(
-            select(sa_func.count(Prediction.id))
-            .where(Prediction.sport != 'club_100_access')
+            select(sa_func.count(PredictionRecord.id))
+            .where(
+                PredictionRecord.outcome.in_(['hit', 'miss']),
+                PredictionRecord.sport_key != 'club_100_access'
+            )
         )
         total_predictions = result.scalar() or 0
         
         # Calculate win rate (predictions that resolved as wins, EXCLUDE Club 100 access picks)
         result = await db.execute(
-            select(sa_func.count(Prediction.id))
+            select(sa_func.count(PredictionRecord.id))
             .where(
-                Prediction.result == 'win',
-                Prediction.sport != 'club_100_access'
+                PredictionRecord.outcome == 'hit',
+                PredictionRecord.sport_key != 'club_100_access'
             )
         )
         total_wins = result.scalar() or 0

@@ -1,6 +1,6 @@
 """
 Email Integration Service
-Integrates Mailgun email sending into existing platform workflows
+Integrates SendGrid email sending into existing platform workflows
 Handles: tier upgrades, password resets, prediction results, subscription confirmations
 """
 
@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.config import Settings
-from app.services.mailgun_service import SendGridService
+from app.services.sendgrid_service import SendGridService
 from app.models.db_models import User
 
 logger = logging.getLogger(__name__)
@@ -22,8 +22,7 @@ class EmailIntegrationService:
     
     def __init__(self, settings: Settings, sendgrid_service: SendGridService):
         self.settings = settings
-        self.sendgrid_service = sendgrid_service
-        self.mailgun_service = sendgrid_service
+        self.email_service = sendgrid_service
     
     async def send_tier_upgrade_email(
         self,
@@ -49,7 +48,7 @@ class EmailIntegrationService:
                 return
             
             # Check user preferences
-            can_send = await self.mailgun_service.check_email_preferences(
+            can_send = await self.email_service.check_email_preferences(
                 db, user_id, 'tier_update'
             )
             if not can_send:
@@ -115,7 +114,7 @@ class EmailIntegrationService:
                 return
             
             # Check preferences - account updates
-            can_send = await self.mailgun_service.check_email_preferences(
+            can_send = await self.email_service.check_email_preferences(
                 db, user_id, 'account'
             )
             if not can_send:
@@ -220,7 +219,7 @@ class EmailIntegrationService:
                 return
             
             # Check preferences
-            can_send = await self.mailgun_service.check_email_preferences(
+            can_send = await self.email_service.check_email_preferences(
                 db, user_id, 'prediction_result'
             )
             if not can_send:
@@ -290,7 +289,7 @@ class EmailIntegrationService:
         for user_id in user_ids:
             try:
                 # Check preferences
-                can_send = await self.mailgun_service.check_email_preferences(
+                can_send = await self.email_service.check_email_preferences(
                     db, user_id, 'promotional'
                 )
                 if not can_send:
@@ -302,7 +301,7 @@ class EmailIntegrationService:
                     continue
                 
                 # Send email
-                result = await self.mailgun_service.send_email(
+                result = await self.email_service.send_email(
                     to_email=user.email,
                     subject=subject,
                     html_body=html_body,

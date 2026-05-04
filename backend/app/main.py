@@ -332,12 +332,8 @@ async def initialize_enhanced_services():
     try:
         logger.info("Initializing enhanced services...")
         
-        # DISABLED: Initialize Caching Service - causes hang on startup
-        #try:
-        #    cache_service = await init_cache_service(settings.redis_url if hasattr(settings, 'redis_url') else None)
-        #    logger.info("✓ Caching service initialized")
-        #except Exception as e:
-        #    logger.warning(f"Caching service initialization failed: {e}. Will use in-memory fallback.")
+        # Lazy import heavy ML and monitoring dependencies
+        _import_ml_services()
         
         # Initialize Monitoring Service
         monitoring = init_monitoring()
@@ -353,17 +349,44 @@ async def initialize_enhanced_services():
             redis_client = None
             logger.warning("[WARN] Cache service initialization failed; continuing with in-memory fallback: %s", cache_error)
         
-        # ML Services - now enabled with TensorFlow support
-        enhanced_ml_service = None  # Can be initialized later with proper ML pipeline
-        logger.info("[OK] ML service ready (TensorFlow enabled)")
+        # Initialize ML Service
+        try:
+            if EnhancedMLService is not None:
+                enhanced_ml_service = EnhancedMLService()
+                if hasattr(enhanced_ml_service, "initialize"):
+                    await enhanced_ml_service.initialize()
+                logger.info("[OK] Enhanced ML service initialized")
+            else:
+                enhanced_ml_service = None
+                logger.warning("[WARN] EnhancedMLService class is unavailable")
+        except Exception as ml_error:
+            enhanced_ml_service = None
+            logger.warning("[WARN] Enhanced ML service initialization failed: %s", ml_error)
         
-        # Auto-training pipeline - initialized for ML model retraining
-        auto_training_pipeline = None  # Initialize with training service when needed
-        logger.info("[OK] Auto-training pipeline ready")
+        # Initialize auto-training pipeline for scheduled model retraining
+        try:
+            if EnhancedAutoTrainingPipeline is not None:
+                auto_training_pipeline = EnhancedAutoTrainingPipeline(
+                    retrain_interval_days=settings.retrain_days,
+                    min_samples=settings.min_training_samples,
+                    performance_threshold=0.05,
+                    min_accuracy_threshold=0.55
+                )
+                logger.info("[OK] Auto-training pipeline initialized")
+            else:
+                auto_training_pipeline = None
+                logger.warning("[WARN] EnhancedAutoTrainingPipeline class is unavailable")
+        except Exception as training_error:
+            auto_training_pipeline = None
+            logger.warning("[WARN] Auto-training pipeline initialization failed: %s", training_error)
         
-        # Model monitoring for real-time performance tracking
-        model_monitor = None  # Initialize with model performance tracker when needed
-        logger.info("[OK] Model monitoring ready")
+        # Initialize model monitoring for real-time performance tracking
+        try:
+            model_monitor = await get_model_monitor()
+            logger.info("[OK] Model monitoring initialized")
+        except Exception as monitor_error:
+            model_monitor = None
+            logger.warning("[WARN] Model monitoring initialization failed: %s", monitor_error)
         
         # Setup health checks with real services where possible
         setup_default_health_checks(AsyncSessionLocal, redis_client)
@@ -381,29 +404,66 @@ async def enhanced_auto_training_loop():
     
     while True:
         try:
-            # Check if retraining is needed
-            if auto_training_pipeline:
+            if auto_training_pipeline is None:
+                logger.warning("Auto-training pipeline is unavailable. Skipping training check.")
+            else:
                 result = await auto_training_pipeline.check_and_trigger_retraining()
-                
-                if result.get("retrained"):
-                    logger.info(f"Models retrained: {result.get('models_trained', [])}")
-                
-                # Check model performance for key sport/market combinations
+                if result.get("status") == "completed":
+                    retrain_needed = [item for item in result.get('results', []) if item.get('status') == 'retrain_needed']
+                    if retrain_needed:
+                        logger.info(f"Auto-training checks completed. Retrain needed for {len(retrain_needed)} model(s)")
+                        if enhanced_ml_service is not None and ESPNPredictionService is not None:
+                            espn_service = ESPNPredictionService()
+                            for retrain_job in retrain_needed:
+                                sport_key = retrain_job.get('sport_key')
+                                market_type = retrain_job.get('market_type')
+                                try:
+                                    historical_data = await espn_service.get_historical_data(
+                                        sport_key=sport_key,
+                                        days_back=30
+                                    )
+                                    if historical_data and len(historical_data) >= settings.min_training_samples:
+                                        train_result = await enhanced_ml_service.train_models(
+                                            sport_key,
+                                            market_type,
+                                            historical_data=historical_data
+                                        )
+                                        logger.info(
+                                            f"Auto-training completed for {sport_key}/{market_type}: {train_result.get('status')}"
+                                        )
+                                    else:
+                                        logger.warning(
+                                            f"Insufficient historical data to retrain {sport_key}/{market_type}. "
+                                            f"Found {len(historical_data) if historical_data is not None else 0} records."
+                                        )
+                                except Exception as train_error:
+                                    logger.error(
+                                        f"Failed to retrain {sport_key}/{market_type}: {train_error}"
+                                    )
+                        else:
+                            logger.warning(
+                                "Auto-training requested but enhanced ML service or ESPN service is unavailable."
+                            )
+                    else:
+                        logger.info("Auto-training checks completed. No retraining required at this time.")
+                else:
+                    logger.warning(f"Auto-training loop returned unexpected status: {result}")
+
                 if model_monitor:
-                    sport_market_combos = [
-                        ('basketball_nba', 'moneyline'),
-                        ('americanfootball_nfl', 'moneyline'),
-                        ('icehockey_nhl', 'moneyline'),
-                    ]
-                    for sport_key, market_type in sport_market_combos:
-                        try:
-                            perf_check = await model_monitor.check_model_performance(sport_key, market_type)
-                            if perf_check.get('needs_retrain'):
-                                logger.warning(f"Model {sport_key}/{market_type} needs retraining: {perf_check.get('reason')}")
-                        except Exception as perf_error:
-                            logger.debug(f"Could not check performance for {sport_key}/{market_type}: {perf_error}")
-            
-            # Wait before next check (every hour)
+                    async with AsyncSessionLocal() as perf_session:
+                        sport_market_combos = [
+                            ('basketball_nba', 'moneyline'),
+                            ('americanfootball_nfl', 'moneyline'),
+                            ('icehockey_nhl', 'moneyline'),
+                        ]
+                        for sport_key, market_type in sport_market_combos:
+                            try:
+                                perf_check = await model_monitor.detect_drift(perf_session, sport_key, market_type, lookback_days=7)
+                                if perf_check.get('has_drift'):
+                                    logger.warning(f"Model {sport_key}/{market_type} needs retraining: {perf_check.get('reason')}")
+                            except Exception as perf_error:
+                                logger.debug(f"Could not check performance for {sport_key}/{market_type}: {perf_error}")
+
             await asyncio.sleep(3600)
             
         except asyncio.CancelledError:
@@ -442,10 +502,13 @@ async def startup_event():
     except Exception as e:
         logger.error(f"[STARTUP] [ERROR] Startup error: {e}", exc_info=True)
     
-    # Start auto-training in background - now enabled with ML support
+    # Start auto-training in background if the pipeline is available
     try:
-        asyncio.create_task(enhanced_auto_training_loop())
-        logger.info("[STARTUP] [OK] Auto-training background task started")
+        if auto_training_pipeline is not None:
+            asyncio.create_task(enhanced_auto_training_loop())
+            logger.info("[STARTUP] [OK] Auto-training background task started")
+        else:
+            logger.info("[STARTUP] [INFO] Auto-training pipeline unavailable; background task not started")
     except Exception as e:
         logger.warning(f"[STARTUP] [WARN] Auto-training task failed to start: {e}")
     
@@ -462,18 +525,20 @@ async def startup_event():
             template_service = EmailTemplateService()
             await template_service.create_default_templates(db)
             logger.info("[STARTUP] [OK] Email templates initialized")
-        
-        # asyncio.create_task(run_email_task_loop(SessionLocal))
-        logger.info("[STARTUP] [INFO] Email campaign background task DISABLED for startup debugging")
+
+        if settings.sendgrid_api_key and settings.sendgrid_sender:
+            asyncio.create_task(run_email_task_loop(SessionLocal))
+            logger.info("[STARTUP] [OK] Email campaign background task started")
+        else:
+            logger.info("[STARTUP] [INFO] SendGrid not configured. Email campaign loop not started.")
     except Exception as e:
         logger.warning(f"[STARTUP] [WARN] Email task failed to start: {e}")
-    
+
     # Initialize ML Training Scheduler
     try:
         logger.info("[STARTUP] Initializing ML Training Scheduler...")
         scheduler = await get_training_scheduler()
 
-        # Add timeout to prevent hanging during initialization
         try:
             async with AsyncSessionLocal() as session:
                 await asyncio.wait_for(
@@ -488,7 +553,6 @@ async def startup_event():
             logger.warning(f"[STARTUP] [WARN] Training scheduler initialization failed: {init_error}")
             scheduler = None
 
-        # Start scheduler if initialization succeeded
         if scheduler is not None:
             asyncio.create_task(scheduler.start())
             logger.info("[STARTUP] [OK] ML Training Scheduler started")
@@ -629,7 +693,7 @@ app.include_router(predictions.router, prefix="/api/predictions", tags=["Predict
 app.include_router(model_routes.router, prefix="/api/models", tags=["Models"])
 app.include_router(ml_operations.router, tags=["ML Training & Monitoring"])
 app.include_router(payment.router, prefix="/api/payment", tags=["Payments"])
-app.include_router(club100_addon.router, tags=["Club 100 Monetization"])
+app.include_router(club100_addon.router, tags=["Club 100"])
 app.include_router(resolution.router, tags=["Resolution"])
 app.include_router(analytics.router, tags=["Analytics"])
 app.include_router(prediction_history.router, prefix="/api/user/predictions", tags=["Prediction History"])

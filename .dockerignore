@@ -7,6 +7,7 @@
 !backend/
 !backend/app/
 !backend/requirements.txt
+!frontend/
 !frontend/dist/
 !frontend/dist/**
 

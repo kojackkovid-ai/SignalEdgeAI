@@ -268,9 +268,9 @@ async def forgot_password(
             # User exists - generate token and send email
             token = await get_auth_service().create_password_reset_token(db, request.email)
             
-            # Send reset email via Mailgun
+            # Send reset email via SendGrid
             from app.services.email_integration_service import EmailIntegrationService
-            from app.services.mailgun_service import SendGridService
+            from app.services.sendgrid_service import SendGridService
             from app.config import settings
             
             email_provider = SendGridService(settings)

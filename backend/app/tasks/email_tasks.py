@@ -13,14 +13,14 @@ from typing import List
 from app.models.db_models import User
 from app.models.email_models import EmailPreferences, EmailLog
 from app.models.prediction_records import PredictionRecord
-from app.services.mailgun_service import MailgunService
+from app.services.sendgrid_service import SendGridService
 from app.services.email_templates_service import EmailTemplateService
 from app.config import Settings
 
 logger = logging.getLogger(__name__)
 
 settings = Settings()
-mailgun_service = MailgunService(settings)
+sendgrid_service = SendGridService(settings)
 template_service = EmailTemplateService()
 
 
@@ -93,7 +93,7 @@ async def send_daily_digest(db: AsyncSession):
                 }
                 
                 # Send email
-                send_result = await mailgun_service.send_templated_email(
+                send_result = await sendgrid_service.send_templated_email(
                     to_email=user.email,
                     template_name='daily_digest',
                     context=context,
@@ -212,7 +212,7 @@ async def send_weekly_digest(db: AsyncSession):
                 }
                 
                 # Send email
-                send_result = await mailgun_service.send_templated_email(
+                send_result = await sendgrid_service.send_templated_email(
                     to_email=user.email,
                     template_name='weekly_digest',
                     context=context,
@@ -300,7 +300,7 @@ async def send_accuracy_milestone_emails(db: AsyncSession):
                             'dashboard_url': f'{settings.frontend_url}/dashboard'
                         }
                         
-                        send_result = await mailgun_service.send_templated_email(
+                        send_result = await sendgrid_service.send_templated_email(
                             to_email=user.email,
                             template_name='accuracy_milestone',
                             context=context,
