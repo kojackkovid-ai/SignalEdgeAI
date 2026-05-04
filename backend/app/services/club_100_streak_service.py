@@ -56,18 +56,18 @@ class Club100StreakService:
     
     # Min values to consider for streak calculation
     MIN_STAT_VALUES = {
-        "points": 15,
-        "rebounds": 5,
-        "assists": 3,
+        "points": 10,  # Temporarily lowered from 15
+        "rebounds": 3,  # Temporarily lowered from 5
+        "assists": 2,  # Temporarily lowered from 3
         "steals": 1,
         "blocks": 1,
         "three_pointers_made": 1,
-        "pass_yards": 150,
-        "rush_yards": 50,
-        "receptions": 3,
-        "receiving_yards": 50,
+        "pass_yards": 100,  # Temporarily lowered from 150
+        "rush_yards": 30,  # Temporarily lowered from 50
+        "receptions": 2,  # Temporarily lowered from 3
+        "receiving_yards": 30,  # Temporarily lowered from 50
         "goals": 1,
-        "hits": 2,
+        "hits": 1,  # Temporarily lowered from 2
         "home_runs": 0,
         "runs_batted_in": 1
     }
