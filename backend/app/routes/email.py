@@ -17,7 +17,7 @@ from typing import Optional
 from app.database import get_db
 from app.models.db_models import User
 from app.models.email_models import EmailPreferences, EmailLog, EmailTemplate
-from app.services.mailgun_service import MailgunService
+from app.services.mailgun_service import SendGridService
 from app.services.email_templates_service import EmailTemplateService
 from app.services.auth_service import AuthService
 from app.config import Settings
@@ -64,7 +64,7 @@ class SendTestEmailResponse(BaseModel):
 
 # Lazy initialization - avoid blocking during import
 _settings = None
-_mailgun_service = None
+_email_service = None
 _template_service = None
 
 def get_settings():
@@ -73,11 +73,11 @@ def get_settings():
         _settings = Settings()
     return _settings
 
-def get_mailgun_service():
-    global _mailgun_service
-    if _mailgun_service is None:
-        _mailgun_service = MailgunService(get_settings())
-    return _mailgun_service
+def get_email_service():
+    global _email_service
+    if _email_service is None:
+        _email_service = SendGridService(get_settings())
+    return _email_service
 
 def get_template_service():
     global _template_service
@@ -230,7 +230,7 @@ async def send_verification_email(
         user_name = str(user.username)  # type: ignore
         
         # Send verification email
-        result = await get_mailgun_service().send_email(
+        result = await get_email_service().send_email(
             to_email=user_email,
             subject="Verify Your Email Address",
             html_body=f"""
@@ -413,7 +413,7 @@ async def send_test_email(
             'date': datetime.utcnow().strftime('%B %d, %Y'),
         }
         
-        result = await get_mailgun_service().send_templated_email(
+        result = await get_email_service().send_templated_email(
             to_email=user_email,
             template_name=template_name,
             context=context,

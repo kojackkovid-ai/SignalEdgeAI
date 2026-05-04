@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.config import Settings
-from app.services.mailgun_service import MailgunService
+from app.services.mailgun_service import SendGridService
 from app.models.db_models import User
 
 logger = logging.getLogger(__name__)
@@ -20,9 +20,10 @@ logger = logging.getLogger(__name__)
 class EmailIntegrationService:
     """Service to integrate emails into platform workflows"""
     
-    def __init__(self, settings: Settings, mailgun_service: MailgunService):
+    def __init__(self, settings: Settings, sendgrid_service: SendGridService):
         self.settings = settings
-        self.mailgun_service = mailgun_service
+        self.sendgrid_service = sendgrid_service
+        self.mailgun_service = sendgrid_service
     
     async def send_tier_upgrade_email(
         self,
@@ -75,7 +76,7 @@ class EmailIntegrationService:
             }
             
             # Send email
-            result = await self.mailgun_service.send_templated_email(
+            result = await self.sendgrid_service.send_templated_email(
                 to_email=user.email,
                 template_name='tier_upgrade',
                 context=context,
@@ -128,7 +129,7 @@ class EmailIntegrationService:
             }
             
             # Send email
-            result = await self.mailgun_service.send_templated_email(
+            result = await self.sendgrid_service.send_templated_email(
                 to_email=user.email,
                 template_name='password_reset',
                 context=context,
@@ -170,7 +171,7 @@ class EmailIntegrationService:
                 'verification_url': f'{self.settings.frontend_url}/verify-email?token={verification_token}',
             }
             
-            result = await self.mailgun_service.send_templated_email(
+            result = await self.sendgrid_service.send_templated_email(
                 to_email=user.email,
                 template_name='email_verification',
                 context=context,
@@ -247,7 +248,7 @@ class EmailIntegrationService:
             }
             
             # Send email
-            send_result = await self.mailgun_service.send_templated_email(
+            send_result = await self.sendgrid_service.send_templated_email(
                 to_email=user.email,
                 template_name='prediction_result',
                 context=context,

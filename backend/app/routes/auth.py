@@ -270,11 +270,11 @@ async def forgot_password(
             
             # Send reset email via Mailgun
             from app.services.email_integration_service import EmailIntegrationService
-            from app.services.mailgun_service import MailgunService
+            from app.services.mailgun_service import SendGridService
             from app.config import settings
             
-            mailgun = MailgunService(settings)
-            email_service = EmailIntegrationService(settings, mailgun)
+            email_provider = SendGridService(settings)
+            email_service = EmailIntegrationService(settings, email_provider)
             
             await email_service.send_password_reset_email(
                 db=db,
