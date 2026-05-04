@@ -902,12 +902,13 @@ class Club100StreakService:
         
         min_value = self.MIN_STAT_VALUES.get(stat_type, 0)
         
-        # Extract stat values from logs
+        # Extract stat values from logs (treat missing stats as 0)
         stat_values = []
         for log in game_logs:
             value = self._extract_stat_value(log["stats"], stat_type)
-            if value is not None:
-                stat_values.append(value)
+            if value is None:
+                value = 0.0  # Missing stat means 0
+            stat_values.append(value)
         
         if len(stat_values) < min_streak_length:
             return None
