@@ -1596,7 +1596,7 @@ async def get_club_100_data(
         
         try:
             club_100_data = await asyncio.wait_for(
-                streak_service.get_club_100_streaks(db, min_streak_length=3, force_refresh=force_refresh),
+                streak_service.get_club_100_streaks(db, min_streak_length=2, force_refresh=force_refresh),
                 timeout=20.0
             )
             timeout_occurred = False
@@ -1619,7 +1619,7 @@ async def get_club_100_data(
             "sports_breakdown": {sport: len(players) for sport, players in club_100_data.items()},
             "timestamp": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat(),
             "service": "Club100StreakService",
-            "min_streak_length": 3,
+            "min_streak_length": 2,
             "timeout_occurred": timeout_occurred
         }
 
@@ -1636,13 +1636,13 @@ async def get_club_100_data(
             "data": club_100_data,
             "debug": debug_info,
             "warning": warning_message,
-            "description": "Premium Club 100: Real athletes with consecutive 100% line clearance streaks (3+ games)",
+            "description": "Premium Club 100: Real athletes with consecutive 100% line clearance streaks (2+ games)",
             "note": "All data computed from actual player game logs - ZERO hardcoded data",
             "streak_types": {
+                "2_games": "100% clearance over 2 consecutive games",
                 "3_games": "100% clearance over 3 consecutive games",
                 "4_games": "100% clearance over 4 consecutive games",
                 "5_games": "100% clearance over 5 consecutive games",
-                "6_games": "100% clearance over 6+ consecutive games"
             }
         }
         

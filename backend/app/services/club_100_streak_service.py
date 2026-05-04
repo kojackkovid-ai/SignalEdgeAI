@@ -226,7 +226,7 @@ class Club100StreakService:
         Use historical ESPN scoreboard data (past 10 days) to compute consecutive
         prop-line streaks.  No broken gamelog endpoint needed.
         """
-        player_data = await self._build_player_history_from_scoreboards(sport)
+        player_data = await self._build_player_history_from_scoreboards(sport, days=14)
 
         sport_path = self.ESPN_SPORT_PATHS.get(sport, "")
         cat_map = self.SCOREBOARD_CAT_MAP.get(sport, {})
