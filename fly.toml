@@ -7,6 +7,7 @@ app = 'signaledge-ai'
 primary_region = 'ams'
 
 [build]
+  context = '.'
   dockerfile = 'backend/Dockerfile'
   
   [build.args]
